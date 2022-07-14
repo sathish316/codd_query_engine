@@ -20,6 +20,8 @@
 * APIs for Select query flow
 * Configure business usecase 1 in seeds/UI
 * Configure business usecase 2 in seeds/UI
+* Populate test data for business read usecase 1
+* Populate test data for business read usecase 2
 * Create entities, APIs and forms for write flow
   * Flow
     * Page
@@ -30,3 +32,5 @@
 * APIs for Insert/Update query flow
 * Configure business write usecase 1 in seeds/UI
 * Configure business write usecase 2 in seeds/UI
+* Verify test data for business write usecase 1
+* Verify test data for business write usecase 2
