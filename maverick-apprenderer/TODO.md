@@ -6,6 +6,7 @@
   * Table renderer
   * Graph renderer
 * Wire panel to maverick backend
+* Prettify UI using css framework
 * NLQuery to SQLQuery variations
   * Live query
   * Use approved query
