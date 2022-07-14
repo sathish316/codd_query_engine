@@ -10,6 +10,8 @@ openai.api_key = os.getenv("OPENAI_API_KEY")
 
 @app.route('/text2sql', methods=['POST'])
 def text2sql():
+    print("HEREHERE:", request)
+    print(request.data)
     prompt_request = json.loads(request.data)
     print("Request:" + prompt_request['prompt'])
     full_prompt = generate_prompt(prompt_request['database'], prompt_request['schema'], prompt_request['prompt'])

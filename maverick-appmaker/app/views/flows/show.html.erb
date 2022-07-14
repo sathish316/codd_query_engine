@@ -25,9 +25,9 @@
     </p>
     <p>
         <strong>SQL Query:</strong> 
-        <%= panel.sql_query %>
+        <%= simple_format(panel.sql_query) %>
     </p>
-    <%= button_to "Generate Text2SQL", app_flow_panel_generate_sql_query_path(@app, @flow, panel) %>
+    <%= button_to "Generate Text2SQL", app_flow_panel_path(@app, @flow, panel), method: :put %>
     <p>----------------------</p>
 <% end %>
 
