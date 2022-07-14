@@ -1,20 +1,21 @@
 # TODO
-* Sqlite db
-* Seed file
-* Rails app skeleton
-* Rails app APIs for blog and article
+* ~Sqlite db~
+* ~Rails app skeleton~
+* ~Rails app APIs for blog and article~
 * Prettify UI using css framework
-* Create entities, APIs and forms for read flow:
-  * App
-    * Entities
-  * Schema
-  * NLQuery
-  * SQLQuery
-  * Flow
-    * Panel
-    * Panel association to NLQuery and SQLQuery
+* Seed file
+* Create entities/attributes, APIs and forms for read flow:
+  * ~App~
+  * ~Schema~
+  * ~Engine config~
+  * ~Flow~
+    * ~Panel~
+    * ~Panel association to NLQuery and SQLQuery~
+    * Edit Panel flow
+  * ~NLQuery~
+  * ~SQLQuery~
 * Generate SQLQuery from NLQuery
-  * Panel create flow
+  * ~Panel create flow~
   * Call Maverick Engine to convert NLQuery to SQLQuery
   * Approve flow for NLQuery to SQLQuery
 * APIs for Select query flow

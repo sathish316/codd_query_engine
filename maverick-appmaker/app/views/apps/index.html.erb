@@ -1,0 +1,14 @@
+<p style="color: green"><%= notice %></p>
+
+<h1>Apps</h1>
+
+<div id="apps">
+  <% @apps.each do |app| %>
+    <%= render app %>
+    <p>
+      <%= link_to "Show this app", app %>
+    </p>
+  <% end %>
+</div>
+
+<%= link_to "New app", new_app_path %>

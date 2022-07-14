@@ -1,0 +1,53 @@
+<p style="color: green"><%= notice %></p>
+
+<%= render @flow %>
+
+<div>
+  <%= link_to "Edit this flow", edit_app_flow_path(@app, @flow) %> |
+  <%= link_to "Back to flows", app_flows_path(@app) %>
+
+  <%= button_to "Destroy this flow", [@app, @flow], method: :delete %>
+</div>
+
+<h2>Panels</h2>
+<% @flow.panels.each do |panel| %>
+    <p>
+        <strong>Title:</strong> 
+        <%= panel.title %>
+    </p>
+    <p>
+        <strong>Panel Type:</strong> 
+        <%= panel.panel_type %>
+    </p>
+    <p>
+        <strong>Natural Prompt:</strong> 
+        <%= panel.natural_prompt %>
+    </p>
+    <p>
+        <strong>SQL Query:</strong> 
+        <%= panel.sql_query %>
+    </p>
+    <%= button_to "Generate Text2SQL", app_flow_panel_generate_sql_query_path(@app, @flow, panel) %>
+    <p>----------------------</p>
+<% end %>
+
+
+
+<h2>Add Panel:</h2>
+<%= form_with model: [@app, @flow, @flow.panels.build] do |f| %>
+    <p>
+        <%= f.label :title %><br>
+        <%= f.text_field :title %>
+    </p>
+    <p>
+        <%= f.label :panel_type %><br>
+        <%= f.text_field :panel_type %>
+    </p>
+    <p>
+      <%= f.label :natural_prompt %><br>
+      <%= f.text_area :natural_prompt %>
+    </p>
+    <p>
+        <%= f.submit %>
+    </p>
+<% end %>

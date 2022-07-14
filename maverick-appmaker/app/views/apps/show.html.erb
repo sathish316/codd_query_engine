@@ -1,0 +1,12 @@
+<p style="color: green"><%= notice %></p>
+
+<%= render @app %>
+
+<div>
+  <%= link_to "Edit this app", edit_app_path(@app) %> |
+  <%= link_to "Back to apps", apps_path %> |
+  <%= link_to "View Flows", app_flows_path(app_id: @app.id) %> |
+  <%= link_to "New Flow", new_app_flow_path(@app) %>
+
+  <%= button_to "Destroy this app", @app, method: :delete %>
+</div>
