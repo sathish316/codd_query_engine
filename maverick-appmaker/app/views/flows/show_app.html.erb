@@ -1,13 +1,22 @@
 <p style="color: green"><%= notice %></p>
 
-<h1><%= @app.name %></h1>
-<h2><%= @flow.name %></h2>
+<nav>
+    <div class="nav-wrapper">
+    <div class="col s12">
+        <a class="breadcrumb"><%= @app.name %></a>
+        <a class="breadcrumb"><%= @flow.name %></a>
+    </div>
+    </div>
+</nav>
 
-<h3>Panels</h3>
+<div style="padding: 0 16px;">
+<h4>Panels</h4>
+<div class="row">
 <% @flow.panels.each_with_index do |panel, i| %>
-    <h4>
+    <div class="col s12 z-depth-2" style="margin-bottom: 24px;">
+    <h5>
         <%= panel.title %>
-    </h4>
+    </h5>
     <p>
         <strong>Natural Prompt:</strong> 
         <%= panel.natural_prompt %>
@@ -40,5 +49,6 @@
         <% end %>
     </p>
     <!--<%= button_to "Fetch Results" %>-->
-    <p>----------------------</p>
+    </div>
 <% end %>
+</div>

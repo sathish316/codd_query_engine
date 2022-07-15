@@ -5,22 +5,16 @@ import openai
 request_txt = """
 ### Postgres SQL tables, with their properties:
 #
-# search_queries(id, query, timestamp, store_id) # timestamp is start of hour
-# search_traffic(id, timestamp, query_id, traffic_count)
-# search_query_products(id, request_id, timestamp, query_id, product_id, position)
-# keywords(id, keyword)
-# query_keyword_mapping(keyword_id, query_id)
-# stores(id, store_name:enum(Electronics,Mobiles,Fashion,Books,Accessories))
-# products(id, title, store_id, price)
-# product_page_views(product_id, timestamp, page_view_count) # timestamp is start of hour
-# product_orders(product_id, timestamp, order_count))
+# listings(listing_id,master_sku,title,rating,popularity)
+# master_skus(master_sku,title)
+# msku metrics - sku, marketplace, store, ratings, popularity
+# Store - id, name
 #
 ### Query to {}
 """
 
-user_prompt_txt1 = "find keywords which belong to Search queries of Fashion store having search traffic count of more than 1 million in last one month"
-user_prompt_txt2 = "find top 1000 keywords which belong to Search queries in Fashion store in last one month ordered by search traffic count"
-user_prompt_txt3 = "find keywords which belong to Search queries in Fashion store with daily traffic count of more than 1 million"
+user_prompt_txt1 = "find skus in Meesho in fashion store with 5 star ratings not sold in Flipkart"
+user_prompt_txt2 = "skus in Amazon in electronics store with popularity above 4.5 not sold in Flipkart"
 
 # text-davinci-002,0.7,400
 try:
