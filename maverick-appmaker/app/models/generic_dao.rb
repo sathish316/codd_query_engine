@@ -8,10 +8,11 @@ class GenericDao
         begin
             client = get_connection
             p "HERE"*100
-            query = "select * from keywords";
-            results = client.query(query)
+            #query = "select * from keywords";
+            results = client.query(query.gsub('#',''))
             p results
         rescue => e
+            p "ERR"*100
             puts "Error: #{e.message}"
         end
         results
@@ -32,6 +33,7 @@ class GenericDao
                 database: @config.database
             )
         rescue => e
+            p "ERR"*100
             puts "Error: #{e.message}"
         end
         connection

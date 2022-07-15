@@ -15,7 +15,7 @@ request_txt = """
 user_prompt_txt1 = "find top 100 keywords in Fashion store ordered by traffic count in last 30 days"
 user_prompt_txt2 = "find top 10 keywords in Electronics store with the highest ctr in last 7 days"
 
-# text-davinci-002,0.1,400
+# text-davinci-002,0.2,400
 try:
     openai.api_key = os.getenv("OPENAI_API_KEY")
     response = openai.Completion.create(

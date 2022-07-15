@@ -15,7 +15,11 @@
     <p>
         <strong>Results:</strong> 
         <% result = @results[i] %>
+        <% if result.nil? %>
+        <p>No results found</p>
+        <% else %>
         <table>
+            
             <thead>
                 <tr>
                     <% result.fields.each do |field| %>
@@ -33,6 +37,7 @@
                 <% end %>
             </tbody>
         </table>
+        <% end %>
     </p>
     <!--<%= button_to "Fetch Results" %>-->
     <p>----------------------</p>

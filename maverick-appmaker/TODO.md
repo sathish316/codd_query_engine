@@ -29,9 +29,10 @@
 * Populate test data for business read usecase 1
 * ~usecase 1 simplified~
 * ~populate app data~
-* replace hash before querying
-* populate test data
-* create good demo - mini version of ads keywords and seller selection
+* ~replace hash before querying~
+* ~populate test data~
+* ~demo - mini version of ads keywords~
+* ~demo - mini version of seller selection design~
 * add graphs
 * add bootstrap or ui css
 * Create entities, APIs and forms for write flow
