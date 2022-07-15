@@ -24,14 +24,17 @@ class FlowsController < ApplicationController
       @app = App.find(params[:app_id])
     end
     @flow = Flow.find(params[:id])
-    # check if panel sql_query is not empty
-    # fetch results for all panels
+    @results = []
     generic_dao = GenericDao.new(@app.generic_db_config)
-    @results = generic_dao.fetch_results(@flow.panels[0].sql_query)
+    @flow.panels.each do |panel|
+      res = generic_dao.fetch_results(panel.sql_query)
+      @results << res
+    end 
   end
 
   # GET /flows/new
   def new
+    @app = App.find(params[:app_id])
     @flow = Flow.new
   end
 
@@ -45,7 +48,7 @@ class FlowsController < ApplicationController
 
     respond_to do |format|
       if @flow.save
-        format.html { redirect_to flow_url(@flow), notice: "Flow was successfully created." }
+        format.html { redirect_to app_flows_url([@app, @flow]), notice: "Flow was successfully created." }
         format.json { render :show, status: :created, location: @flow }
       else
         format.html { render :new, status: :unprocessable_entity }
@@ -58,7 +61,7 @@ class FlowsController < ApplicationController
   def update
     respond_to do |format|
       if @flow.update(flow_params)
-        format.html { redirect_to flow_url(@flow), notice: "Flow was successfully updated." }
+        format.html { redirect_to app_flows_url([@app, @flow]), notice: "Flow was successfully updated." }
         format.json { render :show, status: :ok, location: @flow }
       else
         format.html { render :edit, status: :unprocessable_entity }

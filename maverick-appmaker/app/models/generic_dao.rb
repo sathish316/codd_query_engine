@@ -7,7 +7,10 @@ class GenericDao
         results = []
         begin
             client = get_connection
+            p "HERE"*100
+            query = "select * from keywords";
             results = client.query(query)
+            p results
         rescue => e
             puts "Error: #{e.message}"
         end

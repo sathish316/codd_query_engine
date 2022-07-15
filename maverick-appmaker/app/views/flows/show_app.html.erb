@@ -4,7 +4,7 @@
 <h2><%= @flow.name %></h2>
 
 <h3>Panels</h3>
-<% @flow.panels.each do |panel| %>
+<% @flow.panels.each_with_index do |panel, i| %>
     <h4>
         <%= panel.title %>
     </h4>
@@ -14,8 +14,26 @@
     </p>
     <p>
         <strong>Results:</strong> 
-        <%= "Fetching results and rendering in Table..." %>
+        <% result = @results[i] %>
+        <table>
+            <thead>
+                <tr>
+                    <% result.fields.each do |field| %>
+                    <th><%= field.to_s %></th>
+                    <% end %>
+                </tr>
+            </thead>
+            <tbody>
+                <% result.each(as: :array) do |row| %>
+                <tr>
+                    <% row.each do |field| %>
+                    <td><%= field %></td>
+                    <% end %>
+                </tr>
+                <% end %>
+            </tbody>
+        </table>
     </p>
-    <%= button_to "Fetch Results" %>
+    <!--<%= button_to "Fetch Results" %>-->
     <p>----------------------</p>
 <% end %>

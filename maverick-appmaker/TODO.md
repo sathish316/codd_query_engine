@@ -23,12 +23,17 @@
 * ~Configure MySQL DB for business usecase 1~
 * ~Modify queries flow~
 * ~Modify prompt flow~
+* ~Display query results in Launch app mode~
+* ~DAL APIs for querying dataset~
 * Validate generated queries
 * Populate test data for business read usecase 1
-* DAL APIs for querying dataset
-* Configure business usecase 2 in seeds/UI
-* Populate test data for business read usecase 2
-* Move Launch app flow to AppRenderer + reuse models
+* ~usecase 1 simplified~
+* ~populate app data~
+* replace hash before querying
+* populate test data
+* create good demo - mini version of ads keywords and seller selection
+* add graphs
+* add bootstrap or ui css
 * Create entities, APIs and forms for write flow
   * Flow
     * Page
@@ -41,3 +46,4 @@
 * Configure business write usecase 2 in seeds/UI
 * Verify test data for business write usecase 1
 * Verify test data for business write usecase 2
+* Move Launch app flow to AppRenderer + reuse models
