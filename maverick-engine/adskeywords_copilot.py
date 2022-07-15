@@ -5,10 +5,10 @@ import openai
 request_txt = """
 ### Postgres SQL tables, with their properties:
 #
-# search_queries(id, query, timestamp, store_id)
-# search_traffic(id, timestamp, query_id, count)
+# search_queries(id, query, timestamp, store_id) # timestamp is start of hour
+# search_traffic(id, timestamp, query_id, traffic_count)
 # search_query_products(id, request_id, timestamp, query_id, product_id, position)
-# keywords(id, keyword, store_id)
+# keywords(id, keyword)
 # query_keyword_mapping(keyword_id, query_id)
 # stores(id, store_name:enum(Electronics,Mobiles,Fashion,Books,Accessories))
 # products(id, title, store_id, price)
@@ -18,14 +18,15 @@ request_txt = """
 ### Query to {}
 """
 
-user_prompt_txt1 = "find keywords which belong to Search queries only in Fashion store having search traffic of more than 1 million in last one month"
+user_prompt_txt1 = "find keywords which belong to Search queries of Fashion store having search traffic count of more than 1 million in last one month"
 user_prompt_txt2 = "find top 1000 keywords which belong to Search queries in Fashion store in last one month ordered by search traffic count"
+user_prompt_txt3 = "find keywords which belong to Search queries in Fashion store with daily traffic count of more than 1 million"
 
 # text-davinci-002,0.7,400
 try:
     openai.api_key = os.getenv("OPENAI_API_KEY")
     response = openai.Completion.create(
-        engine="text-davinci-002",
+        engine="text-davinci-001",
         prompt=request_txt.format(user_prompt_txt1),
         temperature=0.2,
         max_tokens=400,

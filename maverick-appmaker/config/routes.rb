@@ -1,7 +1,14 @@
 Rails.application.routes.draw do
   resources :apps do
     resources :flows do
-      resources :panels
+      member do
+        get :show_app
+      end
+      resources :panels do
+        member do
+          put :update_sql
+        end
+      end
     end
   end
   # post '/apps/:app_id/flows/:flow_id/panels/:panel_id/generate_sql_query', to: "panels#generate_sql_query"

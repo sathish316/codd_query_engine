@@ -17,6 +17,14 @@ class PanelsController < ApplicationController
         redirect_to app_flow_path(@app, @flow)
     end
 
+    def update_sql
+        @app = App.find(params[:app_id])
+        @flow = Flow.find(params[:flow_id])
+        @panel = Panel.find(params[:id])
+        @panel.update!(sql_query: params[:sql_query], natural_prompt: params[:natural_prompt])
+        redirect_to app_flow_path(@app, @flow)
+    end
+
     private
 
     def panel_params

@@ -121,6 +121,7 @@ GEM
     minitest (5.16.2)
     msgpack (1.5.3)
     multi_xml (0.6.0)
+    mysql2 (0.5.4)
     net-imap (0.2.3)
       digest
       net-protocol
@@ -229,6 +230,7 @@ DEPENDENCIES
   httparty
   importmap-rails
   jbuilder
+  mysql2
   puma (~> 5.0)
   rails (~> 7.0.3, >= 7.0.3.1)
   selenium-webdriver

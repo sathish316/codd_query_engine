@@ -1,0 +1,21 @@
+<p style="color: green"><%= notice %></p>
+
+<h1><%= @app.name %></h1>
+<h2><%= @flow.name %></h2>
+
+<h3>Panels</h3>
+<% @flow.panels.each do |panel| %>
+    <h4>
+        <%= panel.title %>
+    </h4>
+    <p>
+        <strong>Natural Prompt:</strong> 
+        <%= panel.natural_prompt %>
+    </p>
+    <p>
+        <strong>Results:</strong> 
+        <%= "Fetching results and rendering in Table..." %>
+    </p>
+    <%= button_to "Fetch Results" %>
+    <p>----------------------</p>
+<% end %>

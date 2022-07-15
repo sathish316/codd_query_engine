@@ -14,15 +14,21 @@
     * Edit Panel flow
   * ~NLQuery~
   * ~SQLQuery~
-* Generate SQLQuery from NLQuery
+* ~Generate SQLQuery from NLQuery~
   * ~Panel create flow~
-  * Call Maverick Engine to convert NLQuery to SQLQuery
-  * Approve flow for NLQuery to SQLQuery
-* APIs for Select query flow
-* Configure business usecase 1 in seeds/UI
-* Configure business usecase 2 in seeds/UI
+  * ~Call Maverick Engine to convert NLQuery to SQLQuery~
+  * ~Approve flow for NLQuery to SQLQuery~
+* ~Launch app flow - simulate AppRender~
+* ~Configure business usecase 1 in seeds/UI~
+* ~Configure MySQL DB for business usecase 1~
+* ~Modify queries flow~
+* ~Modify prompt flow~
+* Validate generated queries
 * Populate test data for business read usecase 1
+* DAL APIs for querying dataset
+* Configure business usecase 2 in seeds/UI
 * Populate test data for business read usecase 2
+* Move Launch app flow to AppRenderer + reuse models
 * Create entities, APIs and forms for write flow
   * Flow
     * Page

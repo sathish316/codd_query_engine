@@ -19,6 +19,17 @@ class FlowsController < ApplicationController
     @flow = Flow.find(params[:id])
   end
 
+  def show_app
+    if params[:app_id]
+      @app = App.find(params[:app_id])
+    end
+    @flow = Flow.find(params[:id])
+    # check if panel sql_query is not empty
+    # fetch results for all panels
+    generic_dao = GenericDao.new(@app.generic_db_config)
+    @results = generic_dao.fetch_results(@flow.panels[0].sql_query)
+  end
+
   # GET /flows/new
   def new
     @flow = Flow.new

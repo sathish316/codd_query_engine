@@ -7,10 +7,13 @@
   <%= link_to "Back to flows", app_flows_path(@app) %>
 
   <%= button_to "Destroy this flow", [@app, @flow], method: :delete %>
+
+  <%= button_to "Launch App", show_app_app_flow_url(@app, @flow), method: :get %>
 </div>
 
 <h2>Panels</h2>
 <% @flow.panels.each do |panel| %>
+  <%= form_with(url: update_sql_app_flow_panel_path(@app, @flow, panel), method: "put") do |f| %>
     <p>
         <strong>Title:</strong> 
         <%= panel.title %>
@@ -20,16 +23,22 @@
         <%= panel.panel_type %>
     </p>
     <p>
-        <strong>Natural Prompt:</strong> 
-        <%= panel.natural_prompt %>
+        <strong>Natural Prompt:</strong> <br/>
+        <%= text_area_tag :natural_prompt, panel.natural_prompt, rows: 2, cols: 80 %>
     </p>
     <p>
-        <strong>SQL Query:</strong> 
-        <%= simple_format(panel.sql_query) %>
+        <strong>SQL Query:</strong> <br/>
+        <%= text_area_tag :sql_query, panel.sql_query, rows: 8, cols: 50 %>
     </p>
-    <%= button_to "Generate Text2SQL", app_flow_panel_path(@app, @flow, panel), method: :put %>
-    <p>----------------------</p>
-<% end %>
+    <p>
+    <%= f.submit "Update SQL/Prompt" %>
+    </p>
+  <% end %>
+  <p>
+  <%= button_to "Generate Text2SQL", app_flow_panel_path(@app, @flow, panel), method: :put %>
+  </p>
+  <p>----------------------</p>
+  <% end %>
 
 
 
