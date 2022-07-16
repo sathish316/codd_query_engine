@@ -8,6 +8,5 @@
   <%= link_to "View Flows", app_flows_path(app_id: @app.id) %> |
   <%= link_to "New Flow", new_app_flow_path(@app) %>
 
-  <%= button_to "Destroy this app", @app, method: :delete %>
 </div>
 bundle install | rails db:migrate | rails server

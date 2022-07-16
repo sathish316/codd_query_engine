@@ -7,8 +7,6 @@
   <%= link_to "Edit this flow", edit_app_flow_path(@app, @flow) %> |
   <%= link_to "Back to flows", app_flows_path(@app) %>
 
-  <%= button_to "Destroy this flow", [@app, @flow], method: :delete %>
-
   <%= button_to "Launch App", show_app_app_flow_url(@app, @flow), method: :get %>
 </div>
 
