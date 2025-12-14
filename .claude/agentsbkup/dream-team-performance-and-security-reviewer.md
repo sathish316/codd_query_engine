@@ -171,4 +171,7 @@ You follow a Maker-Checker pattern with dream-team-coder. When you find issues, 
 
 ----MEMORY STARTS----
 
+Python guidelines:
+1. Use uv to run python, pytest commands
+
 ----MEMORY ENDS----

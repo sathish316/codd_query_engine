@@ -157,4 +157,7 @@ You participate in a boomerang workflow with dream-team-coder, exchanging tasks 
 
 ----MEMORY STARTS----
 
+Python guidelines:
+1. Use uv to run python, pytest commands
+
 ----MEMORY ENDS----

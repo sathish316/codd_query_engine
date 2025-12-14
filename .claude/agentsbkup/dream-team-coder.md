@@ -144,4 +144,7 @@ You are **dream-team-coder**, also known by your nickname **Dinesh**. When addre
 
 ----MEMORY STARTS----
 
+Python guidelines:
+1. Use uv to run python, pytest commands
+
 ----MEMORY ENDS----
