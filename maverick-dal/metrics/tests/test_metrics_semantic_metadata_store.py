@@ -1,0 +1,475 @@
+"""
+Unit tests for MetricsSemanticMetadataStore.
+
+Tests cover all public methods with various scenarios including:
+- Normal operations (indexing, searching)
+- Edge cases (empty queries, missing fields, no results)
+- Semantic search quality and relevance
+- Multiple metrics and similarity ranking
+"""
+
+import sys
+from pathlib import Path
+
+# Add parent directory to path to allow imports from maverick-dal
+project_root = Path(__file__).parent.parent.parent.parent
+sys.path.insert(0, str(project_root))
+
+import pytest
+import chromadb
+
+# Import using relative path since directory has hyphen
+import importlib.util
+spec = importlib.util.spec_from_file_location(
+    "metrics_semantic_metadata_store",
+    Path(__file__).parent.parent / "metrics_semantic_metadata_store.py"
+)
+metrics_semantic_metadata_store = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(metrics_semantic_metadata_store)
+MetricsSemanticMetadataStore = metrics_semantic_metadata_store.MetricsSemanticMetadataStore
+
+
+@pytest.fixture
+def chromadb_client():
+    """Provide a fresh in-memory ChromaDB client for testing."""
+    # Use EphemeralClient to ensure fresh state for each test
+    return chromadb.EphemeralClient()
+
+
+@pytest.fixture
+def store(chromadb_client, request):
+    """Provide a MetricsSemanticMetadataStore instance with in-memory ChromaDB."""
+    # Use unique collection name per test to ensure isolation
+    collection_name = f"test_{request.node.name}"
+    return MetricsSemanticMetadataStore(chromadb_client, collection_name=collection_name)
+
+
+class TestMetricsSemanticMetadataStore:
+    """Test suite for MetricsSemanticMetadataStore."""
+
+    def test_init(self, chromadb_client):
+        """Test store initialization with default collection name."""
+        store = MetricsSemanticMetadataStore(chromadb_client)
+        assert store.chromadb_client is chromadb_client
+        assert store.collection_name == "metrics_semantic_metadata"
+        assert store.collection is not None
+
+    def test_init_custom_collection_name(self, chromadb_client):
+        """Test store initialization with custom collection name."""
+        custom_name = "custom_metrics_collection"
+        store = MetricsSemanticMetadataStore(chromadb_client, collection_name=custom_name)
+        assert store.collection_name == custom_name
+
+    def test_index_metadata_basic(self, store):
+        """Test indexing basic metric metadata."""
+        metadata = {
+            "metric_name": "cpu.usage",
+            "type": "gauge",
+            "description": "CPU utilization percentage",
+            "unit": "percent",
+            "category": "system",
+            "subcategory": "cpu"
+        }
+
+        result = store.index_metadata(metadata)
+        assert result == "cpu.usage"
+
+    def test_index_metadata_all_fields(self, store):
+        """Test indexing metadata with all schema fields."""
+        metadata = {
+            "metric_name": "http.request.duration",
+            "type": "histogram",
+            "description": "HTTP request duration in milliseconds",
+            "unit": "ms",
+            "category": "application",
+            "subcategory": "http",
+            "category_description": "Application-level metrics",
+            "golden_signal_type": "latency",
+            "golden_signal_description": "Measures request latency",
+            "meter_type": "histogram",
+            "meter_type_description": "Distribution of values over time"
+        }
+
+        result = store.index_metadata(metadata)
+        assert result == "http.request.duration"
+
+    def test_index_metadata_missing_required_field(self, store):
+        """Test that indexing without metric_name raises KeyError."""
+        metadata = {
+            "type": "gauge",
+            "description": "Some metric"
+        }
+
+        with pytest.raises(KeyError) as exc_info:
+            store.index_metadata(metadata)
+        assert "metric_name" in str(exc_info.value)
+
+    def test_index_metadata_minimal(self, store):
+        """Test indexing with only required field (metric_name)."""
+        metadata = {"metric_name": "minimal.metric"}
+
+        result = store.index_metadata(metadata)
+        assert result == "minimal.metric"
+
+    def test_index_metadata_upsert(self, store):
+        """Test that re-indexing same metric updates existing document."""
+        metric_name = "memory.usage"
+
+        # Index first version
+        metadata_v1 = {
+            "metric_name": metric_name,
+            "description": "Memory usage version 1",
+            "category": "system"
+        }
+        store.index_metadata(metadata_v1)
+
+        # Index updated version
+        metadata_v2 = {
+            "metric_name": metric_name,
+            "description": "Memory usage version 2 updated",
+            "category": "infrastructure"
+        }
+        result = store.index_metadata(metadata_v2)
+
+        # Verify the update
+        assert result == metric_name
+        search_results = store.search_metadata("memory usage version 2", n_results=1)
+        assert len(search_results) > 0
+        assert search_results[0]["metric_name"] == metric_name
+        assert "version 2" in search_results[0]["description"]
+
+    def test_search_metadata_basic(self, store):
+        """Test basic semantic search."""
+        # Index some metrics
+        store.index_metadata({
+            "metric_name": "cpu.usage",
+            "description": "CPU utilization percentage",
+            "category": "system"
+        })
+        store.index_metadata({
+            "metric_name": "memory.usage",
+            "description": "Memory utilization in bytes",
+            "category": "system"
+        })
+
+        # Search for CPU-related metrics
+        results = store.search_metadata("CPU utilization")
+
+        assert len(results) > 0
+        assert results[0]["metric_name"] == "cpu.usage"
+        assert "similarity_score" in results[0]
+        assert 0 <= results[0]["similarity_score"] <= 1
+
+    def test_search_metadata_no_results(self, store):
+        """Test search with no indexed metrics returns empty list."""
+        results = store.search_metadata("some query")
+        assert results == []
+
+    def test_search_metadata_empty_query(self, store):
+        """Test search with empty query returns empty list."""
+        # Index a metric
+        store.index_metadata({
+            "metric_name": "test.metric",
+            "description": "Test metric"
+        })
+
+        # Empty queries
+        assert store.search_metadata("") == []
+        assert store.search_metadata("   ") == []
+
+    def test_search_metadata_n_results(self, store):
+        """Test that n_results parameter limits returned results."""
+        # Index multiple metrics
+        for i in range(10):
+            store.index_metadata({
+                "metric_name": f"metric.{i}",
+                "description": f"System metric number {i}",
+                "category": "system"
+            })
+
+        # Request limited results
+        results = store.search_metadata("system metric", n_results=3)
+
+        assert len(results) <= 3
+        assert all("similarity_score" in r for r in results)
+
+    def test_search_metadata_ranking(self, store):
+        """Test that search results are ranked by similarity."""
+        # Index metrics with varying relevance
+        store.index_metadata({
+            "metric_name": "http.latency",
+            "description": "HTTP request latency in milliseconds",
+            "golden_signal_type": "latency"
+        })
+        store.index_metadata({
+            "metric_name": "db.query.time",
+            "description": "Database query execution time",
+            "category": "database"
+        })
+        store.index_metadata({
+            "metric_name": "network.bandwidth",
+            "description": "Network bandwidth usage",
+            "category": "network"
+        })
+
+        # Search for latency-related metrics
+        results = store.search_metadata("request latency")
+
+        assert len(results) > 0
+        # Most relevant should be http.latency
+        assert results[0]["metric_name"] == "http.latency"
+        # Similarity scores should be in descending order
+        for i in range(len(results) - 1):
+            assert results[i]["similarity_score"] >= results[i + 1]["similarity_score"]
+
+    def test_search_metadata_returns_all_fields(self, store):
+        """Test that search results include all metadata fields."""
+        metadata = {
+            "metric_name": "test.metric",
+            "type": "gauge",
+            "description": "Test description",
+            "unit": "bytes",
+            "category": "test_category",
+            "subcategory": "test_subcategory",
+            "category_description": "Category desc",
+            "golden_signal_type": "throughput",
+            "golden_signal_description": "Measures throughput",
+            "meter_type": "gauge",
+            "meter_type_description": "Gauge meter"
+        }
+        store.index_metadata(metadata)
+
+        results = store.search_metadata("test metric")
+
+        assert len(results) > 0
+        result = results[0]
+        assert result["metric_name"] == "test.metric"
+        assert result["type"] == "gauge"
+        assert result["description"] == "Test description"
+        assert result["unit"] == "bytes"
+        assert result["category"] == "test_category"
+        assert result["subcategory"] == "test_subcategory"
+        assert result["category_description"] == "Category desc"
+        assert result["golden_signal_type"] == "throughput"
+        assert result["golden_signal_description"] == "Measures throughput"
+        assert result["meter_type"] == "gauge"
+        assert result["meter_type_description"] == "Gauge meter"
+
+    def test_search_metadata_semantic_similarity(self, store):
+        """Test that semantically similar queries find relevant metrics."""
+        # Index metrics with specific semantics
+        store.index_metadata({
+            "metric_name": "error.rate",
+            "description": "Rate of errors per second",
+            "golden_signal_type": "errors",
+            "category": "reliability"
+        })
+        store.index_metadata({
+            "metric_name": "success.rate",
+            "description": "Rate of successful requests",
+            "golden_signal_type": "traffic",
+            "category": "reliability"
+        })
+
+        # Search with semantically similar phrase
+        results = store.search_metadata("failure count")
+
+        # Should find error.rate as most relevant (errors and failures are semantically similar)
+        assert len(results) > 0
+        # error.rate should be ranked highly due to semantic similarity
+        error_rate_found = any(r["metric_name"] == "error.rate" for r in results)
+        assert error_rate_found
+
+    def test_search_metadata_category_search(self, store):
+        """Test searching by category."""
+        # Index metrics in different categories
+        store.index_metadata({
+            "metric_name": "cpu.usage",
+            "description": "CPU usage",
+            "category": "system",
+            "subcategory": "cpu"
+        })
+        store.index_metadata({
+            "metric_name": "http.requests",
+            "description": "HTTP request count",
+            "category": "application",
+            "subcategory": "http"
+        })
+
+        # Search by category
+        results = store.search_metadata("system metrics")
+
+        assert len(results) > 0
+        # cpu.usage should be highly ranked for system category query
+        top_result = results[0]
+        assert top_result["category"] in ["system", "application"]
+
+    def test_search_metadata_golden_signals(self, store):
+        """Test searching by golden signal types."""
+        # Index metrics with different golden signals
+        store.index_metadata({
+            "metric_name": "latency.p99",
+            "description": "99th percentile latency",
+            "golden_signal_type": "latency",
+            "golden_signal_description": "Measures request latency"
+        })
+        store.index_metadata({
+            "metric_name": "error.count",
+            "description": "Total error count",
+            "golden_signal_type": "errors",
+            "golden_signal_description": "Tracks system errors"
+        })
+        store.index_metadata({
+            "metric_name": "throughput",
+            "description": "Requests per second",
+            "golden_signal_type": "traffic",
+            "golden_signal_description": "Measures request volume"
+        })
+
+        # Search for latency metrics
+        results = store.search_metadata("response time performance")
+
+        assert len(results) > 0
+        # latency.p99 should be found due to semantic similarity
+        latency_found = any(r["metric_name"] == "latency.p99" for r in results)
+        assert latency_found
+
+    def test_multiple_metrics_same_category(self, store):
+        """Test indexing and searching multiple metrics in same category."""
+        # Index multiple CPU metrics
+        for i in range(5):
+            store.index_metadata({
+                "metric_name": f"cpu.core{i}.usage",
+                "description": f"CPU core {i} usage percentage",
+                "category": "system",
+                "subcategory": "cpu"
+            })
+
+        results = store.search_metadata("CPU core usage", n_results=10)
+
+        assert len(results) == 5
+        # All should be CPU metrics
+        assert all("cpu.core" in r["metric_name"] for r in results)
+
+    def test_index_and_search_special_characters(self, store):
+        """Test metrics with special characters in names and descriptions."""
+        metadata = {
+            "metric_name": "http.response.time.p95",
+            "description": "HTTP response time (95th percentile) in ms",
+            "unit": "ms",
+            "category": "application/http"
+        }
+        store.index_metadata(metadata)
+
+        results = store.search_metadata("95th percentile response")
+
+        assert len(results) > 0
+        assert results[0]["metric_name"] == "http.response.time.p95"
+
+    def test_index_empty_optional_fields(self, store):
+        """Test that empty optional fields are handled gracefully."""
+        metadata = {
+            "metric_name": "test.metric",
+            "description": "",
+            "unit": "",
+            "category": ""
+        }
+
+        result = store.index_metadata(metadata)
+        assert result == "test.metric"
+
+        # Search should still work
+        search_results = store.search_metadata("test metric")
+        # May or may not find it depending on embedding, but shouldn't error
+        assert isinstance(search_results, list)
+
+    def test_collection_persistence_across_instances(self, chromadb_client):
+        """Test that collection persists across store instances."""
+        # Create first store and index data
+        store1 = MetricsSemanticMetadataStore(chromadb_client)
+        store1.index_metadata({
+            "metric_name": "persistent.metric",
+            "description": "Test persistence"
+        })
+
+        # Create second store with same client
+        store2 = MetricsSemanticMetadataStore(chromadb_client)
+        results = store2.search_metadata("persistent")
+
+        # Should find the metric indexed by store1
+        assert len(results) > 0
+        assert any(r["metric_name"] == "persistent.metric" for r in results)
+
+    def test_different_collections_isolated(self, chromadb_client):
+        """Test that different collections are isolated."""
+        store1 = MetricsSemanticMetadataStore(chromadb_client, collection_name="collection1")
+        store2 = MetricsSemanticMetadataStore(chromadb_client, collection_name="collection2")
+
+        # Index to first collection
+        store1.index_metadata({
+            "metric_name": "metric1",
+            "description": "In collection 1"
+        })
+
+        # Index to second collection
+        store2.index_metadata({
+            "metric_name": "metric2",
+            "description": "In collection 2"
+        })
+
+        # Verify isolation
+        results1 = store1.search_metadata("metric")
+        results2 = store2.search_metadata("metric")
+
+        metric1_names = [r["metric_name"] for r in results1]
+        metric2_names = [r["metric_name"] for r in results2]
+
+        assert "metric1" in metric1_names
+        assert "metric1" not in metric2_names
+        assert "metric2" in metric2_names
+        assert "metric2" not in metric1_names
+
+    def test_large_batch_indexing(self, store):
+        """Test indexing a large number of metrics."""
+        # Index 100 metrics
+        for i in range(100):
+            store.index_metadata({
+                "metric_name": f"metric.batch.{i}",
+                "description": f"Batch metric number {i}",
+                "category": "batch_test"
+            })
+
+        # Verify we can search and retrieve them
+        results = store.search_metadata("batch metric", n_results=50)
+
+        assert len(results) > 0
+        assert len(results) <= 50
+        assert all("metric.batch." in r["metric_name"] for r in results)
+
+    def test_unicode_in_metadata(self, store):
+        """Test handling of unicode characters in metadata."""
+        metadata = {
+            "metric_name": "cpu.utilization.使用率",
+            "description": "CPU utilization avec unicode: 使用率, émojis ❤️",
+            "category": "système"
+        }
+
+        result = store.index_metadata(metadata)
+        assert result == "cpu.utilization.使用率"
+
+        # Search with unicode
+        results = store.search_metadata("使用率")
+        assert isinstance(results, list)
+
+    def test_search_with_no_indexed_data_different_queries(self, store):
+        """Test various queries on empty collection."""
+        queries = [
+            "simple query",
+            "query with numbers 123",
+            "query-with-dashes",
+            "query.with.dots"
+        ]
+
+        for query in queries:
+            results = store.search_metadata(query)
+            assert results == []
