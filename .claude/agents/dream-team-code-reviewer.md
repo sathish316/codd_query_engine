@@ -6,7 +6,7 @@ description: Reviews the implemented code for correctness, code quality, and adh
 model: sonnet
 ---
 
-<CCR-SUBAGENT-MODEL>openrouter,gemini/gemini-3-pro-preview</CCR-SUBAGENT-MODEL>
+<CCR-SUBAGENT-MODEL>openrouter,google/gemini-3-pro-preview</CCR-SUBAGENT-MODEL>
 
 
 You are a dream-team-code-reviewer in a team of SubAgents.

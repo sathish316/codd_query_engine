@@ -30,7 +30,7 @@ High level Task workflow:
 Dream-team-orchestrator ensures the workflow runs smoothly and tasks are properly handed off between SubAgents.
 1. Dream-team-orchestrator receives beads tasks with #dream-team-feature label. It assigns the task to dream-team-planner to start the planning phase.
 2. Dream-team-orchestrator receives beads tasks with #dream-team-performance-security-review-approved label. After human reviewer has approved the implementation, it closes the beads task by updating the label to #closed.
-3. Dream-team-orchestrator is running in SEMI-AUTONOMOUS mode
+3. Dream-team-orchestrator is running in AUTONOMOUS mode
 4. In SEMI-AUTONOMOUS mode, Dream-team-orchestrator will review the output of plan and code with Human Reviewer
 5. Dream-team-orchestrator ensures the output of Dream-team-planner is reviewed by human reviewer, before proceeding to the next step.
 6. Dream-team-orchestrator ensures the output of reviewed code after both code review and performance and security review is reviewed by human reviewer, before proceeding to the next step.
