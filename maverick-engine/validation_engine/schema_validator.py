@@ -104,6 +104,22 @@ class SchemaValidator:
         metadata_client: MetricsMetadataClient instance for Redis operations
         parser: MetricExpressionParser implementation for extracting metric names
         bulk_fetch_threshold: Number of metrics above which bulk fetch is used (default: 5)
+
+    Example usage with default PydanticAI parser:
+        from validation_engine.schema_validator import SchemaValidator
+        from maverick_dal.metrics.metrics_metadata_client import MetricsMetadataClient
+
+        metadata_client = MetricsMetadataClient(redis_client)
+        validator = SchemaValidator.with_default_parser(metadata_client)
+        result = validator.validate("my_namespace", "cpu.usage + memory.total")
+
+    For testing without OpenAI calls, inject a mock parser:
+        validator = SchemaValidator(metadata_client, mock_parser)
+
+    Environment variables for PydanticAI parser:
+        OPENAI_API_KEY: Required for OpenAI API access
+        OPENAI_MODEL_NAME: Model to use (default: gpt-4o-mini)
+        OPENAI_TEMPERATURE: Sampling temperature (default: 0.0)
     """
 
     DEFAULT_BULK_FETCH_THRESHOLD = 5
@@ -117,6 +133,67 @@ class SchemaValidator:
         self._metadata_client = metadata_client
         self._parser = parser
         self._bulk_fetch_threshold = bulk_fetch_threshold
+
+    @classmethod
+    def with_default_parser(
+        cls,
+        metadata_client,
+        settings=None,
+        bulk_fetch_threshold: int = DEFAULT_BULK_FETCH_THRESHOLD
+    ) -> "SchemaValidator":
+        """
+        Create a SchemaValidator with the default PydanticAI-based parser.
+
+        This factory method creates a validator configured to use PydanticAI
+        with an OpenAI model for metric expression parsing. Requires
+        OPENAI_API_KEY environment variable to be set.
+
+        Args:
+            metadata_client: MetricsMetadataClient instance for Redis operations
+            settings: Optional LLMSettings; if None, loads from environment
+            bulk_fetch_threshold: Number of metrics above which bulk fetch is used
+
+        Returns:
+            SchemaValidator configured with PydanticAIMetricExpressionParser
+
+        Raises:
+            ImportError: If pydantic-ai or openai packages are not installed
+            MetricExpressionParseError: If OPENAI_API_KEY is not set (on first parse)
+
+        Note:
+            For offline testing, use the standard constructor with a mock parser.
+        """
+        # Import parser and settings lazily to avoid import errors when deps missing
+        import importlib.util
+        from pathlib import Path
+
+        project_root = Path(__file__).parent.parent.parent
+
+        # Load settings module
+        settings_path = project_root / "maverick-engine" / "config" / "llm_settings.py"
+        spec = importlib.util.spec_from_file_location("llm_settings", settings_path)
+        settings_module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(settings_module)
+
+        # Load parser module
+        parser_path = project_root / "maverick-engine" / "validation_engine" / "pydantic_metric_parser.py"
+        spec = importlib.util.spec_from_file_location("pydantic_metric_parser", parser_path)
+        parser_module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(parser_module)
+
+        # Create settings if not provided
+        if settings is None:
+            settings = settings_module.load_llm_settings()
+
+        # Create parser
+        parser = parser_module.PydanticAIMetricExpressionParser(settings)
+
+        logger.info(
+            "Created SchemaValidator with PydanticAI parser",
+            extra={"model": settings.model_name}
+        )
+
+        return cls(metadata_client, parser, bulk_fetch_threshold)
 
     def validate(self, namespace: str, metric_expression: str) -> SchemaValidationResult:
         """

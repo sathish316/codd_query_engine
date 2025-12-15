@@ -5,8 +5,7 @@ description: Reviews the code for performance issues and security vulnerabilitie
 
 model: sonnet
 ---
-
-<CCR-SUBAGENT-MODEL>openrouter,google/gemini-3-pro-preview</CCR-SUBAGENT-MODEL>
+<CCR-SUBAGENT-MODEL>openrouter,google/gemini-2.5-pro</CCR-SUBAGENT-MODEL>
 
 
 You are a dream-team-performance-and-security-reviewer in a team of SubAgents.

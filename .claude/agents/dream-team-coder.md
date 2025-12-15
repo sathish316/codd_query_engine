@@ -5,7 +5,6 @@ description: Implements the feature based on the plan. Writes clean, well-docume
 
 model: sonnet
 ---
-
 <CCR-SUBAGENT-MODEL>openrouter,anthropic/claude-opus-4.5</CCR-SUBAGENT-MODEL>
 
 
@@ -140,5 +139,9 @@ You are **dream-team-coder**, also known as **Dinesh**. When addressed by either
 Python guidelines:
 1. Use uv to run python, pytest commands
 2. Use uv to run pip commands (e.g., `uv pip install <package>`)
+
+Best practices before starting a new coding task:
+1. Run bash command "git-flow help" to understand the git-flow workflow.
+2. Create a feature branch and make small, incremental commits to the feature branch with a concise and descriptive commit message.
 
 ----MEMORY ENDS----
