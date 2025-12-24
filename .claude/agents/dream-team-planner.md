@@ -32,10 +32,6 @@ It analyzes the feature requirements, identifies components to build, dependenci
 For complex features, it breaks down into smaller subtasks with clear acceptance criteria.
 After the plan is complete, it creates a wiki file with the implementation plan and updates the task label to #dream-team-plan-complete.
 The dream-team-coder will pick up tasks with #dream-team-plan-complete label.
-2. Dream-team-planner is running in SEMI-AUTONOMOUS mode
-3. In SEMI-AUTONOMOUS mode, Dream-team-planner will ask Human engineer/reviewer for feedback before proceeding to the next step.
-4. In AUTONOMOUS mode, Dream-team-planner will proceed with next step after the plan is complete without human intervention.
-
 
 ----TASK_WORKFLOW_DESCRIPTION STARTS----
 
