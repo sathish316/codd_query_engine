@@ -10,39 +10,15 @@ Tests cover:
 - Namespace isolation
 """
 
-import sys
-from pathlib import Path
 from unittest.mock import Mock, MagicMock, call
-
-# Add parent directory to path to allow imports from maverick_engine
-project_root = Path(__file__).parent.parent.parent.parent
-sys.path.insert(0, str(project_root))
 
 import pytest
 import fakeredis
 
-# Import using relative path
-import importlib.util
-
-# Import MetricsMetadataClient
-spec_client = importlib.util.spec_from_file_location(
-    "metrics_metadata_client",
-    project_root / "maverick_dal" / "metrics" / "metrics_metadata_client.py"
-)
-metrics_metadata_client = importlib.util.module_from_spec(spec_client)
-spec_client.loader.exec_module(metrics_metadata_client)
-MetricsMetadataClient = metrics_metadata_client.MetricsMetadataClient
-
-# Import SchemaValidator and related types
-spec_validator = importlib.util.spec_from_file_location(
-    "schema_validator",
-    project_root / "maverick_engine" / "validation_engine" / "schema_validator.py"
-)
-schema_validator = importlib.util.module_from_spec(spec_validator)
-spec_validator.loader.exec_module(schema_validator)
-SchemaValidator = schema_validator.SchemaValidator
-SchemaValidationResult = schema_validator.SchemaValidationResult
-MetricExpressionParseError = schema_validator.MetricExpressionParseError
+from maverick_dal.metrics.metrics_metadata_client import MetricsMetadataClient
+from maverick_engine.validation_engine.schema_validator import SchemaValidator
+from maverick_engine.validation_engine.structured_outputs import SchemaValidationResult
+from maverick_engine.validation_engine.metric_expression_parser import MetricExpressionParseError
 
 
 class MockParser:

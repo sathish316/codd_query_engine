@@ -11,41 +11,18 @@ Tests cover:
 All tests use mock/stub agents to avoid real OpenAI API calls.
 """
 
-import sys
-from pathlib import Path
 from unittest.mock import Mock, MagicMock, patch
 from dataclasses import dataclass
 
-# Add parent directory to path to allow imports from maverick_engine
-project_root = Path(__file__).parent.parent.parent.parent
-sys.path.insert(0, str(project_root))
-
 import pytest
-import importlib.util
 
-# Import LLMSettings
-spec_settings = importlib.util.spec_from_file_location(
-    "llm_settings",
-    project_root / "maverick_engine" / "config" / "llm_settings.py"
+from maverick_engine.config.llm_settings import LLMSettings, load_llm_settings
+from maverick_engine.validation_engine.pydantic_metric_parser import (
+    PydanticAIMetricExpressionParser,
+    VALID_METRIC_NAME_PATTERN,
 )
-llm_settings = importlib.util.module_from_spec(spec_settings)
-spec_settings.loader.exec_module(llm_settings)
-LLMSettings = llm_settings.LLMSettings
-load_llm_settings = llm_settings.load_llm_settings
-
-# Import PydanticAIMetricExpressionParser and MetricExtractionResponse using a single module instance
-# loaded from file while registering in sys.modules to keep exception classes identical.
-spec_parser = importlib.util.spec_from_file_location(
-    "pydantic_metric_parser",
-    project_root / "maverick_engine" / "validation_engine" / "pydantic_metric_parser.py"
-)
-parser_module = importlib.util.module_from_spec(spec_parser)
-sys.modules["pydantic_metric_parser"] = parser_module
-spec_parser.loader.exec_module(parser_module)
-PydanticAIMetricExpressionParser = parser_module.PydanticAIMetricExpressionParser
-MetricExtractionResponse = parser_module.MetricExtractionResponse
-VALID_METRIC_NAME_PATTERN = parser_module.VALID_METRIC_NAME_PATTERN
-MetricExpressionParseError = parser_module.MetricExpressionParseError
+from maverick_engine.validation_engine.structured_outputs import MetricExtractionResponse
+from maverick_engine.validation_engine.metric_expression_parser import MetricExpressionParseError
 
 
 class StubAgentResult:
