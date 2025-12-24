@@ -1,8 +1,9 @@
 """
-Redis-based metrics metadata store for caching and validating metric names.
+Redis-based metrics metadata store.
 
-This module provides a client for managing metrics metadata using Redis SET data structure.
-Each namespace has its own set of metric names stored with key format: <namespace>#metric_names
+Job:
+1. store metrics metadata for a namespace. namespace is tenant x service name
+2. used for schema validation of metric names
 """
 
 from typing import Optional
@@ -13,43 +14,39 @@ class MetricsMetadataClient:
     """
     Client for managing metrics metadata in Redis.
 
-    Provides methods to store, retrieve, and validate metric names per namespace.
-    Uses Redis SET data structure for fast membership checks.
-
     Args:
-        redis_client: Redis client instance (should have decode_responses=True for string handling)
+        redis_client: Redis client instance
     """
 
     def __init__(self, redis_client: redis.Redis):
         """
-        Initialize the metrics metadata client.
+        Initialize metrics metadata client.
 
         Args:
-            redis_client: Redis client instance for data operations
+            redis_client: Redis client instance
         """
         self.redis_client = redis_client
 
     def _get_key(self, namespace: str) -> str:
         """
-        Generate Redis key for a namespace's metric names.
+        Generate Redis key for metrics metadata
 
         Args:
-            namespace: The namespace identifier
+            namespace: namespace identifier
 
         Returns:
-            Redis key string in format: <namespace>#metric_names
+            Redis key string in format, metric_names is hardcoded since it stores all metric names for a namespace: <namespace>#metric_names
         """
+        if namespace is None or namespace == "":
+            namespace = "default"
         return f"{namespace}#metric_names"
 
     def set_metric_names(self, namespace: str, metric_names: set[str]) -> None:
         """
         Replace all metric names for a namespace.
 
-        Deletes existing metric names and sets new ones atomically.
-        If metric_names is empty, only deletion occurs (clearing the namespace).
-
         Args:
-            namespace: The namespace identifier
+            namespace: namespace identifier
             metric_names: Set of metric names to store
         """
         key = self._get_key(namespace)
@@ -66,7 +63,7 @@ class MetricsMetadataClient:
         Retrieve all metric names for a namespace.
 
         Args:
-            namespace: The namespace identifier
+            namespace: namespace identifier
 
         Returns:
             Set of metric names, empty set if namespace doesn't exist
@@ -75,8 +72,8 @@ class MetricsMetadataClient:
         members = self.redis_client.smembers(key)
 
         # Handle bytes if decode_responses=False
-        if members and isinstance(next(iter(members)), bytes):
-            return {member.decode('utf-8') for member in members}
+        # if members and isinstance(next(iter(members)), bytes):
+        #     return {member.decode('utf-8') for member in members}
 
         return members if members else set()
 
@@ -84,13 +81,15 @@ class MetricsMetadataClient:
         """
         Add a single metric name to an existing namespace.
 
-        Creates the namespace set if it doesn't exist.
+        Creates namespace set if it doesn't exist.
 
         Args:
-            namespace: The namespace identifier
-            metric_name: The metric name to add
+            namespace: namespace identifier
+            metric_name: metric name to add
         """
         key = self._get_key(namespace)
+        if metric_name is None or metric_name == "":
+            raise ValueError("metric_name cannot be empty")
         self.redis_client.sadd(key, metric_name)
 
     def is_valid_metric_name(self, namespace: str, metric_name: str) -> bool:
@@ -98,8 +97,8 @@ class MetricsMetadataClient:
         Check if a metric name exists in a namespace.
 
         Args:
-            namespace: The namespace identifier
-            metric_name: The metric name to check
+            namespace: namespace identifier
+            metric_name: metric name to check
 
         Returns:
             True if metric name exists in namespace, False otherwise

@@ -32,7 +32,7 @@ Implement a Redis-based store for metrics metadata that allows caching and valid
 ## Implementation Steps
 
 1. **Create the MetricsMetadataClient class**
-   - Add imports: `from typing import Optional` and `import redis`
+   - Add imports
    - Define class with `__init__(self, redis_client: redis.Redis)`
    - Store redis client as instance variable
 
@@ -82,6 +82,4 @@ Implement a Redis-based store for metrics metadata that allows caching and valid
 - **Encoding**: Redis returns bytes by default; ensure `decode_responses=True` is used or decode manually
 - **Performance**: `SISMEMBER` is O(1), `SMEMBERS` is O(n) where n is set size
 - **Edge cases**:
-  - Empty namespace string should be allowed (caller's responsibility)
-  - Non-existent keys return empty set / False
-  - `set_metric_names` with empty set should clear existing data
+  - Empty namespace string should be allowed and changed to "default" (caller's responsibility)
