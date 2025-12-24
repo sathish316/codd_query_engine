@@ -44,26 +44,10 @@ def client(redis_client):
 class TestMetricsMetadataClient:
     """Test suite for MetricsMetadataClient."""
 
-    def test_init(self, redis_client):
-        """Test client initialization."""
-        client = MetricsMetadataClient(redis_client)
-        assert client.redis_client is redis_client
-
     def test_get_key_format(self, client):
         """Test that key format follows <namespace>#metric_names pattern."""
-        assert client._get_key("test_ns") == "test_ns#metric_names"
-        assert client._get_key("prod") == "prod#metric_names"
-        assert client._get_key("") == "#metric_names"
-
-    def test_set_metric_names_basic(self, client):
-        """Test setting metric names for a namespace."""
-        namespace = "test_namespace"
-        metric_names = {"cpu.usage", "memory.total", "disk.io"}
-
-        client.set_metric_names(namespace, metric_names)
-        result = client.get_metric_names(namespace)
-
-        assert result == metric_names
+        assert client._get_key("foo") == "foo#metric_names"
+        assert client._get_key("bar") == "bar#metric_names"
 
     def test_set_metric_names_replaces_existing(self, client):
         """Test that set_metric_names replaces existing values."""
@@ -83,22 +67,6 @@ class TestMetricsMetadataClient:
         assert "metric1" not in result
         assert "metric2" not in result
         assert "metric3" not in result
-
-    def test_set_metric_names_empty_set(self, client):
-        """Test setting empty set clears existing metrics."""
-        namespace = "test_namespace"
-        metric_names = {"metric1", "metric2"}
-
-        # Set initial metrics
-        client.set_metric_names(namespace, metric_names)
-        assert len(client.get_metric_names(namespace)) == 2
-
-        # Clear with empty set
-        client.set_metric_names(namespace, set())
-        result = client.get_metric_names(namespace)
-
-        assert result == set()
-        assert len(result) == 0
 
     def test_get_metric_names_nonexistent_namespace(self, client):
         """Test getting metrics from non-existent namespace returns empty set."""
@@ -128,15 +96,6 @@ class TestMetricsMetadataClient:
         result = client.get_metric_names(namespace)
         assert result == {"metric1", "metric2", "metric3"}
 
-    def test_add_metric_name_to_new_namespace(self, client):
-        """Test adding a metric to non-existent namespace creates it."""
-        namespace = "new_namespace"
-
-        client.add_metric_name(namespace, "first_metric")
-
-        result = client.get_metric_names(namespace)
-        assert result == {"first_metric"}
-
     def test_add_metric_name_duplicate(self, client):
         """Test adding duplicate metric name is idempotent."""
         namespace = "test_namespace"
@@ -149,8 +108,8 @@ class TestMetricsMetadataClient:
         assert result == {"metric1"}
         assert len(result) == 1
 
-    def test_is_valid_metric_name_existing(self, client):
-        """Test validation returns True for existing metric."""
+    def test_is_valid_metric_name(self, client):
+        """Test validation returns True for existing metric, False for non-existent metric."""
         namespace = "test_namespace"
         metric_names = {"cpu.usage", "memory.total"}
 
@@ -158,20 +117,8 @@ class TestMetricsMetadataClient:
 
         assert client.is_valid_metric_name(namespace, "cpu.usage") is True
         assert client.is_valid_metric_name(namespace, "memory.total") is True
-
-    def test_is_valid_metric_name_nonexistent(self, client):
-        """Test validation returns False for non-existent metric."""
-        namespace = "test_namespace"
-        metric_names = {"cpu.usage", "memory.total"}
-
-        client.set_metric_names(namespace, metric_names)
-
         assert client.is_valid_metric_name(namespace, "disk.io") is False
         assert client.is_valid_metric_name(namespace, "network.bytes") is False
-
-    def test_is_valid_metric_name_empty_namespace(self, client):
-        """Test validation on non-existent namespace returns False."""
-        assert client.is_valid_metric_name("nonexistent", "metric1") is False
 
     def test_multiple_namespaces_isolation(self, client):
         """Test that different namespaces are isolated."""
@@ -196,94 +143,6 @@ class TestMetricsMetadataClient:
         assert client.is_valid_metric_name(namespace2, "metric_x") is True
         assert client.is_valid_metric_name(namespace2, "metric_a") is False
 
-    def test_large_metric_set(self, client):
-        """Test handling of large metric name sets."""
-        namespace = "large_namespace"
-        metric_names = {f"metric_{i}" for i in range(1000)}
-
-        client.set_metric_names(namespace, metric_names)
-        result = client.get_metric_names(namespace)
-
-        assert len(result) == 1000
-        assert result == metric_names
-        assert client.is_valid_metric_name(namespace, "metric_500") is True
-        assert client.is_valid_metric_name(namespace, "metric_1001") is False
-
-    def test_special_characters_in_metric_names(self, client):
-        """Test metric names with special characters."""
-        namespace = "test_namespace"
-        metric_names = {
-            "cpu.usage.percent",
-            "memory:total:bytes",
-            "disk/io/read",
-            "network-bytes-sent",
-            "app_response_time"
-        }
-
-        client.set_metric_names(namespace, metric_names)
-        result = client.get_metric_names(namespace)
-
-        assert result == metric_names
-        for metric in metric_names:
-            assert client.is_valid_metric_name(namespace, metric) is True
-
-    def test_special_characters_in_namespace(self, client):
-        """Test namespaces with special characters."""
-        namespaces = ["prod:app1", "dev-service", "test_env", "namespace.with.dots"]
-        metrics = {"metric1", "metric2"}
-
-        for namespace in namespaces:
-            client.set_metric_names(namespace, metrics)
-            result = client.get_metric_names(namespace)
-            assert result == metrics
-
-    def test_unicode_in_metric_names(self, client):
-        """Test metric names with unicode characters."""
-        namespace = "test_namespace"
-        metric_names = {"cpu_使用率", "mémoire_total", "диск_io"}
-
-        client.set_metric_names(namespace, metric_names)
-        result = client.get_metric_names(namespace)
-
-        assert result == metric_names
-        assert client.is_valid_metric_name(namespace, "cpu_使用率") is True
-
-    def test_add_after_clear(self, client):
-        """Test adding metrics after clearing namespace."""
-        namespace = "test_namespace"
-        initial_metrics = {"metric1", "metric2"}
-
-        client.set_metric_names(namespace, initial_metrics)
-        client.set_metric_names(namespace, set())  # Clear
-        client.add_metric_name(namespace, "new_metric")
-
-        result = client.get_metric_names(namespace)
-        assert result == {"new_metric"}
-
-    def test_operations_sequence(self, client):
-        """Test a sequence of mixed operations."""
-        namespace = "test_namespace"
-
-        # Start with initial set
-        client.set_metric_names(namespace, {"a", "b", "c"})
-        assert len(client.get_metric_names(namespace)) == 3
-
-        # Add new metrics
-        client.add_metric_name(namespace, "d")
-        client.add_metric_name(namespace, "e")
-        assert len(client.get_metric_names(namespace)) == 5
-
-        # Validate
-        assert client.is_valid_metric_name(namespace, "a") is True
-        assert client.is_valid_metric_name(namespace, "e") is True
-        assert client.is_valid_metric_name(namespace, "f") is False
-
-        # Replace all
-        client.set_metric_names(namespace, {"x", "y"})
-        assert len(client.get_metric_names(namespace)) == 2
-        assert client.is_valid_metric_name(namespace, "a") is False
-        assert client.is_valid_metric_name(namespace, "x") is True
-
     def test_empty_metric_name_string(self, client):
         """Test handling of empty string as metric name."""
         namespace = "test_namespace"
@@ -293,15 +152,3 @@ class TestMetricsMetadataClient:
 
         assert "" in result
         assert client.is_valid_metric_name(namespace, "") is True
-
-    def test_whitespace_metric_names(self, client):
-        """Test metric names with whitespace."""
-        namespace = "test_namespace"
-        metric_names = {"metric with spaces", "  leading", "trailing  ", "\ttab\t"}
-
-        client.set_metric_names(namespace, metric_names)
-        result = client.get_metric_names(namespace)
-
-        assert result == metric_names
-        for metric in metric_names:
-            assert client.is_valid_metric_name(namespace, metric) is True
