@@ -21,6 +21,7 @@ from dataclasses import dataclass, field
 from typing import Optional
 
 
+# TODO: replace LLMSettings with ConfigManager
 @dataclass(frozen=True)
 class LLMSettings:
     """

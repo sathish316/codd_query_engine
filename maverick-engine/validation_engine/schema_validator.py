@@ -2,202 +2,40 @@
 Schema validator for metric expressions.
 
 This module validates that all metric names referenced in a metric expression
-exist within the caller's namespace before the expression is executed.
-Uses MetricsMetadataClient for namespace-aware membership checks.
+exist within the caller's namespace.
+
+Uses MetricsMetadataClient for namespace-aware checks.
 """
 
 import logging
-from dataclasses import dataclass, field
-from typing import Protocol, Optional
+
+from maverick_dal.metrics.metrics_metadata_client import MetricsMetadataClient
+from validation_engine.metric_expression_parser import MetricExpressionParser
+from validation_engine.structured_outputs import SchemaValidationResult
 
 logger = logging.getLogger(__name__)
-
-
-class MetricExpressionParseError(Exception):
-    """Raised when a metric expression cannot be parsed."""
-    pass
-
-
-class MetricExpressionParser(Protocol):
-    """
-    Protocol for parsing metric expressions to extract metric names.
-
-    Implementations should be synchronous and raise MetricExpressionParseError
-    or generic Exception on parse failures.
-    """
-
-    def parse(self, metric_expression: str) -> set[str]:
-        """
-        Parse a metric expression and extract unique metric names.
-
-        Args:
-            metric_expression: The expression string to parse
-
-        Returns:
-            Set of unique metric names found in the expression
-
-        Raises:
-            MetricExpressionParseError: If the expression is malformed
-        """
-        ...
-
-
-@dataclass
-class SchemaValidationResult:
-    """
-    Result of schema validation for a metric expression.
-
-    Attributes:
-        is_valid: True if all metrics exist in namespace, False otherwise
-        invalid_metrics: List of metric names not found in namespace
-        error: Optional error message for parser failures or other issues
-    """
-    is_valid: bool
-    invalid_metrics: list[str] = field(default_factory=list)
-    error: Optional[str] = None
-
-    @classmethod
-    def success(cls) -> "SchemaValidationResult":
-        """Create a successful validation result."""
-        return cls(is_valid=True, invalid_metrics=[])
-
-    @classmethod
-    def failure(cls, invalid_metrics: list[str], namespace: str) -> "SchemaValidationResult":
-        """Create a failure result with invalid metrics."""
-        error_msg = cls._build_error_message(invalid_metrics, namespace)
-        return cls(is_valid=False, invalid_metrics=invalid_metrics, error=error_msg)
-
-    @classmethod
-    def parse_error(cls, message: str, original_exception: Optional[Exception] = None) -> "SchemaValidationResult":
-        """Create a result for parser failures."""
-        error_msg = f"Expression parse error: {message}"
-        if original_exception:
-            logger.warning(
-                "Parser exception during schema validation",
-                exc_info=original_exception
-            )
-        return cls(is_valid=False, invalid_metrics=[], error=error_msg)
-
-    @staticmethod
-    def _build_error_message(invalid_metrics: list[str], namespace: str, max_display: int = 5) -> str:
-        """Build a formatted error message for invalid metrics."""
-        count = len(invalid_metrics)
-        if count == 0:
-            return ""
-
-        displayed = invalid_metrics[:max_display]
-        metrics_str = ", ".join(f"'{m}'" for m in displayed)
-
-        if count > max_display:
-            return f"Found {count} invalid metrics in namespace '{namespace}': {metrics_str}, and {count - max_display} more"
-        return f"Found {count} invalid metric(s) in namespace '{namespace}': {metrics_str}"
 
 
 class SchemaValidator:
     """
     Validates that metric expressions reference only existing metrics.
 
-    Uses MetricsMetadataClient for namespace-aware membership checks and
-    an injected parser to extract metric names from expressions.
-
     Args:
-        metadata_client: MetricsMetadataClient instance for Redis operations
-        parser: MetricExpressionParser implementation for extracting metric names
-        bulk_fetch_threshold: Number of metrics above which bulk fetch is used (default: 5)
-
-    Example usage with default PydanticAI parser:
-        from validation_engine.schema_validator import SchemaValidator
-        from maverick_dal.metrics.metrics_metadata_client import MetricsMetadataClient
-
-        metadata_client = MetricsMetadataClient(redis_client)
-        validator = SchemaValidator.with_default_parser(metadata_client)
-        result = validator.validate("my_namespace", "cpu.usage + memory.total")
-
-    For testing without OpenAI calls, inject a mock parser:
-        validator = SchemaValidator(metadata_client, mock_parser)
-
-    Environment variables for PydanticAI parser:
-        OPENAI_API_KEY: Required for OpenAI API access
-        OPENAI_MODEL_NAME: Model to use (default: gpt-4o-mini)
-        OPENAI_TEMPERATURE: Sampling temperature (default: 0.0)
+        metadata_client: MetricsMetadataClient instance
+        parser: MetricExpressionParser for extracting metric names
     """
-
-    DEFAULT_BULK_FETCH_THRESHOLD = 5
 
     def __init__(
         self,
-        metadata_client,  # MetricsMetadataClient - not type hinted to avoid import
+        metadata_client: MetricsMetadataClient,
         parser: MetricExpressionParser,
-        bulk_fetch_threshold: int = DEFAULT_BULK_FETCH_THRESHOLD
     ):
         self._metadata_client = metadata_client
         self._parser = parser
-        self._bulk_fetch_threshold = bulk_fetch_threshold
-
-    @classmethod
-    def with_default_parser(
-        cls,
-        metadata_client,
-        settings=None,
-        bulk_fetch_threshold: int = DEFAULT_BULK_FETCH_THRESHOLD
-    ) -> "SchemaValidator":
-        """
-        Create a SchemaValidator with the default PydanticAI-based parser.
-
-        This factory method creates a validator configured to use PydanticAI
-        with an OpenAI model for metric expression parsing. Requires
-        OPENAI_API_KEY environment variable to be set.
-
-        Args:
-            metadata_client: MetricsMetadataClient instance for Redis operations
-            settings: Optional LLMSettings; if None, loads from environment
-            bulk_fetch_threshold: Number of metrics above which bulk fetch is used
-
-        Returns:
-            SchemaValidator configured with PydanticAIMetricExpressionParser
-
-        Raises:
-            ImportError: If pydantic-ai or openai packages are not installed
-            MetricExpressionParseError: If OPENAI_API_KEY is not set (on first parse)
-
-        Note:
-            For offline testing, use the standard constructor with a mock parser.
-        """
-        # Import parser and settings lazily to avoid import errors when deps missing
-        import importlib.util
-        from pathlib import Path
-
-        project_root = Path(__file__).parent.parent.parent
-
-        # Load settings module
-        settings_path = project_root / "maverick-engine" / "config" / "llm_settings.py"
-        spec = importlib.util.spec_from_file_location("llm_settings", settings_path)
-        settings_module = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(settings_module)
-
-        # Load parser module
-        parser_path = project_root / "maverick-engine" / "validation_engine" / "pydantic_metric_parser.py"
-        spec = importlib.util.spec_from_file_location("pydantic_metric_parser", parser_path)
-        parser_module = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(parser_module)
-
-        # Create settings if not provided
-        if settings is None:
-            settings = settings_module.load_llm_settings()
-
-        # Create parser
-        parser = parser_module.PydanticAIMetricExpressionParser(settings)
-
-        logger.info(
-            "Created SchemaValidator with PydanticAI parser",
-            extra={"model": settings.model_name}
-        )
-
-        return cls(metadata_client, parser, bulk_fetch_threshold)
 
     def validate(self, namespace: str, metric_expression: str) -> SchemaValidationResult:
         """
-        Validate that all metrics in the expression exist in the namespace.
+        Validate metric names in expression are valid.
 
         Args:
             namespace: The namespace to check metrics against
@@ -265,8 +103,6 @@ class SchemaValidator:
         Returns:
             List of metric names not found in namespace
         """
-        if len(metrics) >= self._bulk_fetch_threshold:
-            return self._find_invalid_bulk(namespace, metrics)
         return self._find_invalid_individual(namespace, metrics)
 
     def _find_invalid_individual(self, namespace: str, metrics: set[str]) -> list[str]:
@@ -276,8 +112,3 @@ class SchemaValidator:
             if not self._metadata_client.is_valid_metric_name(namespace, metric):
                 invalid.append(metric)
         return invalid
-
-    def _find_invalid_bulk(self, namespace: str, metrics: set[str]) -> list[str]:
-        """Fetch all namespace metrics once and check membership locally."""
-        valid_metrics = self._metadata_client.get_metric_names(namespace)
-        return [m for m in metrics if m not in valid_metrics]
