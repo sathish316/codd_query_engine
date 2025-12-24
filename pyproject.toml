@@ -21,6 +21,7 @@ dev = [
 maverick-dal = { workspace = true }
 maverick-engine = { workspace = true }
 maverick-service = { workspace = true }
+opus-agent-base = { path = "../opus_agents/opus_agent_base" }
 
 [tool.uv.workspace]
 members = ["maverick_dal", "maverick_engine", "maverick_service"]

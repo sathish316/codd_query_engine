@@ -22,28 +22,3 @@ class RouletteAgentBuilder(AgentBuilder):
         #     deepwork_mcp_server_registry.get_clockwise_fastmcp_server(),
         # ]
         # self.add_mcp_servers_config(mcp_servers_config)
-
-# from pydantic_ai import Agent, RunContext
-
-# roulette_agent = Agent(  
-#     'openai:gpt-5',
-#     deps_type=int,
-#     output_type=bool,
-#     system_prompt=(
-#         'Use the `roulette_wheel` function to see if the '
-#         'customer has won based on the number they provide.'
-#     ),
-# )
-
-
-
-
-# # Run the agent
-# success_number = 18  
-# result = roulette_agent.run_sync('Put my money on square eighteen', deps=success_number)
-# print(result.output)  
-# #> True
-
-# result = roulette_agent.run_sync('I bet five is the winner', deps=success_number)
-# print(result.output)
-# #> False
