@@ -19,3 +19,9 @@
 [submodule "maverick_mcp/mcp-redis"]
 	path = maverick_mcp/mcp-redis
 	url = git@github.com:redis/mcp-redis.git
+[submodule "sandbox/train-ticket"]
+	path = sandbox/train-ticket
+	url = git@github.com:FudanSELab/train-ticket.git
+[submodule "sandbox/beer-service-sandbox"]
+	path = sandbox/beer-service-sandbox
+	url = git@github.com:sathish316/beer-service-sandbox.git
