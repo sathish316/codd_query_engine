@@ -99,9 +99,9 @@
     - [ ] Maverick REST APIs
     - [ ] Maverick MCP server
     - [ ] Maverick Skills
-- [ ] Sandbox service
-    - [ ] Beer service
-    - [ ] Train ticket services
+- [X] Sandbox service
+    - [X] Beer service
+    - [X] Train ticket services
 - [ ] Workflows
     - [ ] Cursor rules
     - [ ] Claude subagents
