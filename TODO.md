@@ -1,0 +1,112 @@
+- [ ] PromQL
+    - [X] MCP
+    - [ ] Direct client
+    - [ ] Semantic preprocess
+    - [ ] Semantic query
+    - [ ] Syntax
+    - [ ] Schema
+    - [ ] Query gen
+    - [ ] Query validation
+    - [ ] Doc
+    - [ ] Demo
+    - [ ] NL2SQL Evalsuite
+- [ ] Loki LogQL
+    - [X] MCP
+    - [ ] Direct client
+    - [ ] Semantic preprocess
+    - [ ] Semantic query
+    - [ ] Syntax
+    - [ ] Schema
+    - [ ] Query gen
+    - [ ] Query validation
+    - [ ] Doc
+    - [ ] Demo
+    - [ ] NL2SQL Evalsuite
+- [ ] Splunk SPL
+    - [X] MCP
+    - [ ] Direct client
+    - [ ] Semantic preprocess
+    - [ ] Semantic query
+    - [ ] Syntax
+    - [ ] Schema
+    - [ ] Query gen
+    - [ ] Query validation
+    - [ ] Doc
+    - [ ] Demo
+    - [ ] NL2SQL Evalsuite
+- [ ] Splunk SFX
+    - [ ] MCP
+    - [ ] Direct client
+    - [ ] Semantic preprocess
+    - [ ] Semantic query
+    - [ ] Syntax
+    - [ ] Schema
+    - [ ] Query gen
+    - [ ] Query validation
+    - [ ] Doc
+    - [ ] Demo
+    - [ ] NL2SQL Evalsuite
+- [ ] OpenTSDB
+- [ ] Mysql
+    - [X] MCP
+    - [ ] Direct client
+    - [ ] Semantic preprocess
+    - [ ] Semantic query
+    - [ ] Syntax
+    - [ ] Schema
+    - [ ] Query gen
+    - [ ] Query validation
+    - [ ] Doc
+    - [ ] Demo
+    - [ ] NL2SQL Evalsuite
+- [ ] PostgreSQL
+    - [X] MCP
+    - [ ] Direct client
+    - [ ] Semantic preprocess
+    - [ ] Semantic query
+    - [ ] Syntax
+    - [ ] Schema
+    - [ ] Query gen
+    - [ ] Query validation
+    - [ ] Doc
+    - [ ] Demo
+    - [ ] NL2SQL Evalsuite
+- [ ] Redis
+    - [X] MCP
+    - [ ] Direct client
+    - [ ] Semantic preprocess
+    - [ ] Semantic query
+    - [ ] Syntax
+    - [ ] Schema
+    - [ ] Query gen
+    - [ ] Query validation
+    - [ ] Doc
+    - [ ] Demo
+    - [ ] NL2SQL Evalsuite
+- [ ] Neo4j
+    - [X] MCP
+    - [ ] Direct client
+    - [ ] Semantic preprocess
+    - [ ] Semantic query
+    - [ ] Syntax
+    - [ ] Schema
+    - [ ] Query gen
+    - [ ] Query validation
+    - [ ] Doc
+    - [ ] Demo
+    - [ ] NL2SQL Evalsuite
+- [ ] Service
+    - [ ] Maverick REST APIs
+    - [ ] Maverick MCP server
+    - [ ] Maverick Skills
+- [ ] Sandbox service
+    - [ ] Beer service
+    - [ ] Train ticket services
+- [ ] Workflows
+    - [ ] Cursor rules
+    - [ ] Claude subagents
+    - [ ] Antigravity workflows
+    - [ ] Codex skills
+    - [ ] RovoDev subagents
+    - [ ] Opus agent workflows
+    - [ ] Pied-Piper subagents
