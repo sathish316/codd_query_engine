@@ -1,4 +1,10 @@
-from typing import TypedDict
+import logging
+from dataclasses import dataclass, field
+from typing import Optional, TypedDict
+
+from pydantic import BaseModel, field_validator
+
+logger = logging.getLogger(__name__)
 
 
 # TODO: use MetricMetadata in SearchResult

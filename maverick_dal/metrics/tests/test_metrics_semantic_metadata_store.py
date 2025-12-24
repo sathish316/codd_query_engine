@@ -18,16 +18,6 @@ sys.path.insert(0, str(project_root))
 import pytest
 import chromadb
 
-# Import using relative path since directory has hyphen
-import importlib.util
-spec = importlib.util.spec_from_file_location(
-    "metrics_semantic_metadata_store",
-    Path(__file__).parent.parent / "metrics_semantic_metadata_store.py"
-)
-metrics_semantic_metadata_store = importlib.util.module_from_spec(spec)
-spec.loader.exec_module(metrics_semantic_metadata_store)
-MetricsSemanticMetadataStore = metrics_semantic_metadata_store.MetricsSemanticMetadataStore
-ValidationError = metrics_semantic_metadata_store.ValidationError
 
 
 @pytest.fixture

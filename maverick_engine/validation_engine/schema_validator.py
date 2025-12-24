@@ -10,7 +10,10 @@ Uses MetricsMetadataClient for namespace-aware checks.
 import logging
 
 from maverick_dal.metrics.metrics_metadata_client import MetricsMetadataClient
-from validation_engine.metric_expression_parser import MetricExpressionParser
+from validation_engine.metric_expression_parser import (
+    MetricExpressionParser,
+    MetricExpressionParseError,
+)
 from validation_engine.structured_outputs import SchemaValidationResult
 
 logger = logging.getLogger(__name__)
