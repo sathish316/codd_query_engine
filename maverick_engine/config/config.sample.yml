@@ -1,0 +1,18 @@
+# Agent Configuration
+agent:
+  name: "maverick-engine-agent"
+  description: "Maverick Engine Agent for Text2SQL and NL2SQL query generation and validation"
+
+# Model Configuration
+model_config:
+  - provider: "openai"
+    model: "gpt-5"
+    enabled: true
+
+# MCP Server Configuration
+mcp_config:
+  roulette:
+    wheel:
+      enabled: true
+
+# Environment Variables (set these in your shell)
