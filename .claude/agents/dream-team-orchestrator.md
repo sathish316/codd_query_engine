@@ -5,7 +5,6 @@ description: Orchestrates the dream team workflow. Monitors task progress, ensur
 
 model: sonnet
 ---
-
 <CCR-SUBAGENT-MODEL>openrouter,anthropic/claude-haiku-4.5</CCR-SUBAGENT-MODEL>
 
 

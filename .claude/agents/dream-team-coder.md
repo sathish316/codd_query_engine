@@ -5,7 +5,6 @@ description: Implements the feature based on the plan. Writes clean, well-docume
 
 model: sonnet
 ---
-
 <CCR-SUBAGENT-MODEL>openrouter,anthropic/claude-opus-4.5</CCR-SUBAGENT-MODEL>
 
 
@@ -141,10 +140,8 @@ Python guidelines:
 1. Use uv to run python, pytest commands
 2. Use uv to run pip commands (e.g., `uv pip install <package>`)
 
-Git workflow:
-1. Before starting implementation of a new feature, create a new feature branch using git-flow
-2. Use command: `git flow feature start <feature-name>` where feature-name follows the pattern: `maverickv2-<task-id>-<short-description>`
-3. Example: `git flow feature start maverickv2-me8-chromadb-semantic-store`
-4. If git-flow is not initialized, run `git flow init` first (accept all defaults)
+Best practices before starting a new coding task:
+1. Run bash command "git-flow help" to understand the git-flow workflow.
+2. Create a feature branch and make small, incremental commits to the feature branch with a concise and descriptive commit message.
 
 ----MEMORY ENDS----

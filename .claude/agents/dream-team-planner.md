@@ -5,7 +5,6 @@ description: Plans the implementation of feature X. Analyzes requirements, break
 
 model: sonnet
 ---
-
 <CCR-SUBAGENT-MODEL>openrouter,openai/gpt-5.1-codex</CCR-SUBAGENT-MODEL>
 
 
