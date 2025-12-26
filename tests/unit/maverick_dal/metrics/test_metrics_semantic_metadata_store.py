@@ -8,15 +8,10 @@ Tests cover all public methods with various scenarios including:
 - Multiple metrics and similarity ranking
 """
 
-import sys
-from pathlib import Path
-
-# Add parent directory to path to allow imports from maverick-dal
-project_root = Path(__file__).parent.parent.parent.parent
-sys.path.insert(0, str(project_root))
-
 import pytest
 import chromadb
+
+from maverick_dal.metrics.metrics_semantic_metadata_store import MetricsSemanticMetadataStore
 
 
 
@@ -40,6 +35,7 @@ class TestMetricsSemanticMetadataStore:
 
     def test_index_metadata_basic(self, store):
         """Test indexing basic metric metadata."""
+        namespace = "test"
         metadata = {
             "metric_name": "cpu.usage",
             "type": "gauge",
@@ -49,11 +45,12 @@ class TestMetricsSemanticMetadataStore:
             "subcategory": "cpu"
         }
 
-        result = store.index_metadata(metadata)
-        assert result == "cpu.usage"
+        result = store.index_metadata(namespace, metadata)
+        assert result == f"{namespace}#cpu.usage"
 
     def test_index_metadata_all_fields(self, store):
         """Test indexing metadata with all schema fields."""
+        namespace = "test"
         metadata = {
             "metric_name": "http.request.duration",
             "type": "histogram",
@@ -68,18 +65,19 @@ class TestMetricsSemanticMetadataStore:
             "meter_type_description": "Distribution of values over time"
         }
 
-        result = store.index_metadata(metadata)
-        assert result == "http.request.duration"
+        result = store.index_metadata(namespace, metadata)
+        assert result == f"{namespace}#http.request.duration"
 
     def test_index_metadata_missing_required_field(self, store):
         """Test that indexing without metric_name raises KeyError."""
+        namespace = "test"
         metadata = {
             "type": "gauge",
             "description": "Some metric"
         }
 
         with pytest.raises(KeyError) as exc_info:
-            store.index_metadata(metadata)
+            store.index_metadata(namespace, metadata)
         assert "metric_name" in str(exc_info.value)
 
     def test_index_metadata_upsert(self, store):
@@ -104,7 +102,7 @@ class TestMetricsSemanticMetadataStore:
         result = store.index_metadata(namespace, metadata_v2)
 
         # Verify the update
-        assert result == metric_name
+        assert result == f"{namespace}#{metric_name}"
         search_results = store.search_metadata("memory usage version 2", n_results=1)
         assert len(search_results) > 0
         assert search_results[0]["metric_name"] == metric_name
@@ -112,13 +110,14 @@ class TestMetricsSemanticMetadataStore:
 
     def test_search_metadata_basic(self, store):
         """Test basic semantic search."""
+        namespace = "test"
         # Index some metrics
-        store.index_metadata({
+        store.index_metadata(namespace, {
             "metric_name": "cpu.usage",
             "description": "CPU utilization percentage",
             "category": "system"
         })
-        store.index_metadata({
+        store.index_metadata(namespace, {
             "metric_name": "memory.usage",
             "description": "Memory utilization in bytes",
             "category": "system"
@@ -139,18 +138,19 @@ class TestMetricsSemanticMetadataStore:
 
     def test_search_metadata_ranking(self, store):
         """Test that search results are ranked by similarity."""
+        namespace = "test"
         # Index metrics with varying relevance
-        store.index_metadata({
+        store.index_metadata(namespace, {
             "metric_name": "http.latency",
             "description": "HTTP request latency in milliseconds",
             "golden_signal_type": "latency"
         })
-        store.index_metadata({
+        store.index_metadata(namespace, {
             "metric_name": "db.query.time",
             "description": "Database query execution time",
             "category": "database"
         })
-        store.index_metadata({
+        store.index_metadata(namespace, {
             "metric_name": "network.bandwidth",
             "description": "Network bandwidth usage",
             "category": "network"
@@ -168,6 +168,7 @@ class TestMetricsSemanticMetadataStore:
 
     def test_search_metadata_returns_all_fields(self, store):
         """Test that search results include all metadata fields."""
+        namespace = "test"
         metadata = {
             "metric_name": "test.metric",
             "type": "gauge",
@@ -181,7 +182,7 @@ class TestMetricsSemanticMetadataStore:
             "meter_type": "gauge",
             "meter_type_description": "Gauge meter"
         }
-        store.index_metadata(metadata)
+        store.index_metadata(namespace, metadata)
 
         results = store.search_metadata("test metric")
 

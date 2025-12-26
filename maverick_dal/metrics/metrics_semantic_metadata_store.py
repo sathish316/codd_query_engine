@@ -13,6 +13,9 @@ import logging
 import chromadb
 from chromadb.config import Settings
 
+from maverick_engine.models.metrics_common import MetricMetadata
+from maverick_engine.validation_engine.structured_outputs import ValidationError, SearchResult
+
 # Configure logging
 logger = logging.getLogger(__name__)
 
@@ -272,8 +275,32 @@ class MetricsSemanticMetadataStore:
             logger.warning(f"n_results {n_results} exceeds maximum {MAX_N_RESULTS}, capping to maximum")
             n_results = MAX_N_RESULTS
 
-        return self.collection.query(
+        results = self.collection.query(
             query_texts=[sanitized_query],
-            n_results=n_results,
-            where={"namespace": namespace}
+            n_results=n_results
         )
+
+        # Format results
+        if not results or not results.get("ids") or not results["ids"][0]:
+            return []
+
+        formatted_results = []
+        ids = results["ids"][0]
+        metadatas = results.get("metadatas", [[]])[0]
+        distances = results.get("distances", [[]])[0]
+
+        for i, doc_id in enumerate(ids):
+            metadata = metadatas[i] if i < len(metadatas) else {}
+            distance = distances[i] if i < len(distances) else 1.0
+
+            # Extract metric_name from document_id (format: namespace#metric_name)
+            metric_name = doc_id.split("#")[-1] if "#" in doc_id else doc_id
+
+            result = {
+                "metric_name": metric_name,
+                "similarity_score": 1.0 - distance,  # Convert distance to similarity
+                **metadata
+            }
+            formatted_results.append(result)
+
+        return formatted_results

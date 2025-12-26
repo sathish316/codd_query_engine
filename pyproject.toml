@@ -31,4 +31,4 @@ markers = [
     "integration: marks tests as integration tests (deselect with '-m \"not integration\"')",
 ]
 addopts = "-m 'not integration'"
-testpaths = ["maverick_engine/tests", "maverick_dal/tests", "maverick_service/tests"]
+testpaths = ["tests"]

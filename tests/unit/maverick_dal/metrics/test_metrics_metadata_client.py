@@ -8,25 +8,10 @@ Tests cover all public methods with various scenarios including:
 - Thread safety considerations
 """
 
-import sys
-from pathlib import Path
-
-# Add parent directory to path to allow imports from maverick-dal
-project_root = Path(__file__).parent.parent.parent.parent
-sys.path.insert(0, str(project_root))
-
 import pytest
 import fakeredis
 
-# Import using relative path since directory has hyphen
-import importlib.util
-spec = importlib.util.spec_from_file_location(
-    "metrics_metadata_client",
-    Path(__file__).parent.parent / "metrics_metadata_client.py"
-)
-metrics_metadata_client = importlib.util.module_from_spec(spec)
-spec.loader.exec_module(metrics_metadata_client)
-MetricsMetadataClient = metrics_metadata_client.MetricsMetadataClient
+from maverick_dal.metrics.metrics_metadata_client import MetricsMetadataClient
 
 
 @pytest.fixture
@@ -144,11 +129,8 @@ class TestMetricsMetadataClient:
         assert client.is_valid_metric_name(namespace2, "metric_a") is False
 
     def test_empty_metric_name_string(self, client):
-        """Test handling of empty string as metric name."""
+        """Test that empty string metric name raises ValueError."""
         namespace = "test_namespace"
 
-        client.add_metric_name(namespace, "")
-        result = client.get_metric_names(namespace)
-
-        assert "" in result
-        assert client.is_valid_metric_name(namespace, "") is True
+        with pytest.raises(ValueError, match="metric_name cannot be empty"):
+            client.add_metric_name(namespace, "")

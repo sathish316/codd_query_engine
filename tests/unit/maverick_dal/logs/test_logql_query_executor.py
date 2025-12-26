@@ -8,29 +8,17 @@ Tests cover:
 - Label metadata retrieval
 """
 
-import sys
-from pathlib import Path
 from datetime import datetime, timedelta
 from unittest.mock import Mock, patch
 
-# Add parent directory to path
-project_root = Path(__file__).parent.parent.parent.parent
-sys.path.insert(0, str(project_root))
-
 import pytest
 
-# Import using relative path
-import importlib.util
-spec = importlib.util.spec_from_file_location(
-    "logql_query_executor",
-    Path(__file__).parent.parent / "logql_query_executor.py"
+from maverick_dal.logs.logql_query_executor import (
+    LogQLQueryExecutor,
+    LokiConfig,
+    QueryResult,
+    LogQLExecutionError,
 )
-logql_query_executor = importlib.util.module_from_spec(spec)
-spec.loader.exec_module(logql_query_executor)
-LogQLQueryExecutor = logql_query_executor.LogQLQueryExecutor
-LokiConfig = logql_query_executor.LokiConfig
-QueryResult = logql_query_executor.QueryResult
-LogQLExecutionError = logql_query_executor.LogQLExecutionError
 
 
 @pytest.fixture
