@@ -14,7 +14,6 @@ DEFAULT_AGGREGATION_SUGGESTIONS: Mapping[str, Sequence[AggregationFunctionSugges
         AggregationFunctionSuggestion(function_name="max_over_time"),
         AggregationFunctionSuggestion(function_name="min_over_time"),
         AggregationFunctionSuggestion(function_name="sum_over_time"),
-        AggregationFunctionSuggestion(function_name="last_over_time"),
     ],
     "histogram": [
         AggregationFunctionSuggestion(
@@ -22,16 +21,7 @@ DEFAULT_AGGREGATION_SUGGESTIONS: Mapping[str, Sequence[AggregationFunctionSugges
         ),
         AggregationFunctionSuggestion(
             function_name="histogram_quantile", params={"quantile": 0.99}
-        ),
-        AggregationFunctionSuggestion(
-            function_name="histogram_quantile", params={"quantile": 0.50}
-        ),
-        AggregationFunctionSuggestion(function_name="rate"),
-    ],
-    "summary": [
-        AggregationFunctionSuggestion(function_name="avg_over_time"),
-        AggregationFunctionSuggestion(function_name="rate"),
-        AggregationFunctionSuggestion(function_name="max_over_time"),
+        )
     ],
     "timer": [
         AggregationFunctionSuggestion(

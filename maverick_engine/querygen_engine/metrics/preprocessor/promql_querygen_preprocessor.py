@@ -30,5 +30,5 @@ class PromQLQuerygenPreprocessor(MetricsQuerygenPreprocessor):
             Preprocessed Query intent
         """
         intent = self.suggested_aggregation_preprocessor.preprocess(intent)
-        intent = self.actuator_metrics_preprocessor.preprocess(intent)
+        # intent = self.actuator_metrics_preprocessor.preprocess(intent)
         return intent

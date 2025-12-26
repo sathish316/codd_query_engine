@@ -1,13 +1,11 @@
-tests/integration/maverick_engine/validation_engine/metrics/test_metrics_schema_validator_integration.py"""
+"""
 Integration tests for Validation Engine components.
 """
-from unittest.mock import Mock, patch
 import pytest
 import redis
 
 from maverick_engine.validation_engine.agent.metrics.promql_metricname_extractor_agent import (
     PromQLMetricNameExtractorAgent,
-    MetricExtractionResponse
 )
 from maverick_engine.validation_engine.metrics.schema.metrics_schema_validator import MetricsSchemaValidator
 from maverick_dal.metrics.metrics_metadata_store import MetricsMetadataStore
