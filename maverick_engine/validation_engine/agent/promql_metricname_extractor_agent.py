@@ -14,48 +14,19 @@ from pydantic_ai import Agent
 from pydantic_ai.models.openai import OpenAIModel
 
 from maverick_engine.config.llm_settings import LLMSettings
-from maverick_engine.validation_engine.metric_expression_parser import MetricExpressionParseError
-from maverick_engine.validation_engine.structured_outputs import MetricExtractionResponse
+from maverick_engine.validation_engine.metrics.metric_expression_parser import MetricExpressionParseError
+from maverick_engine.validation_engine.metrics.structured_outputs import MetricExtractionResponse
+from maverick_engine.utils.file_utils import expand_path
+
+from opus_agent_base.agent.agent_builder import AgentBuilder
+from opus_agent_base.config.config_manager import ConfigManager
+from opus_agent_base.prompt.instructions_manager import InstructionsManager
 
 logger = logging.getLogger(__name__)
 
 
 # Regex pattern for valid metric name characters
 VALID_METRIC_NAME_PATTERN = re.compile(r'^[a-z][a-z0-9_.]*$')
-
-
-# System prompt for metric extraction
-#TODO: use agents library to externalize prompts
-SYSTEM_PROMPT = """You are a metric expression parser. Your task is to extract metric names from metric expressions.
-
-Rules for metric names:
-- Metric names are identifiers that reference data series
-- They typically use lowercase letters, numbers, underscores, and dots
-- Examples: cpu.usage, memory.total, disk_io_read, network.bytes.in
-- Ignore operators: +, -, *, /, ^, (, ), numbers, and function calls like avg(), sum(), max()
-- Ignore comments and string literals
-- Return only the metric identifiers, not function names or keywords
-
-Examples:
-- Input: "cpu.usage + memory.total * 2"
-  Output: ["cpu.usage", "memory.total"]
-
-- Input: "avg(http.requests.count) / time_window"
-  Output: ["http.requests.count", "time_window"]
-
-- Input: "(disk.read + disk.write) / disk.total"
-  Output: ["disk.read", "disk.write", "disk.total"]
-
-- Input: "100 - cpu.idle"
-  Output: ["cpu.idle"]
-
-- Input: "sum(sales.revenue) by region"
-  Output: ["sales.revenue"]
-
-Respond with the list of metric names and your confidence level (0.0-1.0) in the extraction.
-A confidence of 1.0 means you are certain about all extracted metrics.
-A lower confidence indicates ambiguity in the expression."""
-
 
 class PromQLMetricNameExtractorAgent:
     """
@@ -77,7 +48,7 @@ class PromQLMetricNameExtractorAgent:
 
     def _init_agent(self):
         """Initialize the PromQL metric name extractor agent."""
-        metrics_extractor_agent = (
+        self.agent = (
             AgentBuilder(self.config_manager)
             .set_system_prompt_keys(["promql_metricname_extractor_agent_instruction"])
             .name("promql-metricname-extractor-agent")
@@ -85,12 +56,16 @@ class PromQLMetricNameExtractorAgent:
             .add_model_manager()
             .instruction(
                 "promql_metricname_extractor_agent_instruction",
-                expand_path("$HOME/.maverick/prompts/agent/PROMQL_METRICNAME_EXTRACTOR_AGENT_INSTRUCTIONS.md")
+                expand_path("$HOME/.maverick/prompts/agent/metrics/PROMQL_METRICNAME_EXTRACTOR_AGENT_INSTRUCTIONS.md")
             )
+            .set_output_type(MetricExtractionResponse)
             .build_simple_agent()
         )
 
-    def extract(self, metric_expression: str) -> set[str]:
+    def _get_agent(self):
+        return self.agent
+
+    def parse(self, metric_expression: str) -> set[str]:
         """
         Parse a metric expression and extract unique metric names.
 
@@ -114,7 +89,7 @@ class PromQLMetricNameExtractorAgent:
 
         # Attempt LLM extraction with retries
         try:
-            result = self._extract(metric_expression)
+            result = self._extract_using_llm(metric_expression)
         except MetricExpressionParseError:
             raise
         except Exception as e:
@@ -131,6 +106,7 @@ class PromQLMetricNameExtractorAgent:
             else:
                 logger.warning(f"Skipping invalid metric name format: '{name}'")
 
+        print(f"Extracted {len(metrics)} metrics: {metrics}")
         logger.info(
             f"Extracted {len(metrics)} metrics",
             extra={"metric_count": len(metrics)}
@@ -143,7 +119,7 @@ class PromQLMetricNameExtractorAgent:
         try:
             agent = self._get_agent()
             result = agent.run_sync(expression)
-            return result.data
+            return result.output
         except MetricExpressionParseError:
             # Re-raise parse errors directly
             raise

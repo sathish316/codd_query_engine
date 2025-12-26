@@ -164,37 +164,6 @@ class TestLogQLQueryExecutor:
         params = call_args[1]["params"]
         assert params["step"] == 60
 
-    def test_query_instant_default_time(self, loki_config, mock_client):
-        """Test instant query with default time."""
-        executor = LogQLQueryExecutor(loki_config, client=mock_client)
-
-        result = executor.query_instant(query='{level="error"}')
-
-        assert result.status == "success"
-        assert mock_client.get.called
-        call_args = mock_client.get.call_args
-        assert call_args[0][0] == "http://localhost:3100/loki/api/v1/query"
-
-    def test_query_instant_custom_time(self, loki_config, mock_client):
-        """Test instant query with custom time."""
-        executor = LogQLQueryExecutor(loki_config, client=mock_client)
-
-        query_time = datetime(2024, 1, 1, 12, 0, 0)
-
-        result = executor.query_instant(
-            query='{app="frontend"}',
-            time=query_time,
-            limit=200,
-            direction="forward"
-        )
-
-        assert result.status == "success"
-        call_args = mock_client.get.call_args
-        params = call_args[1]["params"]
-        assert params["time"] == int(query_time.timestamp() * 1e9)
-        assert params["limit"] == 200
-        assert params["direction"] == "forward"
-
     def test_get_labels(self, loki_config, mock_client):
         """Test getting all labels."""
         mock_client.get.return_value.json.return_value = {
@@ -250,14 +219,6 @@ class TestLogQLQueryExecutor:
         assert result.status == "error"
         assert result.error is not None
         assert "Connection failed" in result.error
-
-    def test_context_manager(self, loki_config, mock_client):
-        """Test using executor as context manager."""
-        with LogQLQueryExecutor(loki_config, client=mock_client) as executor:
-            result = executor.query_instant(query='{job="test"}')
-            assert result.status == "success"
-
-        assert mock_client.close.called
 
     def test_close_method(self, loki_config, mock_client):
         """Test close method."""

@@ -14,7 +14,7 @@ import chromadb
 from chromadb.config import Settings
 
 from maverick_engine.models.metrics_common import MetricMetadata
-from maverick_engine.validation_engine.structured_outputs import ValidationError, SearchResult
+from maverick_engine.validation_engine.metrics.structured_outputs import ValidationError, SearchResult
 
 # Configure logging
 logger = logging.getLogger(__name__)

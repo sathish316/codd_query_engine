@@ -19,7 +19,7 @@ import pytest
 import chromadb
 
 from maverick_dal.metrics.metrics_semantic_metadata_store import MetricsSemanticMetadataStore
-from maverick_engine.validation_engine.structured_outputs import ValidationError
+from maverick_engine.validation_engine.metrics.structured_outputs import ValidationError
 
 
 

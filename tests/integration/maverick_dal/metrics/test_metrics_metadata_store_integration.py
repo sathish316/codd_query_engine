@@ -12,7 +12,7 @@ import redis
 
 import pytest
 
-from maverick_dal.metrics.metrics_metadata_client import MetricsMetadataStore
+from maverick_dal.metrics.metrics_metadata_store import MetricsMetadataStore
 
 @pytest.fixture
 def redis_client():

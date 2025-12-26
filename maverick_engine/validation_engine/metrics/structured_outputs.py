@@ -32,10 +32,8 @@ class MetricExtractionResponse(BaseModel):
     Response schema for metric name extraction.
 
     Contains the list of metric names extracted from an expression
-    along with a confidence score indicating extraction reliability.
     """
     metric_names: list[str]
-    confidence: float
 
     @field_validator('metric_names', mode='before')
     @classmethod
@@ -63,16 +61,6 @@ class MetricExtractionResponse(BaseModel):
                 seen.add(name)
                 deduped.append(name)
         return deduped
-
-    @field_validator('confidence', mode='before')
-    @classmethod
-    def clamp_confidence(cls, v):
-        """Clamp confidence to valid range [0.0, 1.0]."""
-        try:
-            val = float(v)
-            return max(0.0, min(1.0, val))
-        except (TypeError, ValueError):
-            return 0.0
 
 @dataclass
 #TODO: use BaseModel

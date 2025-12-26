@@ -9,17 +9,17 @@ Uses MetricsMetadataStore for namespace-aware checks.
 
 import logging
 
-from maverick_dal.metrics.metrics_metadata_client import MetricsMetadataStore
-from maverick_engine.validation_engine.metric_expression_parser import (
+from maverick_dal.metrics.metrics_metadata_store import MetricsMetadataStore
+from maverick_engine.validation_engine.metrics.metric_expression_parser import (
     MetricExpressionParser,
     MetricExpressionParseError,
 )
-from maverick_engine.validation_engine.structured_outputs import SchemaValidationResult
+from maverick_engine.validation_engine.metrics.structured_outputs import SchemaValidationResult
 
 logger = logging.getLogger(__name__)
 
 
-class SchemaValidator:
+class MetricsSchemaValidator:
     """
     Validates that metric expressions reference only existing metrics.
 
@@ -53,8 +53,8 @@ class SchemaValidator:
             return SchemaValidationResult.success()
 
         # Guard: empty namespace
-        if namespace is None:
-            return SchemaValidationResult.parse_error("Namespace cannot be None")
+        if not namespace or not namespace.strip():
+            return SchemaValidationResult.parse_error("Namespace cannot be blank")
 
         # Parse expression to extract metric names
         try:
@@ -66,8 +66,8 @@ class SchemaValidator:
 
         # Guard: no metrics found in expression
         if not metric_names:
-            logger.debug("No metrics found in expression, validation succeeded")
-            return SchemaValidationResult.success()
+            logger.warning("No metrics found in expression, validation failed")
+            return SchemaValidationResult.parse_error("No metrics found in expression")
 
         # Deduplicate and validate
         unique_metrics = set(metric_names)
