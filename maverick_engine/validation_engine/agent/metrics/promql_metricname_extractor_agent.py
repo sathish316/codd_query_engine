@@ -9,10 +9,6 @@ import logging
 import re
 from typing import Optional
 
-from pydantic import BaseModel, field_validator
-from pydantic_ai import Agent
-from pydantic_ai.models.openai import OpenAIModel
-
 from maverick_engine.validation_engine.metrics.schema.metric_expression_parser import (
     MetricExpressionParseError,
     MetricExpressionParser,

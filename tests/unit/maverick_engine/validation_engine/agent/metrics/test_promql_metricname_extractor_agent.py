@@ -14,7 +14,7 @@ All tests use mock/stub agents to avoid real OpenAI API calls.
 from unittest.mock import Mock, MagicMock, patch
 import pytest
 
-from maverick_engine.validation_engine.agent.promql_metricname_extractor_agent import (
+from maverick_engine.validation_engine.agent.metrics.promql_metricname_extractor_agent import (
     PromQLMetricNameExtractorAgent,
     VALID_METRIC_NAME_PATTERN,
     MetricExtractionResponse,
@@ -72,7 +72,7 @@ class TestPromQLMetricNameExtractorAgent:
 
     @pytest.fixture
     def mock_agent_builder(self):
-        with patch('maverick_engine.validation_engine.agent.promql_metricname_extractor_agent.AgentBuilder') as builder_cls:
+        with patch('maverick_engine.validation_engine.agent.metrics.promql_metricname_extractor_agent.AgentBuilder') as builder_cls:
             builder_instance = builder_cls.return_value
             # Chain mocks - each method returns the builder instance for chaining
             builder_instance.set_system_prompt_keys.return_value = builder_instance
