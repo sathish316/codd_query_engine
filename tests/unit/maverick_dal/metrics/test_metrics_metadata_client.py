@@ -1,5 +1,5 @@
 """
-Unit tests for MetricsMetadataClient.
+Unit tests for MetricsMetadataStore.
 
 Tests cover all public methods with various scenarios including:
 - Normal operations
@@ -11,7 +11,7 @@ Tests cover all public methods with various scenarios including:
 import pytest
 import fakeredis
 
-from maverick_dal.metrics.metrics_metadata_client import MetricsMetadataClient
+from maverick_dal.metrics.metrics_metadata_client import MetricsMetadataStore
 
 
 @pytest.fixture
@@ -22,12 +22,12 @@ def redis_client():
 
 @pytest.fixture
 def client(redis_client):
-    """Provide a MetricsMetadataClient instance with fake Redis."""
-    return MetricsMetadataClient(redis_client)
+    """Provide a MetricsMetadataStore instance with fake Redis."""
+    return MetricsMetadataStore(redis_client)
 
 
-class TestMetricsMetadataClient:
-    """Test suite for MetricsMetadataClient."""
+class TestMetricsMetadataStore:
+    """Test suite for MetricsMetadataStore."""
 
     def test_get_key_format(self, client):
         """Test that key format follows <namespace>#metric_names pattern."""

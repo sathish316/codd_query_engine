@@ -15,7 +15,7 @@ from unittest.mock import Mock, MagicMock, call
 import pytest
 import fakeredis
 
-from maverick_dal.metrics.metrics_metadata_client import MetricsMetadataClient
+from maverick_dal.metrics.metrics_metadata_client import MetricsMetadataStore
 from maverick_engine.validation_engine.schema_validator import SchemaValidator
 from maverick_engine.validation_engine.structured_outputs import SchemaValidationResult
 from maverick_engine.validation_engine.metric_expression_parser import MetricExpressionParseError
@@ -45,9 +45,9 @@ def redis_client():
 
 
 @pytest.fixture
-def metadata_client(redis_client):
-    """Provide a MetricsMetadataClient instance with fake Redis."""
-    return MetricsMetadataClient(redis_client)
+def metadata_store(redis_client):
+    """Provide a MetricsMetadataStore instance with fake Redis."""
+    return MetricsMetadataStore(redis_client)
 
 
 class TestSchemaValidationResult:
@@ -90,26 +90,26 @@ class TestSchemaValidationResult:
 class TestSchemaValidator:
     """Test suite for SchemaValidator."""
 
-    def test_init(self, metadata_client):
+    def test_init(self, metadata_store):
         """Test validator initialization."""
         parser = MockParser()
-        validator = SchemaValidator(metadata_client, parser)
-        assert validator._metadata_client is metadata_client
+        validator = SchemaValidator(metadata_store, parser)
+        assert validator._metadata_store is metadata_store
         assert validator._parser is parser
 
-    def test_init_custom_threshold(self, metadata_client):
+    def test_init_custom_threshold(self, metadata_store):
         """Test validator initialization with custom threshold."""
         parser = MockParser()
-        validator = SchemaValidator(metadata_client, parser)
+        validator = SchemaValidator(metadata_store, parser)
 
-    def test_happy_path_all_metrics_valid(self, metadata_client):
+    def test_happy_path_all_metrics_valid(self, metadata_store):
         """Test validation succeeds when all metrics exist in namespace."""
         namespace = "test_ns"
         metrics = {"cpu.usage", "memory.total", "disk.io"}
-        metadata_client.set_metric_names(namespace, metrics)
+        metadata_store.set_metric_names(namespace, metrics)
 
         parser = MockParser(return_value=metrics)
-        validator = SchemaValidator(metadata_client, parser)
+        validator = SchemaValidator(metadata_store, parser)
 
         result = validator.validate(namespace, "cpu.usage + memory.total + disk.io")
 
@@ -118,14 +118,14 @@ class TestSchemaValidator:
         assert result.error is None
         assert parser.parse_called is True
 
-    def test_failure_one_metric_missing(self, metadata_client):
+    def test_failure_one_metric_missing(self, metadata_store):
         """Test validation fails when one metric is missing."""
         namespace = "test_ns"
         valid_metrics = {"cpu.usage", "memory.total"}
-        metadata_client.set_metric_names(namespace, valid_metrics)
+        metadata_store.set_metric_names(namespace, valid_metrics)
 
         parser = MockParser(return_value={"cpu.usage", "memory.total", "disk.io"})
-        validator = SchemaValidator(metadata_client, parser)
+        validator = SchemaValidator(metadata_store, parser)
 
         result = validator.validate(namespace, "cpu.usage + disk.io")
 
@@ -133,14 +133,14 @@ class TestSchemaValidator:
         assert "disk.io" in result.invalid_metrics
         assert len(result.invalid_metrics) == 1
 
-    def test_failure_multiple_metrics_missing(self, metadata_client):
+    def test_failure_multiple_metrics_missing(self, metadata_store):
         """Test validation fails with multiple missing metrics."""
         namespace = "test_ns"
         valid_metrics = {"cpu.usage"}
-        metadata_client.set_metric_names(namespace, valid_metrics)
+        metadata_store.set_metric_names(namespace, valid_metrics)
 
         parser = MockParser(return_value={"cpu.usage", "memory.total", "disk.io", "network.bytes"})
-        validator = SchemaValidator(metadata_client, parser)
+        validator = SchemaValidator(metadata_store, parser)
 
         result = validator.validate(namespace, "expr")
 
@@ -150,13 +150,13 @@ class TestSchemaValidator:
         assert "disk.io" in result.invalid_metrics
         assert "network.bytes" in result.invalid_metrics
 
-    def test_parser_exception_propagation(self, metadata_client):
+    def test_parser_exception_propagation(self, metadata_store):
         """Test that parser exceptions are caught and returned as parse errors."""
         namespace = "test_ns"
-        metadata_client.set_metric_names(namespace, {"metric1"})
+        metadata_store.set_metric_names(namespace, {"metric1"})
 
         parser = MockParser(raise_error=MetricExpressionParseError("Invalid syntax at position 5"))
-        validator = SchemaValidator(metadata_client, parser)
+        validator = SchemaValidator(metadata_store, parser)
 
         result = validator.validate(namespace, "invalid expression")
 
@@ -165,19 +165,19 @@ class TestSchemaValidator:
         assert "Expression parse error" in result.error
         assert "Invalid syntax at position 5" in result.error
 
-    def test_parser_generic_exception_propagation(self, metadata_client):
+    def test_parser_generic_exception_propagation(self, metadata_store):
         """Test that generic parser exceptions are caught and handled."""
         namespace = "test_ns"
 
         parser = MockParser(raise_error=ValueError("Unexpected error"))
-        validator = SchemaValidator(metadata_client, parser)
+        validator = SchemaValidator(metadata_store, parser)
 
         result = validator.validate(namespace, "expression")
 
         assert result.is_valid is False
         assert "Unexpected parser error" in result.error
 
-    def test_parser_exception_no_redis_call(self, metadata_client):
+    def test_parser_exception_no_redis_call(self, metadata_store):
         """Test that parser exceptions prevent Redis calls."""
         mock_client = Mock()
         parser = MockParser(raise_error=MetricExpressionParseError("Bad expression"))
@@ -189,69 +189,69 @@ class TestSchemaValidator:
         mock_client.is_valid_metric_name.assert_not_called()
         mock_client.get_metric_names.assert_not_called()
 
-    def test_empty_expression_success(self, metadata_client):
+    def test_empty_expression_success(self, metadata_store):
         """Test that empty expression returns success without Redis interaction."""
-        mock_client = Mock()
+        mock_store = Mock()
         parser = MockParser()
-        validator = SchemaValidator(mock_client, parser)
+        validator = SchemaValidator(mock_store, parser)
 
         result = validator.validate("ns", "")
 
         assert result.is_valid is True
         assert parser.parse_called is False
-        mock_client.is_valid_metric_name.assert_not_called()
+        mock_store.is_valid_metric_name.assert_not_called()
 
-    def test_whitespace_expression_success(self, metadata_client):
+    def test_whitespace_expression_success(self, metadata_store):
         """Test that whitespace-only expression returns success."""
-        mock_client = Mock()
+        mock_store = Mock()
         parser = MockParser()
-        validator = SchemaValidator(mock_client, parser)
+        validator = SchemaValidator(mock_store, parser)
 
         result = validator.validate("ns", "   \t\n  ")
 
         assert result.is_valid is True
         assert parser.parse_called is False
 
-    def test_none_expression_success(self, metadata_client):
+    def test_none_expression_success(self, metadata_store):
         """Test that None expression returns success."""
-        mock_client = Mock()
+        mock_store = Mock()
         parser = MockParser()
-        validator = SchemaValidator(mock_client, parser)
+        validator = SchemaValidator(mock_store, parser)
 
         result = validator.validate("ns", None)
 
         assert result.is_valid is True
 
-    def test_none_namespace_error(self, metadata_client):
+    def test_none_namespace_error(self, metadata_store):
         """Test that None namespace returns error."""
         parser = MockParser(return_value={"metric1"})
-        validator = SchemaValidator(metadata_client, parser)
+        validator = SchemaValidator(metadata_store, parser)
 
         result = validator.validate(None, "metric1")
 
         assert result.is_valid is False
         assert "Namespace cannot be None" in result.error
 
-    def test_empty_parser_result_success(self, metadata_client):
+    def test_empty_parser_result_success(self, metadata_store):
         """Test that parser returning empty set returns success."""
-        mock_client = Mock()
+        mock_store = Mock()
         parser = MockParser(return_value=set())
-        validator = SchemaValidator(mock_client, parser)
+        validator = SchemaValidator(mock_store, parser)
 
         result = validator.validate("ns", "some expression with no metrics")
 
         assert result.is_valid is True
-        mock_client.is_valid_metric_name.assert_not_called()
+        mock_store.is_valid_metric_name.assert_not_called()
 
-    def test_namespace_isolation(self, metadata_client):
+    def test_namespace_isolation(self, metadata_store):
         """Test that validation is isolated per namespace."""
         ns1 = "namespace1"
         ns2 = "namespace2"
-        metadata_client.set_metric_names(ns1, {"metric_a", "metric_b"})
-        metadata_client.set_metric_names(ns2, {"metric_x", "metric_y"})
+        metadata_store.set_metric_names(ns1, {"metric_a", "metric_b"})
+        metadata_store.set_metric_names(ns2, {"metric_x", "metric_y"})
 
         parser = MockParser(return_value={"metric_a"})
-        validator = SchemaValidator(metadata_client, parser)
+        validator = SchemaValidator(metadata_store, parser)
 
         # metric_a exists in ns1
         result1 = validator.validate(ns1, "expr")
@@ -262,67 +262,67 @@ class TestSchemaValidator:
         assert result2.is_valid is False
         assert "metric_a" in result2.invalid_metrics
 
-    def test_duplicate_metrics_in_expression(self, metadata_client):
+    def test_duplicate_metrics_in_expression(self, metadata_store):
         """Test that duplicate metrics are deduplicated."""
         namespace = "test_ns"
-        metadata_client.set_metric_names(namespace, {"metric1"})
+        metadata_store.set_metric_names(namespace, {"metric1"})
 
         # Parser returns duplicates (as a set, but validator still deduplicates)
-        mock_client = Mock()
-        mock_client.is_valid_metric_name.return_value = True
+        mock_store = Mock()
+        mock_store.is_valid_metric_name.return_value = True
 
         parser = MockParser(return_value={"metric1"})
-        validator = SchemaValidator(mock_client, parser)
+        validator = SchemaValidator(mock_store, parser)
 
         validator.validate(namespace, "metric1 + metric1")
 
         # Should only check once due to set deduplication
-        assert mock_client.is_valid_metric_name.call_count == 1
+        assert mock_store.is_valid_metric_name.call_count == 1
 
-    def test_invalid_metrics_sorted_in_result(self, metadata_client):
+    def test_invalid_metrics_sorted_in_result(self, metadata_store):
         """Test that invalid metrics are sorted in the result."""
         namespace = "test_ns"
-        metadata_client.set_metric_names(namespace, set())
+        metadata_store.set_metric_names(namespace, set())
 
         parser = MockParser(return_value={"zebra", "apple", "mango"})
-        validator = SchemaValidator(metadata_client, parser)
+        validator = SchemaValidator(metadata_store, parser)
 
         result = validator.validate(namespace, "expr")
 
         assert result.invalid_metrics == ["apple", "mango", "zebra"]
 
-    def test_unicode_metric_names(self, metadata_client):
+    def test_unicode_metric_names(self, metadata_store):
         """Test handling of unicode metric names."""
         namespace = "test_ns"
         metrics = {"cpu_usage", "memory_bytes"}
-        metadata_client.set_metric_names(namespace, metrics)
+        metadata_store.set_metric_names(namespace, metrics)
 
         parser = MockParser(return_value={"cpu_usage", "memory_bytes"})
-        validator = SchemaValidator(metadata_client, parser)
+        validator = SchemaValidator(metadata_store, parser)
 
         result = validator.validate(namespace, "expr")
 
         assert result.is_valid is True
 
-    def test_empty_string_namespace(self, metadata_client):
+    def test_empty_string_namespace(self, metadata_store):
         """Test validation with empty string namespace."""
         namespace = ""
-        metadata_client.set_metric_names(namespace, {"metric1"})
+        metadata_store.set_metric_names(namespace, {"metric1"})
 
         parser = MockParser(return_value={"metric1"})
-        validator = SchemaValidator(metadata_client, parser)
+        validator = SchemaValidator(metadata_store, parser)
 
         result = validator.validate(namespace, "metric1")
 
         assert result.is_valid is True
 
-    def test_special_characters_in_namespace(self, metadata_client):
+    def test_special_characters_in_namespace(self, metadata_store):
         """Test validation with special characters in namespace."""
         namespace = "prod:app1:service"
-        metadata_client.set_metric_names(namespace, {"metric1"})
+        metadata_store.set_metric_names(namespace, {"metric1"})
 
         parser = MockParser(return_value={"metric1"})
-        validator = SchemaValidator(metadata_client, parser)
+        validator = SchemaValidator(metadata_store, parser)
 
         result = validator.validate(namespace, "metric1")
 
@@ -332,31 +332,31 @@ class TestSchemaValidator:
 class TestSchemaValidatorIntegration:
     """Integration tests using real fakeredis."""
 
-    def test_full_validation_flow(self, metadata_client):
+    def test_full_validation_flow(self, metadata_store):
         """Test complete validation flow with fakeredis."""
         namespace = "integration_test"
         valid_metrics = {"cpu.usage", "memory.total", "disk.read", "disk.write", "network.in"}
-        metadata_client.set_metric_names(namespace, valid_metrics)
+        metadata_store.set_metric_names(namespace, valid_metrics)
 
         # Test with subset of valid metrics
         parser = MockParser(return_value={"cpu.usage", "memory.total"})
-        validator = SchemaValidator(metadata_client, parser)
+        validator = SchemaValidator(metadata_store, parser)
 
         result = validator.validate(namespace, "cpu.usage + memory.total")
         assert result.is_valid is True
 
         # Test with mix of valid and invalid
         parser2 = MockParser(return_value={"cpu.usage", "invalid.metric"})
-        validator2 = SchemaValidator(metadata_client, parser2)
+        validator2 = SchemaValidator(metadata_store, parser2)
 
         result2 = validator2.validate(namespace, "expr")
         assert result2.is_valid is False
         assert result2.invalid_metrics == ["invalid.metric"]
 
-    def test_nonexistent_namespace(self, metadata_client):
+    def test_nonexistent_namespace(self, metadata_store):
         """Test validation against non-existent namespace."""
         parser = MockParser(return_value={"metric1"})
-        validator = SchemaValidator(metadata_client, parser)
+        validator = SchemaValidator(metadata_store, parser)
 
         result = validator.validate("nonexistent_namespace", "metric1")
 
@@ -376,81 +376,81 @@ class TestSchemaValidatorWithPydanticAIParser:
     - Mixed case and duplicate handling
     """
 
-    def test_parser_dedupe_with_redis_validation(self, metadata_client):
+    def test_parser_dedupe_with_redis_validation(self, metadata_store):
         """Test that parser deduplication works correctly with Redis validation."""
         namespace = "test_ns"
         valid_metrics = {"cpu.usage", "memory.total"}
-        metadata_client.set_metric_names(namespace, valid_metrics)
+        metadata_store.set_metric_names(namespace, valid_metrics)
 
         # Parser returns metrics with duplicates (like LLM might)
         parser = MockParser(return_value={"cpu.usage", "cpu.usage", "memory.total"})
-        validator = SchemaValidator(metadata_client, parser)
+        validator = SchemaValidator(metadata_store, parser)
 
         result = validator.validate(namespace, "cpu.usage + cpu.usage + memory.total")
 
         assert result.is_valid is True
 
-    def test_parser_mixed_case_normalized(self, metadata_client):
+    def test_parser_mixed_case_normalized(self, metadata_store):
         """Test that mixed-case metrics from parser match lowercase Redis keys."""
         namespace = "test_ns"
         # Redis stores lowercase
-        metadata_client.set_metric_names(namespace, {"cpu.usage", "memory.total"})
+        metadata_store.set_metric_names(namespace, {"cpu.usage", "memory.total"})
 
         # Simulate parser that normalizes to lowercase (like PydanticAI parser does)
         parser = MockParser(return_value={"cpu.usage", "memory.total"})
-        validator = SchemaValidator(metadata_client, parser)
+        validator = SchemaValidator(metadata_store, parser)
 
         result = validator.validate(namespace, "CPU.Usage + MEMORY.Total")
 
         assert result.is_valid is True
 
-    def test_parser_confidence_low_but_valid_metrics(self, metadata_client):
+    def test_parser_confidence_low_but_valid_metrics(self, metadata_store):
         """Test validation succeeds even with low confidence if metrics are valid."""
         namespace = "test_ns"
         valid_metrics = {"cpu.usage"}
-        metadata_client.set_metric_names(namespace, valid_metrics)
+        metadata_store.set_metric_names(namespace, valid_metrics)
 
         # Parser returns valid metrics (confidence is parser-internal)
         parser = MockParser(return_value={"cpu.usage"})
-        validator = SchemaValidator(metadata_client, parser)
+        validator = SchemaValidator(metadata_store, parser)
 
         result = validator.validate(namespace, "ambiguous expression")
 
         assert result.is_valid is True
 
-    def test_parser_empty_result_expression_with_only_functions(self, metadata_client):
+    def test_parser_empty_result_expression_with_only_functions(self, metadata_store):
         """Test that expression with only functions (no metrics) is valid."""
         namespace = "test_ns"
-        metadata_client.set_metric_names(namespace, {"some.metric"})
+        metadata_store.set_metric_names(namespace, {"some.metric"})
 
         # Parser found no metrics (expression was all functions/numbers)
         parser = MockParser(return_value=set())
-        validator = SchemaValidator(metadata_client, parser)
+        validator = SchemaValidator(metadata_store, parser)
 
         result = validator.validate(namespace, "100 + 200 / 2")
 
         assert result.is_valid is True
 
-    def test_parser_invalid_metrics_sorted_alphabetically(self, metadata_client):
+    def test_parser_invalid_metrics_sorted_alphabetically(self, metadata_store):
         """Test that invalid metrics are returned sorted for consistent output."""
         namespace = "test_ns"
-        metadata_client.set_metric_names(namespace, set())
+        metadata_store.set_metric_names(namespace, set())
 
         parser = MockParser(return_value={"zebra.metric", "alpha.metric", "middle.metric"})
-        validator = SchemaValidator(metadata_client, parser)
+        validator = SchemaValidator(metadata_store, parser)
 
         result = validator.validate(namespace, "expr")
 
         assert result.is_valid is False
         assert result.invalid_metrics == ["alpha.metric", "middle.metric", "zebra.metric"]
 
-    def test_parser_partial_match_some_valid_some_invalid(self, metadata_client):
+    def test_parser_partial_match_some_valid_some_invalid(self, metadata_store):
         """Test partial validation when some metrics exist and some don't."""
         namespace = "test_ns"
-        metadata_client.set_metric_names(namespace, {"cpu.usage", "memory.total"})
+        metadata_store.set_metric_names(namespace, {"cpu.usage", "memory.total"})
 
         parser = MockParser(return_value={"cpu.usage", "memory.total", "disk.io", "network.bytes"})
-        validator = SchemaValidator(metadata_client, parser)
+        validator = SchemaValidator(metadata_store, parser)
 
         result = validator.validate(namespace, "complex expression")
 
@@ -460,20 +460,20 @@ class TestSchemaValidatorWithPydanticAIParser:
         assert "network.bytes" in result.invalid_metrics
         assert "cpu.usage" not in result.invalid_metrics
 
-    def test_parser_error_includes_original_message(self, metadata_client):
+    def test_parser_error_includes_original_message(self, metadata_store):
         """Test that parser error message is included in validation result."""
         parser = MockParser(raise_error=MetricExpressionParseError("Invalid syntax at position 10"))
-        validator = SchemaValidator(metadata_client, parser)
+        validator = SchemaValidator(metadata_store, parser)
 
         result = validator.validate("ns", "bad expression")
 
         assert result.is_valid is False
         assert "Invalid syntax at position 10" in result.error
 
-    def test_parser_generic_exception_wrapped(self, metadata_client):
+    def test_parser_generic_exception_wrapped(self, metadata_store):
         """Test that generic parser exceptions are wrapped properly."""
         parser = MockParser(raise_error=RuntimeError("Unexpected LLM failure"))
-        validator = SchemaValidator(metadata_client, parser)
+        validator = SchemaValidator(metadata_store, parser)
 
         result = validator.validate("ns", "expression")
 
@@ -481,25 +481,25 @@ class TestSchemaValidatorWithPydanticAIParser:
         assert "Unexpected parser error" in result.error
         assert "Unexpected LLM failure" in result.error
 
-    def test_parser_timeout_error_handled(self, metadata_client):
+    def test_parser_timeout_error_handled(self, metadata_store):
         """Test that timeout errors from parser are handled gracefully."""
         parser = MockParser(raise_error=TimeoutError("OpenAI request timed out"))
-        validator = SchemaValidator(metadata_client, parser)
+        validator = SchemaValidator(metadata_store, parser)
 
         result = validator.validate("ns", "expression")
 
         assert result.is_valid is False
         assert "Unexpected parser error" in result.error
 
-    def test_multiple_validations_same_validator(self, metadata_client):
+    def test_multiple_validations_same_validator(self, metadata_store):
         """Test that validator can be reused for multiple validations."""
         ns1 = "namespace1"
         ns2 = "namespace2"
-        metadata_client.set_metric_names(ns1, {"metric.a", "metric.b"})
-        metadata_client.set_metric_names(ns2, {"metric.x", "metric.y"})
+        metadata_store.set_metric_names(ns1, {"metric.a", "metric.b"})
+        metadata_store.set_metric_names(ns2, {"metric.x", "metric.y"})
 
         parser = MockParser(return_value={"metric.a"})
-        validator = SchemaValidator(metadata_client, parser)
+        validator = SchemaValidator(metadata_store, parser)
 
         # First validation - should pass in ns1
         result1 = validator.validate(ns1, "expr")
@@ -509,13 +509,13 @@ class TestSchemaValidatorWithPydanticAIParser:
         result2 = validator.validate(ns2, "expr")
         assert result2.is_valid is False
 
-    def test_error_message_includes_namespace(self, metadata_client):
+    def test_error_message_includes_namespace(self, metadata_store):
         """Test that error message includes namespace for context."""
         namespace = "production_metrics"
-        metadata_client.set_metric_names(namespace, set())
+        metadata_store.set_metric_names(namespace, set())
 
         parser = MockParser(return_value={"invalid.metric"})
-        validator = SchemaValidator(metadata_client, parser)
+        validator = SchemaValidator(metadata_store, parser)
 
         result = validator.validate(namespace, "expr")
 

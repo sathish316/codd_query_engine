@@ -2,15 +2,15 @@
 Redis-based metrics metadata store.
 
 Job:
-1. store metrics metadata for a namespace. namespace is tenant x service name
-2. used for schema validation of metric names
+1. Store metrics metadata for a namespace. Namespace is tenant x service name.
+2. Used for schema validation of metric names.
 """
 
 from typing import Optional
 import redis
 
 
-class MetricsMetadataClient:
+class MetricsMetadataStore:
     """
     Client for managing metrics metadata in Redis.
 

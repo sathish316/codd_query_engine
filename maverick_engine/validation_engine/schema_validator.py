@@ -4,12 +4,12 @@ Schema validator for metric expressions.
 This module validates that all metric names referenced in a metric expression
 exist within the caller's namespace.
 
-Uses MetricsMetadataClient for namespace-aware checks.
+Uses MetricsMetadataStore for namespace-aware checks.
 """
 
 import logging
 
-from maverick_dal.metrics.metrics_metadata_client import MetricsMetadataClient
+from maverick_dal.metrics.metrics_metadata_client import MetricsMetadataStore
 from maverick_engine.validation_engine.metric_expression_parser import (
     MetricExpressionParser,
     MetricExpressionParseError,
@@ -24,16 +24,16 @@ class SchemaValidator:
     Validates that metric expressions reference only existing metrics.
 
     Args:
-        metadata_client: MetricsMetadataClient instance
+        metadata_store: MetricsMetadataStore instance
         parser: MetricExpressionParser for extracting metric names
     """
 
     def __init__(
         self,
-        metadata_client: MetricsMetadataClient,
+        metadata_store: MetricsMetadataStore,
         parser: MetricExpressionParser,
     ):
-        self._metadata_client = metadata_client
+        self._metadata_store = metadata_store
         self._parser = parser
 
     def validate(self, namespace: str, metric_expression: str) -> SchemaValidationResult:
@@ -112,6 +112,6 @@ class SchemaValidator:
         """Check each metric individually using is_valid_metric_name."""
         invalid = []
         for metric in metrics:
-            if not self._metadata_client.is_valid_metric_name(namespace, metric):
+            if not self._metadata_store.is_valid_metric_name(namespace, metric):
                 invalid.append(metric)
         return invalid
