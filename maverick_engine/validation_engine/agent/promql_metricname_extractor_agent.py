@@ -57,53 +57,40 @@ A confidence of 1.0 means you are certain about all extracted metrics.
 A lower confidence indicates ambiguity in the expression."""
 
 
-# TODO: convert OpusAgents to library and use it here with better abstractions for agents
-class PydanticAIMetricExpressionParser:
+class PromQLMetricNameExtractorAgent:
     """
-    MetricExpressionParser implementation using PydanticAI Agents.
+    PromQL metric name extractor agent.
 
-    Extracts metric names from expressions using an LLM.
-
-    Args:
-        settings: LLMSettings instance with API key and model configuration
-        agent: Optional pre-configured Agent instance (for testing)
-
-    Raises:
-        MetricExpressionParseError: On parse failures or low confidence
+    Extracts metric names from PromQL expressions using an LLM.
     """
 
     def __init__(
         self,
         settings: LLMSettings,
-        agent: Optional[Agent] = None,
+        config_manager: ConfigManager,
+        instructions_manager: InstructionsManager,
     ):
         self._settings = settings
-        self._agent = agent
+        self.config_manager = config_manager
+        self.instructions_manager = instructions_manager
+        self._init_agent()
 
-    def _get_agent(self) -> Agent:
-        """Get or create the PydanticAI agent."""
-        if self._agent is not None:
-            return self._agent
-
-        if not self._settings.has_api_key:
-            raise MetricExpressionParseError(
-                "OPENAI_API_KEY environment variable is required but not set"
+    def _init_agent(self):
+        """Initialize the PromQL metric name extractor agent."""
+        metrics_extractor_agent = (
+            AgentBuilder(self.config_manager)
+            .set_system_prompt_keys(["promql_metricname_extractor_agent_instruction"])
+            .name("promql-metricname-extractor-agent")
+            .add_instructions_manager(self.instructions_manager)
+            .add_model_manager()
+            .instruction(
+                "promql_metricname_extractor_agent_instruction",
+                expand_path("$HOME/.maverick/prompts/agent/PROMQL_METRICNAME_EXTRACTOR_AGENT_INSTRUCTIONS.md")
             )
-
-        #TODO: fix deprecation warning
-        model = OpenAIModel(
-            self._settings.model_name,
-            api_key=self._settings.api_key,
+            .build_simple_agent()
         )
 
-        self._agent = Agent(
-            model,
-            result_type=MetricExtractionResponse,
-            system_prompt=SYSTEM_PROMPT,
-        )
-        return self._agent
-
-    def parse(self, metric_expression: str) -> set[str]:
+    def extract(self, metric_expression: str) -> set[str]:
         """
         Parse a metric expression and extract unique metric names.
 
@@ -136,16 +123,6 @@ class PydanticAIMetricExpressionParser:
                 f"Failed to extract metrics from expression: {e}"
             ) from e
 
-        # Validate confidence threshold
-        if result.confidence < self._settings.confidence_threshold:
-            logger.warning(
-                f"Low confidence extraction: {result.confidence} < {self._settings.confidence_threshold}"
-            )
-            # For strict mode, uncomment:
-            # raise MetricExpressionParseError(
-            #     f"Low confidence ({result.confidence}) extraction, threshold is {self._settings.confidence_threshold}"
-            # )
-
         # Convert to set and validate individual names
         metrics = set()
         for name in result.metric_names:
@@ -155,26 +132,14 @@ class PydanticAIMetricExpressionParser:
                 logger.warning(f"Skipping invalid metric name format: '{name}'")
 
         logger.info(
-            f"Extracted {len(metrics)} metrics with confidence {result.confidence}",
-            extra={"metric_count": len(metrics), "confidence": result.confidence}
+            f"Extracted {len(metrics)} metrics",
+            extra={"metric_count": len(metrics)}
         )
 
         return metrics
 
     #TODO: handle retries in agents library
-    def _extract(self, expression: str) -> MetricExtractionResponse:
-        """
-        Extract metrics with exponential backoff retry for transient errors.
-
-        Args:
-            expression: The metric expression to parse
-
-        Returns:
-            MetricExtractionResponse with extracted metrics and confidence
-
-        Raises:
-            MetricExpressionParseError: On non-retryable errors or max retries exceeded
-        """
+    def _extract_using_llm(self, expression: str) -> MetricExtractionResponse:
         try:
             agent = self._get_agent()
             result = agent.run_sync(expression)
@@ -188,15 +153,6 @@ class PydanticAIMetricExpressionParser:
 
     #TODO: move to common utils
     def _is_valid_metric_name(self, name: str) -> bool:
-        """
-        Check if a metric name has valid format.
-
-        Args:
-            name: The metric name to validate
-
-        Returns:
-            True if name format is valid, False otherwise
-        """
         if not name or len(name) > 256:
             return False
         return bool(VALID_METRIC_NAME_PATTERN.match(name))
