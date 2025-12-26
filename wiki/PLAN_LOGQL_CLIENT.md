@@ -163,16 +163,14 @@ LLM-based parser for extracting stream selectors from LogQL expressions.
 
 **Usage Example**:
 ```python
-from maverick_engine.config.llm_settings import LLMSettings
 from maverick_engine.validation_engine.logql import PydanticAILogQLExpressionParser
+from opus_agent_base.config.config_manager import ConfigManager
+from opus_agent_base.prompt.instructions_manager import InstructionsManager
 
-# Initialize
-settings = LLMSettings(
-    api_key="your-openai-key",
-    model_name="gpt-4",
-    confidence_threshold=0.8
-)
-parser = PydanticAILogQLExpressionParser(settings)
+# Initialize with ConfigManager (replaces LLMSettings)
+config_manager = ConfigManager(config_dir="~/.maverick", config_file="config.yml")
+instructions_manager = InstructionsManager()
+parser = PydanticAILogQLExpressionParser(config_manager, instructions_manager)
 
 # Parse LogQL expression
 selectors = parser.parse('{job="api", level="error"} |= "timeout"')

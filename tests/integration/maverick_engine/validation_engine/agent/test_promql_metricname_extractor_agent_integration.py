@@ -11,7 +11,6 @@ from maverick_engine.validation_engine.agent.promql_metricname_extractor_agent i
 )
 from maverick_engine.validation_engine.metrics.metrics_schema_validator import MetricsSchemaValidator
 from maverick_dal.metrics.metrics_metadata_store import MetricsMetadataStore
-from maverick_engine.config.llm_settings import LLMSettings
 from maverick_engine.utils.file_utils import expand_path
 from opus_agent_base.config.config_manager import ConfigManager
 from opus_agent_base.prompt.instructions_manager import InstructionsManager
@@ -25,7 +24,6 @@ class TestPromQLMetricNameExtractorAgentIntegration:
         config_manager = ConfigManager(expand_path("$HOME/.maverick_test"), "config.yml")
         instructions_manager = InstructionsManager()
         return PromQLMetricNameExtractorAgent(
-            settings=Mock(spec=LLMSettings),
             config_manager=config_manager,
             instructions_manager=instructions_manager
         )

@@ -13,7 +13,6 @@ from pydantic import BaseModel, field_validator
 from pydantic_ai import Agent
 from pydantic_ai.models.openai import OpenAIModel
 
-from maverick_engine.config.llm_settings import LLMSettings
 from maverick_engine.validation_engine.metrics.metric_expression_parser import MetricExpressionParseError
 from maverick_engine.validation_engine.metrics.structured_outputs import MetricExtractionResponse
 from maverick_engine.utils.file_utils import expand_path
@@ -37,11 +36,9 @@ class PromQLMetricNameExtractorAgent:
 
     def __init__(
         self,
-        settings: LLMSettings,
         config_manager: ConfigManager,
         instructions_manager: InstructionsManager,
     ):
-        self._settings = settings
         self.config_manager = config_manager
         self.instructions_manager = instructions_manager
         self._init_agent()
