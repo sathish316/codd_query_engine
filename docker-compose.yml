@@ -1,0 +1,33 @@
+version: '3.3'
+services:
+  chroma:
+    image: chromadb/chroma:latest
+    container_name: maverick_chroma
+    ports:
+      - "8001:8000"
+    volumes:
+      - chroma-data:/chroma-data # Mount a named volume for data persistence
+    restart: unless-stopped
+
+  redis:
+      image: redis/redis-stack-server:latest
+      container_name: maverick_redis
+      ports:
+        - "6380:6379"
+      volumes:
+        - ./redis-data:/data
+
+  # qdrant:
+  #   image: qdrant/qdrant:latest
+  #   container_name: maverick_qdrant
+  #   ports:
+  #     - "6333:6333" # HTTP API & Dashboard
+  #     - "6334:6334" # gRPC API
+  #   volumes:
+  #     - ./qdrant-data:/qdrant/storage
+  #   restart: unless-stopped
+
+volumes:
+  chroma-data:
+  redis-data:
+  # qdrant-data:

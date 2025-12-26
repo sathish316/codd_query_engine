@@ -198,64 +198,6 @@ class LogQLQueryExecutor:
                 error=str(e)
             )
 
-    def query_instant(
-        self,
-        query: str,
-        time: Optional[datetime] = None,
-        limit: int = 100,
-        direction: Literal["backward", "forward"] = "backward",
-    ) -> QueryResult:
-        """
-        Execute a LogQL instant query.
-
-        Queries log data at a single point in time.
-
-        Args:
-            query: LogQL query string
-            time: Time for the query (default: now)
-            limit: Maximum number of entries to return (default: 100)
-            direction: Query direction - "backward" or "forward" (default: "backward")
-
-        Returns:
-            QueryResult with query response data
-
-        Raises:
-            LogQLExecutionError: If query execution fails
-        """
-        # Set default time if not provided
-        if time is None:
-            time = datetime.now()
-
-        # Build query parameters
-        params = {
-            "query": query,
-            "time": int(time.timestamp() * 1e9),  # Nanoseconds
-            "limit": limit,
-            "direction": direction,
-        }
-
-        # Execute query
-        url = urljoin(self.config.base_url, "/loki/api/v1/query")
-
-        try:
-            response = self.client.get(url, params=params)
-            response.raise_for_status()
-
-            result_data = response.json()
-
-            return QueryResult(
-                status=result_data.get("status", "unknown"),
-                data=result_data.get("data"),
-                stats=result_data.get("stats"),
-            )
-
-        except Exception as e:
-            logger.error(f"LogQL instant query failed: {e}", exc_info=True)
-            return QueryResult(
-                status="error",
-                error=str(e)
-            )
-
     def get_labels(self, start: Optional[datetime] = None, end: Optional[datetime] = None) -> QueryResult:
         """
         Retrieve all label names from Loki.

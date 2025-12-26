@@ -20,18 +20,28 @@ TODO: Diagram
 ## Prerequisites
 1. Install Redis
 
+$ docker-compose up -d
+
 2. Install ChromaDB or Qdrant
+
+$ docker-compose up -d
 
 ## Build and Test
 
 Run unit tests
 ```
-uv run pytest
+uv run pytest -v
+
+uv run pytest -v -s tests/unit/maverick_dal/metrics/test_metrics_metadata_store.py
+
+uv run pytest -v -s tests/unit/maverick_dal/metrics/test_metrics_metadata_store.py::TestMetricsMetadataStore::test_is_valid_metric_name
 ```
 
 Run integration tests
 ```
-uv run pytest --integration
+uv run pytest -m integration -v tests/integration
+
+
 ```
 
 Run NL2SQL Evals

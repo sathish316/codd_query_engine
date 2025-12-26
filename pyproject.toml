@@ -8,6 +8,7 @@ dependencies = [
     "maverick-dal",
     "maverick-engine",
     "maverick-service",
+    "redis>=7.1.0",
 ]
 
 [dependency-groups]

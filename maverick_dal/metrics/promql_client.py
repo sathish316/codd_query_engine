@@ -297,7 +297,8 @@ class PromQLClient:
             True if server is healthy, False otherwise
         """
         try:
-            response = self.client.get(f"{self.base_url}/-/healthy")
+            healthcheck_url = f"{self.base_url}/-/healthy"
+            response = self.client.get(healthcheck_url)
             return response.status_code == 200
         except httpx.HTTPError:
             return False
@@ -310,7 +311,8 @@ class PromQLClient:
             True if server is ready, False otherwise
         """
         try:
-            response = self.client.get(f"{self.base_url}/-/ready")
+            readycheck_url = f"{self.base_url}/-/ready"
+            response = self.client.get(readycheck_url)
             return response.status_code == 200
         except httpx.HTTPError:
             return False
