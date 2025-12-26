@@ -9,7 +9,7 @@ from maverick_engine.validation_engine.agent.promql_metricname_extractor_agent i
     PromQLMetricNameExtractorAgent,
     MetricExtractionResponse
 )
-from maverick_engine.validation_engine.metrics.metrics_schema_validator import MetricsSchemaValidator
+from maverick_engine.validation_engine.metrics.schema.metrics_schema_validator import MetricsSchemaValidator
 from maverick_dal.metrics.metrics_metadata_store import MetricsMetadataStore
 from maverick_engine.utils.file_utils import expand_path
 from opus_agent_base.config.config_manager import ConfigManager

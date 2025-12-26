@@ -15,7 +15,7 @@ from pathlib import Path
 from lark import Lark
 from lark.exceptions import LarkError, UnexpectedInput
 
-from maverick_engine.validation_engine.metrics.metrics_syntax_validator import MetricsSyntaxValidator
+from maverick_engine.validation_engine.metrics.syntax.metrics_syntax_validator import MetricsSyntaxValidator
 from maverick_engine.validation_engine.metrics.syntax.structured_outputs import SyntaxValidationResult
 
 logger = logging.getLogger(__name__)
@@ -23,7 +23,7 @@ logger = logging.getLogger(__name__)
 
 @lru_cache(maxsize=1)
 def _promql_parser() -> Lark:
-    grammar_path = Path(__file__).parent / "../../grammar/metrics/promql_grammar.lark"
+    grammar_path = Path(__file__).parent / "../../../grammar/metrics/promql_grammar.lark"
     print(f"Grammar path: {grammar_path}")
     return Lark.open(
         str(grammar_path),

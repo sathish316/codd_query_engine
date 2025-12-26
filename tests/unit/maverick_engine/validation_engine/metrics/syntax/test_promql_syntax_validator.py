@@ -9,7 +9,7 @@ These tests focus on syntax acceptance/rejection for common PromQL forms:
 """
 import pytest
 
-from maverick_engine.validation_engine.metrics.promql_syntax_validator import PromQLSyntaxValidator
+from maverick_engine.validation_engine.metrics.syntax.promql_syntax_validator import PromQLSyntaxValidator
 
 @pytest.fixture
 def validator() -> PromQLSyntaxValidator:

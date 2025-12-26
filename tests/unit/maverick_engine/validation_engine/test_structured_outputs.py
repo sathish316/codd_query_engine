@@ -1,4 +1,5 @@
-from maverick_engine.validation_engine.metrics.structured_outputs import MetricExtractionResponse, SchemaValidationResult
+from maverick_engine.validation_engine.metrics.structured_outputs import MetricExtractionResponse
+from maverick_engine.validation_engine.metrics.schema.structured_outputs import SchemaValidationResult
 
 class TestMetricExtractionResponse:
     """Tests for MetricExtractionResponse."""

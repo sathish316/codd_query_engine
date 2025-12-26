@@ -10,11 +10,11 @@ Uses MetricsMetadataStore for namespace-aware checks.
 import logging
 
 from maverick_dal.metrics.metrics_metadata_store import MetricsMetadataStore
-from maverick_engine.validation_engine.metrics.metric_expression_parser import (
+from maverick_engine.validation_engine.metrics.schema.metric_expression_parser import (
     MetricExpressionParser,
     MetricExpressionParseError,
 )
-from maverick_engine.validation_engine.metrics.structured_outputs import SchemaValidationResult
+from maverick_engine.validation_engine.metrics.schema.structured_outputs import SchemaValidationResult
 
 logger = logging.getLogger(__name__)
 

@@ -16,9 +16,9 @@ import pytest
 import fakeredis
 
 from maverick_dal.metrics.metrics_metadata_store import MetricsMetadataStore
-from maverick_engine.validation_engine.metrics.metrics_schema_validator import MetricsSchemaValidator
-from maverick_engine.validation_engine.metrics.structured_outputs import SchemaValidationResult
-from maverick_engine.validation_engine.metrics.metric_expression_parser import MetricExpressionParseError
+from maverick_engine.validation_engine.metrics.schema.metrics_schema_validator import MetricsSchemaValidator
+from maverick_engine.validation_engine.metrics.schema.structured_outputs import SchemaValidationResult
+from maverick_engine.validation_engine.metrics.schema.metric_expression_parser import MetricExpressionParseError
 
 
 class MockMetricNameParser:
