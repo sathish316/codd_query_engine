@@ -57,3 +57,17 @@ class MetricExtractionResponse(BaseModel):
                 seen.add(name)
                 deduped.append(name)
         return deduped
+
+class SemanticValidationResult(BaseModel):
+    """
+    Response schema for semantic validation of PromQL query intent.
+
+    Compares the original query intent with the actual behavior of the generated query
+    to determine if they match semantically.
+    """
+    intent_match: bool
+    partial_match: bool
+    explanation: str
+    original_intent_summary: str
+    actual_query_behavior: str
+    confidence: float  # 0.0 to 1.0

@@ -3,6 +3,8 @@ from typing import Mapping, Sequence
 
 from maverick_engine.querygen_engine.metrics.structured_inputs import MetricsQueryIntent
 from maverick_engine.querygen_engine.metrics.preprocessor.metrics_querygen_preprocessor import MetricsQuerygenPreprocessor
+from maverick_engine.querygen_engine.metrics.preprocessor.promql_aggregation_suggestion_preprocessor import PromQLAggregationSuggestionPreprocessor
+from maverick_engine.querygen_engine.metrics.preprocessor.promql_micrometer_metricname_preprocessor import PromQLMicrometerMetricNamePreprocessor
 
 
 class PromQLQuerygenPreprocessor(MetricsQuerygenPreprocessor):
@@ -14,8 +16,8 @@ class PromQLQuerygenPreprocessor(MetricsQuerygenPreprocessor):
         """
         Initialize the preprocessor.
         """
-        self.suggested_aggregation_preprocessor = PromQLSuggestedAggregationPreprocessor()
-        self.actuator_metrics_preprocessor = PromQLActuatorMetricsPreprocessor()
+        self.aggregation_suggestion_preprocessor = PromQLAggregationSuggestionPreprocessor()
+        self.micrometer_metricname_preprocessor = PromQLMicrometerMetricNamePreprocessor()
 
     def preprocess(self, intent: MetricsQueryIntent) -> MetricsQueryIntent:
         """
@@ -29,6 +31,6 @@ class PromQLQuerygenPreprocessor(MetricsQuerygenPreprocessor):
         Returns:
             Preprocessed Query intent
         """
-        intent = self.suggested_aggregation_preprocessor.preprocess(intent)
-        # intent = self.actuator_metrics_preprocessor.preprocess(intent)
+        intent = self.aggregation_suggestion_preprocessor.preprocess(intent)
+        # intent = self.micrometer_metricname_preprocessor.preprocess(intent)
         return intent
