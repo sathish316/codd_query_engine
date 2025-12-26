@@ -13,7 +13,10 @@ from pydantic import BaseModel, field_validator
 from pydantic_ai import Agent
 from pydantic_ai.models.openai import OpenAIModel
 
-from maverick_engine.validation_engine.metrics.metric_expression_parser import MetricExpressionParseError
+from maverick_engine.validation_engine.metrics.metric_expression_parser import (
+    MetricExpressionParseError,
+    MetricExpressionParser,
+)
 from maverick_engine.validation_engine.metrics.structured_outputs import MetricExtractionResponse
 from maverick_engine.utils.file_utils import expand_path
 
@@ -27,7 +30,7 @@ logger = logging.getLogger(__name__)
 # Regex pattern for valid metric name characters
 VALID_METRIC_NAME_PATTERN = re.compile(r'^[a-z][a-z0-9_.]*$')
 
-class PromQLMetricNameExtractorAgent:
+class PromQLMetricNameExtractorAgent(MetricExpressionParser):
     """
     PromQL metric name extractor agent.
 
