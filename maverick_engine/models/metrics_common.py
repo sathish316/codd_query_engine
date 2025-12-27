@@ -3,6 +3,7 @@ from typing import TypedDict
 
 class MetricMetadata(TypedDict, total=False):
     """Type definition for metric metadata."""
+
     metric_name: str  # Required
     type: str
     description: str | None

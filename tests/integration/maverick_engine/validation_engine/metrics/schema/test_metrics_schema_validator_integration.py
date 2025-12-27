@@ -1,28 +1,32 @@
 """
 Integration tests for Validation Engine components.
 """
+
 import pytest
 import redis
 
 from maverick_engine.validation_engine.agent.metrics.promql_metricname_extractor_agent import (
     PromQLMetricNameExtractorAgent,
 )
-from maverick_engine.validation_engine.metrics.schema.metrics_schema_validator import MetricsSchemaValidator
+from maverick_engine.validation_engine.metrics.schema.metrics_schema_validator import (
+    MetricsSchemaValidator,
+)
 from maverick_dal.metrics.metrics_metadata_store import MetricsMetadataStore
 from maverick_engine.utils.file_utils import expand_path
 from opus_agent_base.config.config_manager import ConfigManager
 from opus_agent_base.prompt.instructions_manager import InstructionsManager
 
+
 @pytest.mark.integration
 class TestMetricsSchemaValidatorIntegration:
-
     @pytest.fixture
     def metrics_extractor_agent(self):
-        config_manager = ConfigManager(expand_path("$HOME/.maverick_test"), "config.yml")
+        config_manager = ConfigManager(
+            expand_path("$HOME/.maverick_test"), "config.yml"
+        )
         instructions_manager = InstructionsManager()
         return PromQLMetricNameExtractorAgent(
-            config_manager=config_manager,
-            instructions_manager=instructions_manager
+            config_manager=config_manager, instructions_manager=instructions_manager
         )
 
     @pytest.fixture
@@ -34,9 +38,7 @@ class TestMetricsSchemaValidatorIntegration:
         return MetricsMetadataStore(redis_client)
 
     def test_schema_validator_integration_valid_metrics(
-        self, 
-        metrics_extractor_agent, 
-        metadata_store
+        self, metrics_extractor_agent, metadata_store
     ):
         """
         Integration test for MetricsSchemaValidator using MetricsExtractorAgent and MetricsMetadataStore.
@@ -47,7 +49,9 @@ class TestMetricsSchemaValidatorIntegration:
         """
         # Seed valid metric names
         namespace = "test:order_service"
-        metadata_store.set_metric_names(namespace, {"cpu.usage", "memory.free", "cpu.usage.max"})
+        metadata_store.set_metric_names(
+            namespace, {"cpu.usage", "memory.free", "cpu.usage.max"}
+        )
 
         # Initialize MetricsSchemaValidator
         validator = MetricsSchemaValidator(metadata_store, metrics_extractor_agent)
@@ -61,9 +65,7 @@ class TestMetricsSchemaValidatorIntegration:
         assert result.invalid_metrics == []
 
     def test_schema_validator_integration_invalid_metrics(
-        self, 
-        metrics_extractor_agent, 
-        metadata_store
+        self, metrics_extractor_agent, metadata_store
     ):
         """
         Integration test for MetricsSchemaValidator using MetricsExtractorAgent and MetricsMetadataStore.
@@ -74,7 +76,9 @@ class TestMetricsSchemaValidatorIntegration:
         """
         # Seed valid metric names
         namespace = "test:order_service"
-        metadata_store.set_metric_names(namespace, {"cpu.usage", "memory.free", "cpu.usage.max"})
+        metadata_store.set_metric_names(
+            namespace, {"cpu.usage", "memory.free", "cpu.usage.max"}
+        )
 
         # Initialize MetricsSchemaValidator
         validator = MetricsSchemaValidator(metadata_store, metrics_extractor_agent)

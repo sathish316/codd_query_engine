@@ -7,13 +7,14 @@ to extract metric names from free-form metric expressions.
 
 import logging
 import re
-from typing import Optional
 
 from maverick_engine.validation_engine.metrics.schema.metric_expression_parser import (
     MetricExpressionParseError,
     MetricExpressionParser,
 )
-from maverick_engine.validation_engine.metrics.structured_outputs import MetricExtractionResponse
+from maverick_engine.validation_engine.metrics.structured_outputs import (
+    MetricExtractionResponse,
+)
 from maverick_engine.utils.file_utils import expand_path
 
 from opus_agent_base.agent.agent_builder import AgentBuilder
@@ -24,7 +25,8 @@ logger = logging.getLogger(__name__)
 
 
 # Regex pattern for valid metric name characters
-VALID_METRIC_NAME_PATTERN = re.compile(r'^[a-z][a-z0-9_.]*$')
+VALID_METRIC_NAME_PATTERN = re.compile(r"^[a-z][a-z0-9_.]*$")
+
 
 class PromQLMetricNameExtractorAgent(MetricExpressionParser):
     """
@@ -52,7 +54,9 @@ class PromQLMetricNameExtractorAgent(MetricExpressionParser):
             .add_model_manager()
             .instruction(
                 "promql_metricname_extractor_agent_instruction",
-                expand_path("$HOME/.maverick/prompts/agent/metrics/PROMQL_METRICNAME_EXTRACTOR_AGENT_INSTRUCTIONS.md")
+                expand_path(
+                    "$HOME/.maverick/prompts/agent/metrics/PROMQL_METRICNAME_EXTRACTOR_AGENT_INSTRUCTIONS.md"
+                ),
             )
             .set_output_type(MetricExtractionResponse)
             .build_simple_agent()
@@ -104,13 +108,12 @@ class PromQLMetricNameExtractorAgent(MetricExpressionParser):
 
         print(f"Extracted {len(metrics)} metrics: {metrics}")
         logger.info(
-            f"Extracted {len(metrics)} metrics",
-            extra={"metric_count": len(metrics)}
+            f"Extracted {len(metrics)} metrics", extra={"metric_count": len(metrics)}
         )
 
         return metrics
 
-    #TODO: handle retries in agents library
+    # TODO: handle retries in agents library
     def _extract_using_llm(self, expression: str) -> MetricExtractionResponse:
         try:
             agent = self._get_agent()
@@ -123,7 +126,7 @@ class PromQLMetricNameExtractorAgent(MetricExpressionParser):
             # Non-retryable error, wrap and raise immediately
             raise MetricExpressionParseError(str(e)) from e
 
-    #TODO: move to common utils
+    # TODO: move to common utils
     def _is_valid_metric_name(self, name: str) -> bool:
         if not name or len(name) > 256:
             return False

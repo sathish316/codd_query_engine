@@ -1,5 +1,10 @@
-from maverick_engine.validation_engine.metrics.structured_outputs import MetricExtractionResponse
-from maverick_engine.validation_engine.metrics.schema.structured_outputs import SchemaValidationResult
+from maverick_engine.validation_engine.metrics.structured_outputs import (
+    MetricExtractionResponse,
+)
+from maverick_engine.validation_engine.metrics.schema.structured_outputs import (
+    SchemaValidationResult,
+)
+
 
 class TestMetricExtractionResponse:
     """Tests for MetricExtractionResponse."""
@@ -48,6 +53,7 @@ class TestMetricExtractionResponse:
             metric_names="not a list",
         )
         assert response.metric_names == []
+
 
 class TestSchemaValidationResult:
     """Tests for SchemaValidationResult dataclass."""

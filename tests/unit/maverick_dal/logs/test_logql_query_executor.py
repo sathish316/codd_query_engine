@@ -8,8 +8,8 @@ Tests cover:
 - Label metadata retrieval
 """
 
-from datetime import datetime, timedelta
-from unittest.mock import Mock, patch
+from datetime import datetime
+from unittest.mock import Mock
 
 import pytest
 
@@ -17,7 +17,6 @@ from maverick_dal.logs.logql_query_executor import (
     LogQLQueryExecutor,
     LokiConfig,
     QueryResult,
-    LogQLExecutionError,
 )
 
 
@@ -31,9 +30,7 @@ def loki_config():
 def loki_config_with_auth():
     """Provide a Loki configuration with authentication."""
     return LokiConfig(
-        base_url="http://localhost:3100",
-        auth_token="test-token",
-        org_id="test-org"
+        base_url="http://localhost:3100", auth_token="test-token", org_id="test-org"
     )
 
 
@@ -46,7 +43,7 @@ def mock_client():
     response.json.return_value = {
         "status": "success",
         "data": {"resultType": "streams", "result": []},
-        "stats": {}
+        "stats": {},
     }
     client.get.return_value = response
     return client
@@ -69,7 +66,7 @@ class TestLokiConfig:
             base_url="http://localhost:3100",
             timeout=60,
             auth_token="my-token",
-            org_id="my-org"
+            org_id="my-org",
         )
         assert config.base_url == "http://localhost:3100"
         assert config.timeout == 60
@@ -138,11 +135,7 @@ class TestLogQLQueryExecutor:
         end = datetime(2024, 1, 1, 1, 0, 0)
 
         result = executor.query_range(
-            query='{job="api"}',
-            start=start,
-            end=end,
-            limit=500,
-            direction="forward"
+            query='{job="api"}', start=start, end=end, limit=500, direction="forward"
         )
 
         assert result.status == "success"
@@ -168,7 +161,7 @@ class TestLogQLQueryExecutor:
         """Test getting all labels."""
         mock_client.get.return_value.json.return_value = {
             "status": "success",
-            "data": ["job", "level", "instance"]
+            "data": ["job", "level", "instance"],
         }
 
         executor = LogQLQueryExecutor(loki_config, client=mock_client)
@@ -183,7 +176,7 @@ class TestLogQLQueryExecutor:
         """Test getting values for a specific label."""
         mock_client.get.return_value.json.return_value = {
             "status": "success",
-            "data": ["api", "frontend", "backend"]
+            "data": ["api", "frontend", "backend"],
         }
 
         executor = LogQLQueryExecutor(loki_config, client=mock_client)
@@ -198,7 +191,7 @@ class TestLogQLQueryExecutor:
         """Test getting label values filtered by query."""
         mock_client.get.return_value.json.return_value = {
             "status": "success",
-            "data": ["error", "warn"]
+            "data": ["error", "warn"],
         }
 
         executor = LogQLQueryExecutor(loki_config, client=mock_client)
@@ -236,7 +229,7 @@ class TestQueryResult:
         result = QueryResult(
             status="success",
             data={"resultType": "streams", "result": []},
-            stats={"summary": {}}
+            stats={"summary": {}},
         )
 
         assert result.status == "success"
@@ -246,10 +239,7 @@ class TestQueryResult:
 
     def test_query_result_error(self):
         """Test error query result."""
-        result = QueryResult(
-            status="error",
-            error="Query failed: invalid syntax"
-        )
+        result = QueryResult(status="error", error="Query failed: invalid syntax")
 
         assert result.status == "error"
         assert result.error == "Query failed: invalid syntax"

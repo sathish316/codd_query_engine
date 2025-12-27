@@ -8,7 +8,9 @@ from __future__ import annotations
 
 from typing import Protocol
 
-from maverick_engine.validation_engine.metrics.syntax.structured_outputs import SyntaxValidationResult
+from maverick_engine.validation_engine.metrics.syntax.structured_outputs import (
+    SyntaxValidationResult,
+)
 
 
 class MetricsSyntaxValidator(Protocol):
@@ -25,4 +27,3 @@ class MetricsSyntaxValidator(Protocol):
             SyntaxValidationResult indicating whether the query is syntactically valid
         """
         ...
-

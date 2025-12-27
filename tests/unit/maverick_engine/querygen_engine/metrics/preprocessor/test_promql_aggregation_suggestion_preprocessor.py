@@ -13,15 +13,14 @@ with appropriate aggregation function suggestions based on metric type:
 - Aggregation suggestions replacement behavior
 - Intent immutability
 """
+
 import pytest
 
 from maverick_engine.querygen_engine.metrics.preprocessor.promql_aggregation_suggestion_preprocessor import (
     PromQLAggregationSuggestionPreprocessor,
-    DEFAULT_AGGREGATION_SUGGESTIONS,
 )
 from maverick_engine.querygen_engine.metrics.structured_inputs import (
     MetricsQueryIntent,
-    AggregationFunctionSuggestion,
 )
 
 
@@ -34,7 +33,9 @@ def preprocessor() -> PromQLAggregationSuggestionPreprocessor:
 class TestCounterMetrics:
     """Test aggregation suggestions for counter metrics."""
 
-    def test_counter_metric_type(self, preprocessor: PromQLAggregationSuggestionPreprocessor):
+    def test_counter_metric_type(
+        self, preprocessor: PromQLAggregationSuggestionPreprocessor
+    ):
         """Counter metrics should get rate, increase, and irate suggestions."""
         intent = MetricsQueryIntent(
             metric="http_requests_total",
@@ -49,7 +50,9 @@ class TestCounterMetrics:
         assert result.aggregation_suggestions[1].function_name == "increase"
         assert result.aggregation_suggestions[2].function_name == "irate"
 
-    def test_counter_metric_type_case_insensitive(self, preprocessor: PromQLAggregationSuggestionPreprocessor):
+    def test_counter_metric_type_case_insensitive(
+        self, preprocessor: PromQLAggregationSuggestionPreprocessor
+    ):
         """Counter type should be case-insensitive."""
         intent = MetricsQueryIntent(
             metric="http_requests_total",
@@ -62,7 +65,9 @@ class TestCounterMetrics:
         assert len(result.aggregation_suggestions) == 3
         assert result.aggregation_suggestions[0].function_name == "rate"
 
-    def test_counter_with_filters(self, preprocessor: PromQLAggregationSuggestionPreprocessor):
+    def test_counter_with_filters(
+        self, preprocessor: PromQLAggregationSuggestionPreprocessor
+    ):
         """Counter metrics with filters should still get suggestions."""
         intent = MetricsQueryIntent(
             metric="http_requests_total",
@@ -76,7 +81,9 @@ class TestCounterMetrics:
         assert len(result.aggregation_suggestions) == 3
         assert result.filters == {"method": "GET", "status": "200"}
 
-    def test_counter_with_group_by(self, preprocessor: PromQLAggregationSuggestionPreprocessor):
+    def test_counter_with_group_by(
+        self, preprocessor: PromQLAggregationSuggestionPreprocessor
+    ):
         """Counter metrics with group_by should still get suggestions."""
         intent = MetricsQueryIntent(
             metric="http_requests_total",
@@ -94,7 +101,9 @@ class TestCounterMetrics:
 class TestGaugeMetrics:
     """Test aggregation suggestions for gauge metrics."""
 
-    def test_gauge_metric_type(self, preprocessor: PromQLAggregationSuggestionPreprocessor):
+    def test_gauge_metric_type(
+        self, preprocessor: PromQLAggregationSuggestionPreprocessor
+    ):
         """Gauge metrics should get over_time functions."""
         intent = MetricsQueryIntent(
             metric="cpu_usage",
@@ -110,7 +119,9 @@ class TestGaugeMetrics:
         assert result.aggregation_suggestions[2].function_name == "min_over_time"
         assert result.aggregation_suggestions[3].function_name == "sum_over_time"
 
-    def test_gauge_metric_type_case_insensitive(self, preprocessor: PromQLAggregationSuggestionPreprocessor):
+    def test_gauge_metric_type_case_insensitive(
+        self, preprocessor: PromQLAggregationSuggestionPreprocessor
+    ):
         """Gauge type should be case-insensitive."""
         intent = MetricsQueryIntent(
             metric="cpu_usage",
@@ -126,7 +137,9 @@ class TestGaugeMetrics:
 class TestHistogramMetrics:
     """Test aggregation suggestions for histogram metrics."""
 
-    def test_histogram_metric_type(self, preprocessor: PromQLAggregationSuggestionPreprocessor):
+    def test_histogram_metric_type(
+        self, preprocessor: PromQLAggregationSuggestionPreprocessor
+    ):
         """Histogram metrics should get histogram_quantile and rate."""
         intent = MetricsQueryIntent(
             metric="http_request_duration_seconds",
@@ -142,7 +155,9 @@ class TestHistogramMetrics:
         assert result.aggregation_suggestions[1].function_name == "histogram_quantile"
         assert result.aggregation_suggestions[1].params == {"quantile": 0.99}
 
-    def test_histogram_quantile_params(self, preprocessor: PromQLAggregationSuggestionPreprocessor):
+    def test_histogram_quantile_params(
+        self, preprocessor: PromQLAggregationSuggestionPreprocessor
+    ):
         """Histogram_quantile suggestions should have correct quantile params."""
         intent = MetricsQueryIntent(
             metric="http_request_duration_seconds",
@@ -158,10 +173,13 @@ class TestHistogramMetrics:
         p99 = result.aggregation_suggestions[1]
         assert p99.params["quantile"] == 0.99
 
+
 class TestTimerMetrics:
     """Test aggregation suggestions for timer metrics."""
 
-    def test_timer_metric_type(self, preprocessor: PromQLAggregationSuggestionPreprocessor):
+    def test_timer_metric_type(
+        self, preprocessor: PromQLAggregationSuggestionPreprocessor
+    ):
         """Timer metrics should get histogram_quantile and over_time functions."""
         intent = MetricsQueryIntent(
             metric="request_timer",
@@ -179,10 +197,13 @@ class TestTimerMetrics:
         assert result.aggregation_suggestions[2].function_name == "avg_over_time"
         assert result.aggregation_suggestions[3].function_name == "max_over_time"
 
+
 class TestIntentImmutability:
     """Test that the preprocessor returns new instances without mutating input."""
 
-    def test_returns_new_intent_instance(self, preprocessor: PromQLAggregationSuggestionPreprocessor):
+    def test_returns_new_intent_instance(
+        self, preprocessor: PromQLAggregationSuggestionPreprocessor
+    ):
         """Preprocessor should return a new intent instance."""
         intent = MetricsQueryIntent(
             metric="http_requests_total",
@@ -198,7 +219,9 @@ class TestIntentImmutability:
         # Result should have suggestions
         assert result.aggregation_suggestions is not None
 
-    def test_preserves_all_original_fields(self, preprocessor: PromQLAggregationSuggestionPreprocessor):
+    def test_preserves_all_original_fields(
+        self, preprocessor: PromQLAggregationSuggestionPreprocessor
+    ):
         """All original fields should be preserved in the result."""
         intent = MetricsQueryIntent(
             metric="cpu_usage",

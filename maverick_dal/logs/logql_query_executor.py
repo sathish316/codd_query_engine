@@ -10,13 +10,6 @@ from dataclasses import dataclass
 import logging
 from datetime import datetime, timedelta
 from urllib.parse import urljoin
-import json
-
-try:
-    import httpx
-    HTTPX_AVAILABLE = True
-except ImportError:
-    HTTPX_AVAILABLE = False
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -24,6 +17,7 @@ logger = logging.getLogger(__name__)
 
 class LogQLExecutionError(Exception):
     """Exception raised when LogQL query execution fails."""
+
     pass
 
 
@@ -38,6 +32,7 @@ class LokiConfig:
         auth_token: Optional Bearer token for authentication
         org_id: Optional X-Scope-OrgID header for multi-tenancy
     """
+
     base_url: str
     timeout: int = 30
     auth_token: Optional[str] = None
@@ -49,7 +44,7 @@ class LokiConfig:
             raise ValueError("base_url cannot be empty")
 
         # Ensure base_url ends without trailing slash for proper URL joining
-        self.base_url = self.base_url.rstrip('/')
+        self.base_url = self.base_url.rstrip("/")
 
 
 @dataclass
@@ -63,6 +58,7 @@ class QueryResult:
         error: Error message if query failed
         stats: Query execution statistics
     """
+
     status: str
     data: Optional[dict[str, Any]] = None
     error: Optional[str] = None
@@ -92,12 +88,6 @@ class LogQLQueryExecutor:
         Raises:
             ImportError: If httpx is not installed
         """
-        if not HTTPX_AVAILABLE and client is None:
-            raise ImportError(
-                "httpx is required for LogQLQueryExecutor. "
-                "Install with: pip install httpx"
-            )
-
         self.config = config
         self._client = client
 
@@ -106,9 +96,9 @@ class LogQLQueryExecutor:
         """Get or create the HTTP client."""
         if self._client is None:
             import httpx
+
             self._client = httpx.Client(
-                timeout=self.config.timeout,
-                headers=self._build_headers()
+                timeout=self.config.timeout, headers=self._build_headers()
             )
         return self._client
 
@@ -193,12 +183,11 @@ class LogQLQueryExecutor:
 
         except Exception as e:
             logger.error(f"LogQL range query failed: {e}", exc_info=True)
-            return QueryResult(
-                status="error",
-                error=str(e)
-            )
+            return QueryResult(status="error", error=str(e))
 
-    def get_labels(self, start: Optional[datetime] = None, end: Optional[datetime] = None) -> QueryResult:
+    def get_labels(
+        self, start: Optional[datetime] = None, end: Optional[datetime] = None
+    ) -> QueryResult:
         """
         Retrieve all label names from Loki.
 
@@ -238,10 +227,7 @@ class LogQLQueryExecutor:
 
         except Exception as e:
             logger.error(f"Failed to retrieve labels: {e}", exc_info=True)
-            return QueryResult(
-                status="error",
-                error=str(e)
-            )
+            return QueryResult(status="error", error=str(e))
 
     def get_label_values(
         self,
@@ -293,11 +279,11 @@ class LogQLQueryExecutor:
             )
 
         except Exception as e:
-            logger.error(f"Failed to retrieve label values for '{label_name}': {e}", exc_info=True)
-            return QueryResult(
-                status="error",
-                error=str(e)
+            logger.error(
+                f"Failed to retrieve label values for '{label_name}': {e}",
+                exc_info=True,
             )
+            return QueryResult(status="error", error=str(e))
 
     def close(self):
         """Close the HTTP client."""

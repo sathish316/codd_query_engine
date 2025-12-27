@@ -37,11 +37,7 @@ class TestPromQLClient:
     def test_init_with_custom_params(self):
         """Test initialization with custom parameters."""
         headers = {"Authorization": "Bearer token123"}
-        client = PromQLClient(
-            "http://prometheus:9090",
-            timeout=60.0,
-            headers=headers
-        )
+        client = PromQLClient("http://prometheus:9090", timeout=60.0, headers=headers)
         assert client.base_url == "http://prometheus:9090"
         assert client.timeout == 60.0
         assert client.headers == headers
@@ -57,7 +53,7 @@ class TestPromQLClient:
         mock_response = Mock()
         mock_response.json.return_value = {
             "status": "success",
-            "data": ["__name__", "job", "instance"]
+            "data": ["__name__", "job", "instance"],
         }
         mock_httpx_client.request.return_value = mock_response
 
@@ -65,9 +61,7 @@ class TestPromQLClient:
 
         assert result == ["__name__", "job", "instance"]
         mock_httpx_client.request.assert_called_once_with(
-            "GET",
-            "http://localhost:9090/api/v1/labels",
-            params={}
+            "GET", "http://localhost:9090/api/v1/labels", params={}
         )
 
     def test_get_label_values_success(self, promql_client, mock_httpx_client):
@@ -75,7 +69,7 @@ class TestPromQLClient:
         mock_response = Mock()
         mock_response.json.return_value = {
             "status": "success",
-            "data": ["prometheus", "node-exporter"]
+            "data": ["prometheus", "node-exporter"],
         }
         mock_httpx_client.request.return_value = mock_response
 
@@ -83,9 +77,7 @@ class TestPromQLClient:
 
         assert result == ["prometheus", "node-exporter"]
         mock_httpx_client.request.assert_called_once_with(
-            "GET",
-            "http://localhost:9090/api/v1/label/job/values",
-            params={}
+            "GET", "http://localhost:9090/api/v1/label/job/values", params={}
         )
 
     def test_get_series_success(self, promql_client, mock_httpx_client):
@@ -95,8 +87,8 @@ class TestPromQLClient:
             "status": "success",
             "data": [
                 {"__name__": "up", "job": "prometheus", "instance": "localhost:9090"},
-                {"__name__": "up", "job": "node", "instance": "localhost:9100"}
-            ]
+                {"__name__": "up", "job": "node", "instance": "localhost:9100"},
+            ],
         }
         mock_httpx_client.request.return_value = mock_response
 
@@ -114,11 +106,11 @@ class TestPromQLClient:
         mock_response = Mock()
         mock_response.json.return_value = {
             "status": "success",
-            "data": [{"__name__": "up"}]
+            "data": [{"__name__": "up"}],
         }
         mock_httpx_client.request.return_value = mock_response
 
-        result = promql_client.get_series(match=["up"], start=start, end=end)
+        promql_client.get_series(match=["up"], start=start, end=end)
 
         call_args = mock_httpx_client.request.call_args
         assert call_args[1]["params"]["start"] == start.timestamp()
@@ -129,15 +121,7 @@ class TestPromQLClient:
         mock_response = Mock()
         mock_response.json.return_value = {
             "status": "success",
-            "data": {
-                "up": [
-                    {
-                        "type": "gauge",
-                        "help": "Up status",
-                        "unit": ""
-                    }
-                ]
-            }
+            "data": {"up": [{"type": "gauge", "help": "Up status", "unit": ""}]},
         }
         mock_httpx_client.request.return_value = mock_response
 
@@ -156,10 +140,10 @@ class TestPromQLClient:
                 "result": [
                     {
                         "metric": {"__name__": "up", "job": "prometheus"},
-                        "value": [1704067200, "1"]
+                        "value": [1704067200, "1"],
                     }
-                ]
-            }
+                ],
+            },
         }
         mock_httpx_client.request.return_value = mock_response
 
@@ -168,9 +152,7 @@ class TestPromQLClient:
         assert result["resultType"] == "vector"
         assert len(result["result"]) == 1
         mock_httpx_client.request.assert_called_once_with(
-            "POST",
-            "http://localhost:9090/api/v1/query",
-            params={"query": "up"}
+            "POST", "http://localhost:9090/api/v1/query", params={"query": "up"}
         )
 
     def test_query_instant_with_time(self, promql_client, mock_httpx_client):
@@ -180,11 +162,11 @@ class TestPromQLClient:
         mock_response = Mock()
         mock_response.json.return_value = {
             "status": "success",
-            "data": {"resultType": "vector", "result": []}
+            "data": {"resultType": "vector", "result": []},
         }
         mock_httpx_client.request.return_value = mock_response
 
-        result = promql_client.query_instant("up", time=query_time)
+        promql_client.query_instant("up", time=query_time)
 
         call_args = mock_httpx_client.request.call_args
         assert call_args[1]["params"]["time"] == query_time.timestamp()
@@ -202,13 +184,10 @@ class TestPromQLClient:
                 "result": [
                     {
                         "metric": {"__name__": "up"},
-                        "values": [
-                            [1704067200, "1"],
-                            [1704067260, "1"]
-                        ]
+                        "values": [[1704067200, "1"], [1704067260, "1"]],
                     }
-                ]
-            }
+                ],
+            },
         }
         mock_httpx_client.request.return_value = mock_response
 
@@ -230,9 +209,7 @@ class TestPromQLClient:
         result = promql_client.health_check()
 
         assert result is True
-        mock_httpx_client.get.assert_called_once_with(
-            "http://localhost:9090/-/healthy"
-        )
+        mock_httpx_client.get.assert_called_once_with("http://localhost:9090/-/healthy")
 
     def test_health_check_failure(self, promql_client, mock_httpx_client):
         """Test failed health check."""

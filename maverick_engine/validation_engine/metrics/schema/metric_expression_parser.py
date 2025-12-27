@@ -3,6 +3,7 @@ from typing import Protocol
 
 class MetricExpressionParseError(Exception):
     """Raised when a metric expression cannot be parsed."""
+
     pass
 
 

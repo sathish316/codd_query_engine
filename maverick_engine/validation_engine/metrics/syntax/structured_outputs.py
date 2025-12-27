@@ -15,6 +15,7 @@ class SyntaxValidationResult(ValidationResult):
         column: Column number where syntax error occurred (1-indexed)
         context: Contextual snippet around the error location
     """
+
     line: int | None = None
     column: int | None = None
     context: str | None = None
@@ -32,4 +33,6 @@ class SyntaxValidationResult(ValidationResult):
         column: int | None = None,
         context: str | None = None,
     ) -> "SyntaxValidationResult":
-        return cls(is_valid=False, error=message, line=line, column=column, context=context)
+        return cls(
+            is_valid=False, error=message, line=line, column=column, context=context
+        )

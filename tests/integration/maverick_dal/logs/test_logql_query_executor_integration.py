@@ -23,10 +23,7 @@ from maverick_dal.logs.logql_query_executor import (
 @pytest.fixture
 def loki_config():
     """Provide Loki configuration for integration tests."""
-    return LokiConfig(
-        base_url="http://localhost:3100",
-        timeout=30
-    )
+    return LokiConfig(base_url="http://localhost:3100", timeout=30)
 
 
 @pytest.fixture
@@ -56,7 +53,7 @@ def test_query_range(executor):
         start=start,
         end=end,
         limit=10,
-        direction="backward"
+        direction="backward",
     )
 
     # Verify success
@@ -67,6 +64,7 @@ def test_query_range(executor):
     # Verify response structure
     assert "resultType" in result.data, "Missing resultType in response"
     assert "result" in result.data, "Missing result in response"
+
 
 @pytest.mark.integration
 def test_get_labels(executor):
@@ -98,8 +96,9 @@ def test_get_labels(executor):
     if len(result.data) > 0:
         # Common Loki labels that are typically present
         # Note: Actual labels depend on your Loki instance
-        assert all(isinstance(label, str) for label in result.data), \
+        assert all(isinstance(label, str) for label in result.data), (
             "All labels should be strings"
+        )
 
 
 @pytest.mark.integration
@@ -124,11 +123,7 @@ def test_get_label_values(executor):
     if labels_result.data and len(labels_result.data) > 0:
         label_name = labels_result.data[0]
 
-        result = executor.get_label_values(
-            label_name=label_name,
-            start=start,
-            end=end
-        )
+        result = executor.get_label_values(label_name=label_name, start=start, end=end)
 
         # Verify success
         assert result.status == "success", f"Query failed: {result.error}"
@@ -136,12 +131,14 @@ def test_get_label_values(executor):
         assert result.error is None, f"Unexpected error: {result.error}"
 
         # Verify response is a list
-        assert isinstance(result.data, list), \
+        assert isinstance(result.data, list), (
             f"Expected data to be a list of values for label '{label_name}'"
+        )
 
         # Verify all values are strings
         if len(result.data) > 0:
-            assert all(isinstance(value, str) for value in result.data), \
+            assert all(isinstance(value, str) for value in result.data), (
                 "All label values should be strings"
+            )
     else:
         pytest.skip("No labels available in Loki instance for testing")

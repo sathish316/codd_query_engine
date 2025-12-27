@@ -27,7 +27,7 @@ class PromQLClient:
         self,
         base_url: str,
         timeout: float = 30.0,
-        headers: Optional[dict[str, str]] = None
+        headers: Optional[dict[str, str]] = None,
     ):
         """
         Initialize PromQL client.
@@ -55,10 +55,7 @@ class PromQLClient:
         self.client.close()
 
     def _make_request(
-        self,
-        method: str,
-        endpoint: str,
-        params: Optional[dict[str, Any]] = None
+        self, method: str, endpoint: str, params: Optional[dict[str, Any]] = None
     ) -> dict[str, Any]:
         """
         Make HTTP request to Prometheus API.
@@ -100,7 +97,7 @@ class PromQLClient:
         self,
         start: Optional[datetime] = None,
         end: Optional[datetime] = None,
-        match: Optional[list[str]] = None
+        match: Optional[list[str]] = None,
     ) -> list[str]:
         """
         Get list of label names.
@@ -130,7 +127,7 @@ class PromQLClient:
         label_name: str,
         start: Optional[datetime] = None,
         end: Optional[datetime] = None,
-        match: Optional[list[str]] = None
+        match: Optional[list[str]] = None,
     ) -> list[str]:
         """
         Get list of label values for a specific label.
@@ -161,7 +158,7 @@ class PromQLClient:
         self,
         match: list[str],
         start: Optional[datetime] = None,
-        end: Optional[datetime] = None
+        end: Optional[datetime] = None,
     ) -> list[dict[str, str]]:
         """
         Get list of time series matching selectors.
@@ -188,9 +185,7 @@ class PromQLClient:
         return data.get("data", [])
 
     def get_metric_metadata(
-        self,
-        metric: Optional[str] = None,
-        limit: Optional[int] = None
+        self, metric: Optional[str] = None, limit: Optional[int] = None
     ) -> dict[str, list[dict[str, str]]]:
         """
         Get metadata about metrics.
@@ -215,10 +210,7 @@ class PromQLClient:
     # Query methods
 
     def query_instant(
-        self,
-        query: str,
-        time: Optional[datetime] = None,
-        timeout: Optional[str] = None
+        self, query: str, time: Optional[datetime] = None, timeout: Optional[str] = None
     ) -> dict[str, Any]:
         """
         Execute instant PromQL query.
@@ -252,7 +244,7 @@ class PromQLClient:
         start: datetime,
         end: datetime,
         step: str,
-        timeout: Optional[str] = None
+        timeout: Optional[str] = None,
     ) -> dict[str, Any]:
         """
         Execute range PromQL query.
@@ -278,7 +270,7 @@ class PromQLClient:
             "query": query,
             "start": start.timestamp(),
             "end": end.timestamp(),
-            "step": step
+            "step": step,
         }
 
         if timeout:

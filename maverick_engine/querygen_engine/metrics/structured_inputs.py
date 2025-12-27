@@ -11,7 +11,10 @@ class AggregationFunctionSuggestion:
     """
 
     function_name: str
-    params: dict[str, str | float | list[str] | list[float]] = field(default_factory=dict)
+    params: dict[str, str | float | list[str] | list[float]] = field(
+        default_factory=dict
+    )
+
 
 @dataclass(frozen=True)
 class MetricsQueryIntent:

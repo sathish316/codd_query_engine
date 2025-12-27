@@ -10,15 +10,18 @@ Tests cover:
 - Namespace isolation
 """
 
-from unittest.mock import Mock, MagicMock, call
+from unittest.mock import Mock
 
 import pytest
 import fakeredis
 
 from maverick_dal.metrics.metrics_metadata_store import MetricsMetadataStore
-from maverick_engine.validation_engine.metrics.schema.metrics_schema_validator import MetricsSchemaValidator
-from maverick_engine.validation_engine.metrics.schema.structured_outputs import SchemaValidationResult
-from maverick_engine.validation_engine.metrics.schema.metric_expression_parser import MetricExpressionParseError
+from maverick_engine.validation_engine.metrics.schema.metrics_schema_validator import (
+    MetricsSchemaValidator,
+)
+from maverick_engine.validation_engine.metrics.schema.metric_expression_parser import (
+    MetricExpressionParseError,
+)
 
 
 class MockMetricNameParser:
@@ -75,7 +78,9 @@ class TestMetricsSchemaValidator:
         valid_metrics = {"cpu.usage", "memory.total"}
         metadata_store.set_metric_names(namespace, valid_metrics)
 
-        parser = MockMetricNameParser(return_value={"cpu.usage", "memory.total", "disk.io"})
+        parser = MockMetricNameParser(
+            return_value={"cpu.usage", "memory.total", "disk.io"}
+        )
         validator = MetricsSchemaValidator(metadata_store, parser)
 
         result = validator.validate(namespace, "cpu.usage + disk.io")
@@ -89,7 +94,9 @@ class TestMetricsSchemaValidator:
         namespace = "test_ns"
         metadata_store.set_metric_names(namespace, {"cpu.usage", "cpu.usage.max"})
 
-        parser = MockMetricNameParser(raise_error=MetricExpressionParseError("Error in parsing"))
+        parser = MockMetricNameParser(
+            raise_error=MetricExpressionParseError("Error in parsing")
+        )
         validator = MetricsSchemaValidator(metadata_store, parser)
 
         result = validator.validate(namespace, "cpu.usage / cpu.usage.max")
@@ -175,4 +182,3 @@ class TestMetricsSchemaValidator:
         result2 = validator.validate(ns2, "avg(metric_a)")
         assert result2.is_valid is False
         assert "metric_a" in result2.invalid_metrics
-

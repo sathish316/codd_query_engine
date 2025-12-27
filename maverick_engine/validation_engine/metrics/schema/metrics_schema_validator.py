@@ -14,7 +14,9 @@ from maverick_engine.validation_engine.metrics.schema.metric_expression_parser i
     MetricExpressionParser,
     MetricExpressionParseError,
 )
-from maverick_engine.validation_engine.metrics.schema.structured_outputs import SchemaValidationResult
+from maverick_engine.validation_engine.metrics.schema.structured_outputs import (
+    SchemaValidationResult,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -36,7 +38,9 @@ class MetricsSchemaValidator:
         self._metadata_store = metadata_store
         self._parser = parser
 
-    def validate(self, namespace: str, metric_expression: str) -> SchemaValidationResult:
+    def validate(
+        self, namespace: str, metric_expression: str
+    ) -> SchemaValidationResult:
         """
         Validate metric names in expression are valid.
 
@@ -62,7 +66,9 @@ class MetricsSchemaValidator:
         except MetricExpressionParseError as e:
             return SchemaValidationResult.parse_error(str(e), e)
         except Exception as e:
-            return SchemaValidationResult.parse_error(f"Unexpected parser error: {e}", e)
+            return SchemaValidationResult.parse_error(
+                f"Unexpected parser error: {e}", e
+            )
 
         # Guard: no metrics found in expression
         if not metric_names:
@@ -79,17 +85,14 @@ class MetricsSchemaValidator:
                 extra={
                     "namespace": namespace,
                     "invalid_count": len(invalid_metrics),
-                    "total_metrics": len(unique_metrics)
-                }
+                    "total_metrics": len(unique_metrics),
+                },
             )
             return SchemaValidationResult.failure(sorted(invalid_metrics), namespace)
 
         logger.info(
             "Schema validation succeeded",
-            extra={
-                "namespace": namespace,
-                "metric_count": len(unique_metrics)
-            }
+            extra={"namespace": namespace, "metric_count": len(unique_metrics)},
         )
         return SchemaValidationResult.success()
 

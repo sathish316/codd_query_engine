@@ -7,9 +7,13 @@ These tests focus on syntax acceptance/rejection for common PromQL forms:
 - aggregations with by/without
 - binary ops with vector matching and bool modifier
 """
+
 import pytest
 
-from maverick_engine.validation_engine.metrics.syntax.promql_syntax_validator import PromQLSyntaxValidator
+from maverick_engine.validation_engine.metrics.syntax.promql_syntax_validator import (
+    PromQLSyntaxValidator,
+)
+
 
 @pytest.fixture
 def validator() -> PromQLSyntaxValidator:
@@ -49,10 +53,10 @@ def test_valid_queries(validator: PromQLSyntaxValidator, query: str):
         "",
         "   ",
         "up +",
-        "{job=\"api\"",
+        '{job="api"',
         "rate(http_requests_total[5m)",
         "sum by (job) rate(http_requests_total[5m])",
-        "http_requests_total{method=\"GET\",}",
+        'http_requests_total{method="GET",}',
         "up[5m::1m]",
         "up @ start(",
     ],

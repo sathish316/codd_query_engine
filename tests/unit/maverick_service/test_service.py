@@ -12,7 +12,8 @@ def test_service_integration_check():
     try:
         import maverick_dal
         import maverick_engine
-        assert hasattr(maverick_dal, '__name__')
-        assert hasattr(maverick_engine, '__name__')
+
+        assert hasattr(maverick_dal, "__name__")
+        assert hasattr(maverick_engine, "__name__")
     except ImportError as e:
         assert False, f"Failed to import dependencies: {e}"

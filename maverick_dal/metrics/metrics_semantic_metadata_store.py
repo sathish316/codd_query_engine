@@ -6,15 +6,15 @@ Unlike the Redis-based exact-match store, this enables natural language queries 
 similar metrics based on descriptions, categories, and other metadata.
 """
 
-from typing import Optional, TypedDict
-from functools import lru_cache
 import re
 import logging
 import chromadb
-from chromadb.config import Settings
 
 from maverick_engine.models.metrics_common import MetricMetadata
-from maverick_engine.validation_engine.metrics.structured_outputs import ValidationError, SearchResult
+from maverick_engine.validation_engine.metrics.validation_result import ValidationError
+from maverick_engine.validation_engine.metrics.structured_outputs import (
+    SearchResult,
+)
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -28,7 +28,7 @@ MAX_N_RESULTS = 100
 
 # Metric name validation pattern (alphanumeric, dots, dashes, underscores, slashes, and unicode)
 # Allow unicode characters for international support
-METRIC_NAME_PATTERN = re.compile(r'^[\w._\-/]+$', re.UNICODE)
+METRIC_NAME_PATTERN = re.compile(r"^[\w._\-/]+$", re.UNICODE)
 
 
 class MetricsSemanticMetadataStore:
@@ -62,17 +62,19 @@ class MetricsSemanticMetadataStore:
             # Get or create the collection with optimized settings
             self.collection = self.chromadb_client.get_or_create_collection(
                 name=self.collection_name,
-                #TODO: use config for vector store settings
+                # TODO: use config for vector store settings
                 metadata={
                     "hnsw:space": "cosine",  # Cosine similarity for semantic search
                     "hnsw:construction_ef": 200,  # Higher quality index construction
                     "hnsw:search_ef": 100,  # Balance between speed and accuracy
-                    "hnsw:M": 16  # Number of connections per element
-                }
+                    "hnsw:M": 16,  # Number of connections per element
+                },
             )
             logger.info(f"Initialized collection '{self.collection_name}'")
         except Exception as e:
-            logger.error(f"Failed to initialize collection '{self.collection_name}': {e}")
+            logger.error(
+                f"Failed to initialize collection '{self.collection_name}': {e}"
+            )
             raise
 
     def _validate_metric_name(self, metric_name: str) -> None:
@@ -95,8 +97,8 @@ class MetricsSemanticMetadataStore:
 
         if not METRIC_NAME_PATTERN.match(metric_name):
             raise ValidationError(
-                f"metric_name contains invalid characters. "
-                f"Only alphanumeric, dots, dashes, underscores, and slashes are allowed"
+                "metric_name contains invalid characters. "
+                "Only alphanumeric, dots, dashes, underscores, and slashes are allowed"
             )
 
     def _validate_text_field(self, field_name: str, field_value: str) -> None:
@@ -129,10 +131,10 @@ class MetricsSemanticMetadataStore:
             return ""
 
         # Remove null bytes and control characters
-        sanitized = text.replace('\x00', '').strip()
+        sanitized = text.replace("\x00", "").strip()
 
         # Replace multiple whitespaces with single space
-        sanitized = re.sub(r'\s+', ' ', sanitized)
+        sanitized = re.sub(r"\s+", " ", sanitized)
 
         return sanitized
 
@@ -165,9 +167,16 @@ class MetricsSemanticMetadataStore:
 
         # Define text fields to validate
         text_fields = [
-            "type", "description", "unit", "category", "subcategory",
-            "category_description", "golden_signal_type", "golden_signal_description",
-            "meter_type", "meter_type_description"
+            "type",
+            "description",
+            "unit",
+            "category",
+            "subcategory",
+            "category_description",
+            "golden_signal_type",
+            "golden_signal_description",
+            "meter_type",
+            "meter_type_description",
         ]
 
         # Validate all text fields
@@ -181,8 +190,13 @@ class MetricsSemanticMetadataStore:
             # Use list comprehension for better performance
             document_parts = [
                 self._sanitize_text(str(metadata.get(field, "")))
-                for field in ["description", "category", "subcategory",
-                             "golden_signal_type", "meter_type"]
+                for field in [
+                    "description",
+                    "category",
+                    "subcategory",
+                    "golden_signal_type",
+                    "meter_type",
+                ]
                 if metadata.get(field)
             ]
 
@@ -192,20 +206,26 @@ class MetricsSemanticMetadataStore:
                 "category": "Category",
                 "subcategory": "Subcategory",
                 "golden_signal_type": "Golden Signal",
-                "meter_type": "Meter Type"
+                "meter_type": "Meter Type",
             }
 
             for field, label in field_labels.items():
                 if metadata.get(field):
-                    labeled_parts.append(f"{label}: {self._sanitize_text(str(metadata[field]))}")
+                    labeled_parts.append(
+                        f"{label}: {self._sanitize_text(str(metadata[field]))}"
+                    )
 
             # Combine description with labeled fields
             if metadata.get("description"):
-                document_parts = [self._sanitize_text(str(metadata["description"]))] + labeled_parts
+                document_parts = [
+                    self._sanitize_text(str(metadata["description"]))
+                ] + labeled_parts
             else:
                 document_parts = labeled_parts
 
-            document_text = " | ".join(document_parts) if document_parts else metric_name
+            document_text = (
+                " | ".join(document_parts) if document_parts else metric_name
+            )
 
             # Extract all metadata fields for storage using dict comprehension
             metadata_dict = {
@@ -217,9 +237,7 @@ class MetricsSemanticMetadataStore:
             # Upsert document to collection (updates if exists, adds if new)
             document_id = f"{namespace}#{metric_name}"
             self.collection.upsert(
-                documents=[document_text],
-                metadatas=[metadata_dict],
-                ids=[document_id]
+                documents=[document_text], metadatas=[metadata_dict], ids=[document_id]
             )
 
             logger.debug(f"Indexed metric: {document_id}")
@@ -272,12 +290,13 @@ class MetricsSemanticMetadataStore:
             raise ValidationError("n_results must be at least 1")
 
         if n_results > MAX_N_RESULTS:
-            logger.warning(f"n_results {n_results} exceeds maximum {MAX_N_RESULTS}, capping to maximum")
+            logger.warning(
+                f"n_results {n_results} exceeds maximum {MAX_N_RESULTS}, capping to maximum"
+            )
             n_results = MAX_N_RESULTS
 
         results = self.collection.query(
-            query_texts=[sanitized_query],
-            n_results=n_results
+            query_texts=[sanitized_query], n_results=n_results
         )
 
         # Format results
@@ -299,7 +318,7 @@ class MetricsSemanticMetadataStore:
             result = {
                 "metric_name": metric_name,
                 "similarity_score": 1.0 - distance,  # Convert distance to similarity
-                **metadata
+                **metadata,
             }
             formatted_results.append(result)
 

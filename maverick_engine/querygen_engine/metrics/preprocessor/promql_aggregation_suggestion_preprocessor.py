@@ -1,9 +1,15 @@
 from typing import Mapping, Sequence
-from maverick_engine.querygen_engine.metrics.structured_inputs import AggregationFunctionSuggestion
-from maverick_engine.querygen_engine.metrics.preprocessor.metrics_querygen_preprocessor import MetricsQuerygenPreprocessor
+from maverick_engine.querygen_engine.metrics.structured_inputs import (
+    AggregationFunctionSuggestion,
+)
+from maverick_engine.querygen_engine.metrics.preprocessor.metrics_querygen_preprocessor import (
+    MetricsQuerygenPreprocessor,
+)
 from maverick_engine.querygen_engine.metrics.structured_inputs import MetricsQueryIntent
 
-DEFAULT_AGGREGATION_SUGGESTIONS: Mapping[str, Sequence[AggregationFunctionSuggestion]] = {
+DEFAULT_AGGREGATION_SUGGESTIONS: Mapping[
+    str, Sequence[AggregationFunctionSuggestion]
+] = {
     "counter": [
         AggregationFunctionSuggestion(function_name="rate"),
         AggregationFunctionSuggestion(function_name="increase"),
@@ -21,7 +27,7 @@ DEFAULT_AGGREGATION_SUGGESTIONS: Mapping[str, Sequence[AggregationFunctionSugges
         ),
         AggregationFunctionSuggestion(
             function_name="histogram_quantile", params={"quantile": 0.99}
-        )
+        ),
     ],
     "timer": [
         AggregationFunctionSuggestion(

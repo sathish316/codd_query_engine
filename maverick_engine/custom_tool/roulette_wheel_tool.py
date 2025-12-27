@@ -7,8 +7,16 @@ class RouletteWheelTool(CustomTool):
     Tool for the roulette wheel
     """
 
-    def __init__(self, config_manager=None, instructions_manager=None, model_manager=None):
-        super().__init__("roulette_wheel", "roulette.wheel", config_manager, instructions_manager, model_manager)
+    def __init__(
+        self, config_manager=None, instructions_manager=None, model_manager=None
+    ):
+        super().__init__(
+            "roulette_wheel",
+            "roulette.wheel",
+            config_manager,
+            instructions_manager,
+            model_manager,
+        )
 
     def initialize_tools(self, agent):
         @agent.tool
@@ -16,5 +24,4 @@ class RouletteWheelTool(CustomTool):
             """
             Check if the square is a winner
             """
-            return 'winner' if square == 5 else 'loser'
-
+            return "winner" if square == 5 else "loser"

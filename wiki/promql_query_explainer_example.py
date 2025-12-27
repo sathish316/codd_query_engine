@@ -35,22 +35,20 @@ def example_matching_intent():
         metric_type="counter",
         filters={"status": "500"},
         window="5m",
-        aggregation_suggestions=[
-            AggregationFunctionSuggestion(function_name="rate")
-        ]
+        aggregation_suggestions=[AggregationFunctionSuggestion(function_name="rate")],
     )
 
     # Generated query
     generated_query = 'rate(http_requests_total{status="500"}[5m])'
 
-    print(f"\nOriginal Intent:")
+    print("\nOriginal Intent:")
     print(f"  - Metric: {intent.metric}")
     print(f"  - Type: {intent.metric_type}")
     print(f"  - Filters: {intent.filters}")
     print(f"  - Window: {intent.window}")
-    print(f"  - Suggested Aggregation: rate")
+    print("  - Suggested Aggregation: rate")
 
-    print(f"\nGenerated Query:")
+    print("\nGenerated Query:")
     print(f"  {generated_query}")
 
     # Validate semantic match
@@ -59,14 +57,16 @@ def example_matching_intent():
             intent, generated_query
         )
 
-        print(f"\n{'✓' if result.intent_match else '✗'} Intent Match: {result.intent_match}")
+        print(
+            f"\n{'✓' if result.intent_match else '✗'} Intent Match: {result.intent_match}"
+        )
         print(f"Partial Match: {result.partial_match}")
         print(f"Confidence: {result.confidence:.2%}")
-        print(f"\nOriginal Intent Summary:")
+        print("\nOriginal Intent Summary:")
         print(f"  {result.original_intent_summary}")
-        print(f"\nActual Query Behavior:")
+        print("\nActual Query Behavior:")
         print(f"  {result.actual_query_behavior}")
-        print(f"\nExplanation:")
+        print("\nExplanation:")
         print(f"  {result.explanation}")
 
     except SemanticValidationError as e:
@@ -90,19 +90,19 @@ def example_mismatched_intent():
         window="5m",
         aggregation_suggestions=[
             AggregationFunctionSuggestion(function_name="avg_over_time")
-        ]
+        ],
     )
 
     # Generated query - incorrectly uses rate() on a gauge
     generated_query = "rate(memory_usage_bytes[5m])"
 
-    print(f"\nOriginal Intent:")
+    print("\nOriginal Intent:")
     print(f"  - Metric: {intent.metric}")
     print(f"  - Type: {intent.metric_type} (should NOT use rate!)")
     print(f"  - Window: {intent.window}")
-    print(f"  - Suggested Aggregation: avg_over_time")
+    print("  - Suggested Aggregation: avg_over_time")
 
-    print(f"\nGenerated Query (INCORRECT):")
+    print("\nGenerated Query (INCORRECT):")
     print(f"  {generated_query}")
 
     try:
@@ -110,14 +110,16 @@ def example_mismatched_intent():
             intent, generated_query
         )
 
-        print(f"\n{'✓' if result.intent_match else '✗'} Intent Match: {result.intent_match}")
+        print(
+            f"\n{'✓' if result.intent_match else '✗'} Intent Match: {result.intent_match}"
+        )
         print(f"Partial Match: {result.partial_match}")
         print(f"Confidence: {result.confidence:.2%}")
-        print(f"\nOriginal Intent Summary:")
+        print("\nOriginal Intent Summary:")
         print(f"  {result.original_intent_summary}")
-        print(f"\nActual Query Behavior:")
+        print("\nActual Query Behavior:")
         print(f"  {result.actual_query_behavior}")
-        print(f"\nExplanation:")
+        print("\nExplanation:")
         print(f"  {result.explanation}")
 
     except SemanticValidationError as e:
@@ -142,25 +144,24 @@ def example_histogram_with_quantile():
         group_by=["instance"],
         aggregation_suggestions=[
             AggregationFunctionSuggestion(
-                function_name="histogram_quantile",
-                params={"quantile": 0.95}
+                function_name="histogram_quantile", params={"quantile": 0.95}
             )
-        ]
+        ],
     )
 
-    generated_query = '''histogram_quantile(0.95,
+    generated_query = """histogram_quantile(0.95,
     rate(api_latency_seconds_bucket{endpoint="/users", method="GET"}[5m])
-) by (instance)'''
+) by (instance)"""
 
-    print(f"\nOriginal Intent:")
+    print("\nOriginal Intent:")
     print(f"  - Metric: {intent.metric}")
     print(f"  - Type: {intent.metric_type}")
     print(f"  - Filters: {intent.filters}")
     print(f"  - Window: {intent.window}")
     print(f"  - Group By: {intent.group_by}")
-    print(f"  - Aggregation: histogram_quantile (95th percentile)")
+    print("  - Aggregation: histogram_quantile (95th percentile)")
 
-    print(f"\nGenerated Query:")
+    print("\nGenerated Query:")
     print(f"  {generated_query}")
 
     try:
@@ -168,10 +169,12 @@ def example_histogram_with_quantile():
             intent, generated_query
         )
 
-        print(f"\n{'✓' if result.intent_match else '✗'} Intent Match: {result.intent_match}")
+        print(
+            f"\n{'✓' if result.intent_match else '✗'} Intent Match: {result.intent_match}"
+        )
         print(f"Partial Match: {result.partial_match}")
         print(f"Confidence: {result.confidence:.2%}")
-        print(f"\nExplanation:")
+        print("\nExplanation:")
         print(f"  {result.explanation}")
 
     except SemanticValidationError as e:
@@ -190,13 +193,13 @@ def example_explain_query_only():
 
     query = 'sum by (job) (rate(http_requests_total{status=~"5.."}[5m]))'
 
-    print(f"\nQuery to Explain:")
+    print("\nQuery to Explain:")
     print(f"  {query}")
 
     try:
         explanation = explainer.explain_query(query)
 
-        print(f"\nQuery Explanation:")
+        print("\nQuery Explanation:")
         print(f"  {explanation}")
 
     except SemanticValidationError as e:
@@ -221,23 +224,22 @@ def example_partial_match():
         window="5m",
         aggregation_suggestions=[
             AggregationFunctionSuggestion(
-                function_name="histogram_quantile",
-                params={"quantile": 0.95}
+                function_name="histogram_quantile", params={"quantile": 0.95}
             )
-        ]
+        ],
     )
 
     # Query uses 99th percentile instead of 95th
     generated_query = 'histogram_quantile(0.99, rate(api_latency_seconds_bucket{endpoint="/users"}[5m]))'
 
-    print(f"\nOriginal Intent:")
+    print("\nOriginal Intent:")
     print(f"  - Metric: {intent.metric}")
     print(f"  - Type: {intent.metric_type}")
     print(f"  - Filters: {intent.filters}")
     print(f"  - Window: {intent.window}")
-    print(f"  - Expected: 95th percentile (0.95)")
+    print("  - Expected: 95th percentile (0.95)")
 
-    print(f"\nGenerated Query (Uses 99th percentile):")
+    print("\nGenerated Query (Uses 99th percentile):")
     print(f"  {generated_query}")
 
     try:
@@ -245,10 +247,14 @@ def example_partial_match():
             intent, generated_query
         )
 
-        print(f"\n{'✓' if result.intent_match else '✗'} Intent Match: {result.intent_match}")
-        print(f"{'✓' if result.partial_match else '✗'} Partial Match: {result.partial_match}")
+        print(
+            f"\n{'✓' if result.intent_match else '✗'} Intent Match: {result.intent_match}"
+        )
+        print(
+            f"{'✓' if result.partial_match else '✗'} Partial Match: {result.partial_match}"
+        )
         print(f"Confidence: {result.confidence:.2%}")
-        print(f"\nExplanation:")
+        print("\nExplanation:")
         print(f"  {result.explanation}")
 
     except SemanticValidationError as e:

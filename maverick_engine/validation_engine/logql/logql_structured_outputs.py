@@ -12,10 +12,11 @@ class LogQLExtractionResponse(BaseModel):
     Contains the stream selectors extracted from a LogQL expression
     along with a confidence score indicating extraction reliability.
     """
+
     stream_selectors: dict[str, list[str]]  # label_name -> list of values
     confidence: float
 
-    @field_validator('stream_selectors', mode='before')
+    @field_validator("stream_selectors", mode="before")
     @classmethod
     def normalize_selectors(cls, v):
         """Normalize stream selectors: strip whitespace, remove empties."""
@@ -37,7 +38,7 @@ class LogQLExtractionResponse(BaseModel):
                         normalized[clean_label] = clean_values
         return normalized
 
-    @field_validator('stream_selectors', mode='after')
+    @field_validator("stream_selectors", mode="after")
     @classmethod
     def dedupe_values(cls, v):
         """Remove duplicate values for each label while preserving order."""
@@ -52,7 +53,7 @@ class LogQLExtractionResponse(BaseModel):
             deduped[label_name] = deduped_values
         return deduped
 
-    @field_validator('confidence', mode='before')
+    @field_validator("confidence", mode="before")
     @classmethod
     def clamp_confidence(cls, v):
         """Clamp confidence to valid range [0.0, 1.0]."""

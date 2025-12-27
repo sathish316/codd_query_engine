@@ -6,7 +6,6 @@ Job:
 2. Used for schema validation of metric names.
 """
 
-from typing import Optional
 import redis
 
 

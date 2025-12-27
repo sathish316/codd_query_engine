@@ -5,9 +5,9 @@ Tests for PromQL client.
 import os
 import pytest
 from datetime import datetime, timedelta
-from unittest.mock import Mock, patch
 
 from maverick_dal.metrics.promql_client import PromQLClient
+
 
 @pytest.mark.integration
 class TestPromQLClientIntegration:
@@ -72,15 +72,16 @@ class TestPromQLClientIntegration:
             end_time = datetime.now()
             start_time = end_time - timedelta(minutes=5)
             range_result = client.query_range(
-                query=first_metric,
-                start=start_time,
-                end=end_time,
-                step="1m"
+                query=first_metric, start=start_time, end=end_time, step="1m"
             )
 
-            assert "resultType" in range_result, "Range query result should have resultType"
+            assert "resultType" in range_result, (
+                "Range query result should have resultType"
+            )
             assert "result" in range_result, "Range query result should have result"
-            assert range_result["resultType"] == "matrix", "Range query should return matrix type"
+            assert range_result["resultType"] == "matrix", (
+                "Range query should return matrix type"
+            )
 
             # Step 7: Get metric metadata
             metadata = client.get_metric_metadata(metric=first_metric, limit=1)

@@ -1,5 +1,4 @@
 import logging
-import os
 
 from opus_agent_base.agent.agent_runner import AgentRunner
 from opus_agent_base.config.config_manager import ConfigManager
@@ -27,7 +26,7 @@ async def run_roulette_agent():
         .add_model_manager()
         .instruction(
             "roulette_agent_instruction",
-            expand_path("$HOME/.maverick/prompts/agent/ROULETTE_AGENT_INSTRUCTIONS.md")
+            expand_path("$HOME/.maverick/prompts/agent/ROULETTE_AGENT_INSTRUCTIONS.md"),
         )
         .custom_tool(RouletteWheelTool())
         .build()
@@ -36,9 +35,12 @@ async def run_roulette_agent():
     agent_runner = AgentRunner(roulette_agent)
     await agent_runner.run_agent()
 
+
 def main():
     import asyncio
+
     asyncio.run(run_roulette_agent())
+
 
 if __name__ == "__main__":
     main()

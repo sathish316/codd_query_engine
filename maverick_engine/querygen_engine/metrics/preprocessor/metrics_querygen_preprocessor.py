@@ -1,4 +1,4 @@
-from typing import Protocol, Sequence
+from typing import Protocol
 
 from maverick_engine.querygen_engine.metrics.structured_inputs import MetricsQueryIntent
 
@@ -22,4 +22,3 @@ class MetricsQuerygenPreprocessor(Protocol):
             A normalized query intent ready for query generation
         """
         ...
-
