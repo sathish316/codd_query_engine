@@ -3,13 +3,16 @@ from typing import Generic, TypeVar
 
 from maverick_engine.validation_engine.metrics.validation_result import ValidationResult
 
-class Validator(ABC, Generic[ValidationResult]):
+TValidationResult = TypeVar("TValidationResult", bound=ValidationResult)
+
+
+class Validator(ABC, Generic[TValidationResult]):
     """
     Abstract base class for validators.
     """
 
     @abstractmethod
-    def validate(self, namespace, query, **kwargs) -> ValidationResult:
+    def validate(self, namespace, query, **kwargs) -> TValidationResult:
         """
         Perform validation.
 

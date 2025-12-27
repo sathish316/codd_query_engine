@@ -8,9 +8,15 @@ with the abstract Validator interface for semantic validation.
 import logging
 
 from maverick_engine.querygen_engine.metrics.structured_inputs import MetricsQueryIntent
-from maverick_engine.validation_engine.agent.metrics.promql_query_explainer_agent import PromQLQueryExplainerAgent
-from maverick_engine.validation_engine.metrics.semantics.metrics_semantics_validator import MetricsSemanticsValidator
-from maverick_engine.validation_engine.metrics.semantics.structured_outputs import SemanticValidationResult
+from maverick_engine.validation_engine.agent.metrics.promql_query_explainer_agent import (
+    PromQLQueryExplainerAgent,
+)
+from maverick_engine.validation_engine.metrics.semantics.metrics_semantics_validator import (
+    MetricsSemanticsValidator,
+)
+from maverick_engine.validation_engine.metrics.semantics.structured_outputs import (
+    SemanticValidationResult,
+)
 from opus_agent_base.config.config_manager import ConfigManager
 from opus_agent_base.prompt.instructions_manager import InstructionsManager
 
@@ -37,13 +43,12 @@ class PromQLSemanticsValidator(MetricsSemanticsValidator):
             config_manager: Configuration manager for agent settings
             instructions_manager: Manager for loading instruction prompts
         """
-        self._validator = PromQLQueryExplainerAgent(config_manager, instructions_manager)
+        self._validator = PromQLQueryExplainerAgent(
+            config_manager, instructions_manager
+        )
 
     def validate(
-        self,
-        original_intent: MetricsQueryIntent,
-        generated_query: str,
-        **kwargs
+        self, original_intent: MetricsQueryIntent, generated_query: str
     ) -> SemanticValidationResult:
         """
         Validate that the generated query semantically matches the original intent.
@@ -51,7 +56,6 @@ class PromQLSemanticsValidator(MetricsSemanticsValidator):
         Args:
             original_intent: The original metrics query intent
             generated_query: The generated PromQL query string
-            **kwargs: Additional keyword arguments (ignored)
 
         Returns:
             SemanticValidationResult indicating whether query matches intent

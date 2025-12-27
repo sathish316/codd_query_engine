@@ -11,7 +11,7 @@ from maverick_engine.querygen_engine.metrics.structured_inputs import (
 from maverick_engine.validation_engine.agent.metrics.promql_query_explainer_agent import (
     PromQLQueryExplainerAgent,
 )
-from maverick_engine.validation_engine.metrics.structured_outputs import (
+from maverick_engine.validation_engine.metrics.semantics.structured_outputs import (
     SemanticValidationResult,
 )
 from maverick_engine.utils.file_utils import expand_path
@@ -21,18 +21,20 @@ from opus_agent_base.prompt.instructions_manager import InstructionsManager
 
 @pytest.mark.integration
 class TestPromQLQueryExplainerAgentIntegration:
-
     @pytest.fixture
     def query_explainer_agent(self):
         """Initialize the PromQL Query Explainer Agent with real dependencies."""
-        config_manager = ConfigManager(expand_path("$HOME/.maverick_test"), "config.yml")
+        config_manager = ConfigManager(
+            expand_path("$HOME/.maverick_test"), "config.yml"
+        )
         instructions_manager = InstructionsManager()
         return PromQLQueryExplainerAgent(
-            config_manager=config_manager,
-            instructions_manager=instructions_manager
+            config_manager=config_manager, instructions_manager=instructions_manager
         )
 
-    def test_semantic_validation_happy_path_counter_with_rate(self, query_explainer_agent):
+    def test_semantic_validation_happy_path_counter_with_rate(
+        self, query_explainer_agent
+    ):
         """
         Integration test for the happy path of query explainer agent and semantic validator.
 
@@ -53,7 +55,7 @@ class TestPromQLQueryExplainerAgentIntegration:
             window="5m",
             aggregation_suggestions=[
                 AggregationFunctionSuggestion(function_name="rate")
-            ]
+            ],
         )
 
         # Generated PromQL query that matches the intent
@@ -100,7 +102,7 @@ class TestPromQLQueryExplainerAgentIntegration:
             window="5m",
             aggregation_suggestions=[
                 AggregationFunctionSuggestion(function_name="avg_over_time")
-            ]
+            ],
         )
 
         # Generated query that INCORRECTLY uses rate() on a gauge metric

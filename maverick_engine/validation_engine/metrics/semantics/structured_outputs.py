@@ -1,5 +1,6 @@
 from maverick_engine.validation_engine.metrics.validation_result import ValidationResult
 
+
 class SemanticValidationResult(ValidationResult):
     """
     Response schema for semantic validation of PromQL query intent.
@@ -19,6 +20,7 @@ class SemanticValidationResult(ValidationResult):
         original_intent_summary: Summary of what the original intent requested
         actual_query_behavior: Description of what the query actually does
     """
+
     intent_match: bool
     partial_match: bool
     explanation: str
@@ -28,5 +30,18 @@ class SemanticValidationResult(ValidationResult):
     def __init__(self, **data):
         """Initialize and set is_valid based on intent_match."""
         # Set is_valid based on intent_match if not explicitly provided
-        data['is_valid'] = data.get('intent_match', False) or data.get('partial_match', False)
+        data["is_valid"] = data.get("intent_match", False) or data.get(
+            "partial_match", False
+        )
         super().__init__(**data)
+
+    @classmethod
+    def success(cls) -> "SemanticValidationResult":
+        """Create a successful validation result."""
+        return SemanticValidationResult(
+            intent_match=True,
+            partial_match=False,
+            explanation="Query matches intent",
+            original_intent_summary="Rate of counter",
+            actual_query_behavior="Calculates rate",
+        )

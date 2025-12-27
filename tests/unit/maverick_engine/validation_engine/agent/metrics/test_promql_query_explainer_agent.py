@@ -3,19 +3,17 @@ Unit tests for PromQL query explainer agent.
 """
 
 import pytest
-from unittest.mock import Mock, MagicMock
+from unittest.mock import Mock
 from dataclasses import dataclass
 
 from maverick_engine.querygen_engine.metrics.structured_inputs import (
     MetricsQueryIntent,
     AggregationFunctionSuggestion,
 )
-from maverick_engine.validation_engine.metrics.structured_outputs import (
-    SemanticValidationResult,
-)
 from maverick_engine.validation_engine.agent.metrics.promql_query_explainer_agent import (
     PromQLQueryExplainerAgent,
     SemanticValidationError,
+    SemanticValidationResult,
 )
 
 
@@ -103,7 +101,6 @@ class TestValidateSemanticMatch:
         assert isinstance(result, SemanticValidationResult)
         assert result.intent_match is True
         assert result.partial_match is False
-        assert result.confidence == 0.95
         assert "rate()" in result.explanation
         mock_agent.run_sync.assert_called_once()
 
@@ -116,7 +113,6 @@ class TestValidateSemanticMatch:
             explanation="Query uses rate() on a gauge metric, which is incorrect",
             original_intent_summary="Calculate average memory usage over 5m",
             actual_query_behavior="Calculates rate of change for memory_usage_bytes gauge",
-            confidence=0.90,
         )
         mock_agent.run_sync.return_value = MockAgentResult(output=mismatch_result)
 
@@ -136,7 +132,6 @@ class TestValidateSemanticMatch:
         # Assert
         assert result.intent_match is False
         assert result.partial_match is False
-        assert result.confidence == 0.90
         assert "gauge" in result.explanation.lower()
 
     def test_validate_semantic_match_with_partial_match(
@@ -150,7 +145,6 @@ class TestValidateSemanticMatch:
             explanation="Query uses 99th percentile instead of 95th, but structure is correct",
             original_intent_summary="Calculate 95th percentile latency for /users endpoint",
             actual_query_behavior="Calculates 99th percentile latency for /users endpoint",
-            confidence=0.85,
         )
         mock_agent.run_sync.return_value = MockAgentResult(output=partial_result)
 
@@ -173,7 +167,6 @@ class TestValidateSemanticMatch:
         # Assert
         assert result.intent_match is False
         assert result.partial_match is True
-        assert result.confidence == 0.85
         assert "99th" in result.explanation or "0.99" in result.explanation
 
     def test_validate_semantic_match_llm_failure_raises_error(
@@ -190,6 +183,7 @@ class TestValidateSemanticMatch:
             SemanticValidationError, match="Failed to validate query semantics"
         ):
             explainer_agent.validate_semantic_match(intent, query)
+
 
 class TestFormatValidationPrompt:
     """Test prompt formatting functionality."""

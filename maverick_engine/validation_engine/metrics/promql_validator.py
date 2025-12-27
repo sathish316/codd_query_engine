@@ -6,11 +6,18 @@ validates syntax, schema, and semantics in sequence.
 """
 
 import logging
-from maverick_engine.validation_engine.metrics.structured_outputs import ValidationResult
-from maverick_engine.validation_engine.metrics.metrics_syntax_validator import MetricsSyntaxValidator
-from maverick_engine.validation_engine.metrics.metrics_schema_validator import MetricsSchemaValidator
-from maverick_engine.validation_engine.metrics.metrics_semantics_validator import MetricsSemanticsValidator
+from maverick_engine.validation_engine.metrics.validation_result import ValidationResult
+from maverick_engine.validation_engine.metrics.syntax.metrics_syntax_validator import (
+    MetricsSyntaxValidator,
+)
+from maverick_engine.validation_engine.metrics.schema.metrics_schema_validator import (
+    MetricsSchemaValidator,
+)
+from maverick_engine.validation_engine.metrics.semantics.metrics_semantics_validator import (
+    MetricsSemanticsValidator,
+)
 from maverick_engine.validation_engine.metrics.validator import Validator
+from maverick_engine.querygen_engine.metrics.structured_inputs import MetricsQueryIntent
 from opus_agent_base.config.config_manager import ConfigManager
 from opus_agent_base.prompt.instructions_manager import InstructionsManager
 
@@ -53,25 +60,38 @@ class PromQLValidator(Validator[ValidationResult]):
         self._schema_validator = schema_validator
         self._semantics_validator = semantics_validator
 
-    def validate(self, namespace, query, **kwargs) -> ValidationResult:
+    def validate(
+        self, namespace: str, query: str, intent: MetricsQueryIntent = None, **kwargs
+    ) -> ValidationResult:
         """
         Validate a PromQL query through the complete pipeline.
 
         Args:
             namespace: Namespace for schema validation (required if schema validation enabled)
             query: The PromQL query string to validate
+            intent: Original query intent for semantic validation (optional)
             **kwargs: Additional keyword arguments
+
+        Returns:
+            ValidationResult: The result from the last validation stage that ran
         """
-        # syntax validation
+        # Stage 1: Syntax validation
         result = self._syntax_validator.validate(query)
         if not result.is_valid:
+            logger.warning(f"Syntax validation failed: {result.error}")
             return result
-        # schema validation
+
+        # Stage 2: Schema validation
         result = self._schema_validator.validate(namespace, query)
         if not result.is_valid:
+            logger.warning(f"Schema validation failed: {result.error}")
             return result
-        # semantics validation
-        result = self._semantics_validator.validate(query, namespace, **kwargs)
-        if not result.is_valid:
-            return result
+
+        # Stage 3: Semantics validation (if intent provided and validator available)
+        if intent and self._semantics_validator:
+            result = self._semantics_validator.validate(intent, query)
+            if not result.is_valid:
+                logger.warning("Semantic validation failed")
+                return result
+
         return result

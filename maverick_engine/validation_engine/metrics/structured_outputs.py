@@ -6,6 +6,7 @@ from pydantic import BaseModel, field_validator
 # TODO: use MetricMetadata in SearchResult
 class SearchResult(TypedDict):
     """Type definition for search results."""
+
     metric_name: str
     similarity_score: float
     type: str
@@ -19,23 +20,6 @@ class SearchResult(TypedDict):
     meter_type: str
     meter_type_description: str
 
-class ValidationResult(BaseModel):
-    """
-    Base validation result for all validation types.
-
-    All specific validation results (SyntaxValidationResult, SchemaValidationResult,
-    SemanticValidationResult) should extend this class and add their own specific fields.
-
-    Attributes:
-        is_valid: True if validation passed, False otherwise
-        error: Optional error message if validation failed
-    """
-    is_valid: bool
-    error: str | None = None
-
-class ValidationError(Exception):
-    """Custom exception for validation errors."""
-    pass
 
 class MetricExtractionResponse(BaseModel):
     """
@@ -43,9 +27,10 @@ class MetricExtractionResponse(BaseModel):
 
     Contains the list of metric names extracted from an expression
     """
+
     metric_names: list[str]
 
-    @field_validator('metric_names', mode='before')
+    @field_validator("metric_names", mode="before")
     @classmethod
     def normalize_metric_names(cls, v):
         """Normalize metric names: lowercase, strip whitespace, remove empties."""
@@ -59,11 +44,11 @@ class MetricExtractionResponse(BaseModel):
                     normalized.append(clean)
         return normalized
 
-    @field_validator('metric_names', mode='after')
+    @field_validator("metric_names", mode="after")
     @classmethod
     def dedupe_metric_names(cls, v):
         """Remove duplicate metric names while preserving order."""
-        #TODO: use set and remove dedup method
+        # TODO: use set and remove dedup method
         seen = set()
         deduped = []
         for name in v:
@@ -71,8 +56,3 @@ class MetricExtractionResponse(BaseModel):
                 seen.add(name)
                 deduped.append(name)
         return deduped
-
-from maverick_engine.validation_engine.metrics.validation_result import ValidationResult
-
-
-

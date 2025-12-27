@@ -6,10 +6,11 @@ and validates whether it matches the original user intent semantically.
 """
 
 import logging
-from typing import Optional
 
 from maverick_engine.querygen_engine.metrics.structured_inputs import MetricsQueryIntent
-from maverick_engine.validation_engine.metrics.structured_outputs import SemanticValidationResult
+from maverick_engine.validation_engine.metrics.semantics.structured_outputs import (
+    SemanticValidationResult,
+)
 from maverick_engine.utils.file_utils import expand_path
 
 from opus_agent_base.agent.agent_builder import AgentBuilder
@@ -21,6 +22,7 @@ logger = logging.getLogger(__name__)
 
 class SemanticValidationError(Exception):
     """Exception raised when semantic validation fails."""
+
     pass
 
 
@@ -58,7 +60,9 @@ class PromQLQueryExplainerAgent:
             .add_model_manager()
             .instruction(
                 "promql_query_explainer_agent_instruction",
-                expand_path("$HOME/.maverick/prompts/agent/metrics/PROMQL_QUERY_EXPLAINER_AGENT_INSTRUCTIONS.md")
+                expand_path(
+                    "$HOME/.maverick/prompts/agent/metrics/PROMQL_QUERY_EXPLAINER_AGENT_INSTRUCTIONS.md"
+                ),
             )
             .set_output_type(SemanticValidationResult)
             .build_simple_agent()
@@ -69,9 +73,7 @@ class PromQLQueryExplainerAgent:
         return self.agent
 
     def validate_semantic_match(
-        self,
-        original_intent: MetricsQueryIntent,
-        generated_query: str
+        self, original_intent: MetricsQueryIntent, generated_query: str
     ) -> SemanticValidationResult:
         """
         Validate whether a generated PromQL query matches the original intent.
@@ -101,15 +103,17 @@ class PromQLQueryExplainerAgent:
             raise SemanticValidationError("Original intent must specify a metric")
 
         # Format the validation prompt
-        validation_prompt = self._format_validation_prompt(original_intent, generated_query)
+        validation_prompt = self._format_validation_prompt(
+            original_intent, generated_query
+        )
 
         logger.info(
             f"Validating semantic match for metric: {original_intent.metric}",
             extra={
                 "metric": original_intent.metric,
                 "metric_type": original_intent.metric_type,
-                "query_length": len(generated_query)
-            }
+                "query_length": len(generated_query),
+            },
         )
 
         # Execute LLM validation
@@ -117,13 +121,12 @@ class PromQLQueryExplainerAgent:
             result = self._execute_validation(validation_prompt)
 
             logger.info(
-                f"Semantic validation complete - Match: {result.intent_match}, Partial: {result.partial_match}, Confidence: {result.confidence:.2f}",
+                f"Semantic validation complete - Match: {result.intent_match}, Partial: {result.partial_match}",
                 extra={
                     "intent_match": result.intent_match,
                     "partial_match": result.partial_match,
-                    "confidence": result.confidence,
-                    "metric": original_intent.metric
-                }
+                    "metric": original_intent.metric,
+                },
             )
 
             return result
@@ -135,9 +138,7 @@ class PromQLQueryExplainerAgent:
             ) from e
 
     def _format_validation_prompt(
-        self,
-        original_intent: MetricsQueryIntent,
-        generated_query: str
+        self, original_intent: MetricsQueryIntent, generated_query: str
     ) -> str:
         """
         Format the validation prompt with intent and query details.
@@ -164,7 +165,9 @@ class PromQLQueryExplainerAgent:
         # Format filters if present
         filters_str = "None"
         if original_intent.filters:
-            filters_str = ", ".join(f"{k}={v}" for k, v in original_intent.filters.items())
+            filters_str = ", ".join(
+                f"{k}={v}" for k, v in original_intent.filters.items()
+            )
 
         # Format group by if present
         group_by_str = "None"
@@ -219,4 +222,3 @@ Provide your analysis in the structured format."""
             raise SemanticValidationError(
                 f"LLM validation execution failed: {e}"
             ) from e
-
