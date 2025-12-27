@@ -19,6 +19,20 @@ class SearchResult(TypedDict):
     meter_type: str
     meter_type_description: str
 
+class ValidationResult(BaseModel):
+    """
+    Base validation result for all validation types.
+
+    All specific validation results (SyntaxValidationResult, SchemaValidationResult,
+    SemanticValidationResult) should extend this class and add their own specific fields.
+
+    Attributes:
+        is_valid: True if validation passed, False otherwise
+        error: Optional error message if validation failed
+    """
+    is_valid: bool
+    error: str | None = None
+
 class ValidationError(Exception):
     """Custom exception for validation errors."""
     pass
@@ -58,16 +72,7 @@ class MetricExtractionResponse(BaseModel):
                 deduped.append(name)
         return deduped
 
-class SemanticValidationResult(BaseModel):
-    """
-    Response schema for semantic validation of PromQL query intent.
+from maverick_engine.validation_engine.metrics.validation_result import ValidationResult
 
-    Compares the original query intent with the actual behavior of the generated query
-    to determine if they match semantically.
-    """
-    intent_match: bool
-    partial_match: bool
-    explanation: str
-    original_intent_summary: str
-    actual_query_behavior: str
-    confidence: float  # 0.0 to 1.0
+
+

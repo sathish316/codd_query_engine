@@ -1,24 +1,26 @@
 import logging
-from dataclasses import dataclass, field
 from typing import Optional
+
+from pydantic import Field
+
+from maverick_engine.validation_engine.metrics.validation_result import ValidationResult
 
 logger = logging.getLogger(__name__)
 
 
-@dataclass
-# TODO: use BaseModel
-class SchemaValidationResult:
+class SchemaValidationResult(ValidationResult):
     """
     Result of schema validation for a metric expression.
 
+    Extends the base ValidationResult with schema-specific fields for tracking
+    which metrics are invalid in the namespace.
+
     Attributes:
-        is_valid: True if all metrics exist in namespace, False otherwise
+        is_valid: Inherited from ValidationResult - True if all metrics exist in namespace
+        error: Inherited from ValidationResult - Error message for parser failures or other issues
         invalid_metrics: List of metric names not found in namespace
-        error: Optional error message for parser failures or other issues
     """
-    is_valid: bool
-    invalid_metrics: list[str] = field(default_factory=list)
-    error: Optional[str] = None
+    invalid_metrics: list[str] = Field(default_factory=list)
 
     @classmethod
     def success(cls) -> "SchemaValidationResult":
