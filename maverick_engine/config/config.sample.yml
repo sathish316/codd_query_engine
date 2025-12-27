@@ -14,5 +14,9 @@ mcp_config:
   roulette:
     wheel:
       enabled: true
+  metrics:
+    promql:
+      validator:
+        enabled: true
 
 # Environment Variables (set these in your shell)

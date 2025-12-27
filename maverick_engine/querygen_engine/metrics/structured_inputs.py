@@ -26,6 +26,7 @@ class MetricsQueryIntent:
     """
 
     metric: str
+    intent_description: str | None = None
     metric_type: str = "gauge"
     filters: dict[str, str] = field(default_factory=dict)
     window: str = "5m"
