@@ -4,3 +4,4 @@ __pycache__
 uv.lock
 maverick_engine.egg-info
 redis-data
+metrics_semantic_indexer.log

@@ -247,6 +247,25 @@ class MetricsSemanticMetadataStore:
             logger.error(f"Failed to index metric '{document_id}': {e}")
             raise
 
+    def metric_exists(self, namespace: str, metric_name: str) -> bool:
+        """
+        Check if a metric already exists in the semantic store.
+
+        Args:
+            namespace: Namespace identifier
+            metric_name: Metric name to check
+
+        Returns:
+            True if metric exists, False otherwise
+        """
+        try:
+            document_id = f"{namespace}#{metric_name}"
+            result = self.collection.get(ids=[document_id])
+            return bool(result and result.get("ids") and len(result["ids"]) > 0)
+        except Exception as e:
+            logger.warning(f"Error checking if metric exists: {e}")
+            return False
+
     def search_metadata(self, query: str, n_results: int = 10) -> list[SearchResult]:
         """
         Search for metrics using semantic similarity.

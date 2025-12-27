@@ -4,9 +4,16 @@ services:
     image: chromadb/chroma:latest
     container_name: maverick_chroma
     ports:
-      - "8001:8000"
+      - "8000:8000"
     volumes:
       - chroma-data:/chroma-data # Mount a named volume for data persistence
+    restart: unless-stopped
+
+  chromadb-admin:
+    image: fengzhichao/chromadb-admin:latest
+    container_name: maverick_chromadb-admin
+    ports:
+      - "3001:3001"
     restart: unless-stopped
 
   redis:
