@@ -1,0 +1,28 @@
+# Simplified Splunk SPL grammar that focuses on search and pipe stages.
+
+?start: search (PIPE stage)*
+
+search: SEARCH expr?
+
+?expr: term (LOGIC? term)*
+?term: field_expr
+     | phrase
+     | "(" expr ")"
+
+field_expr: IDENT OP value
+value: phrase | IDENT
+
+stage: IDENT (field_expr | value)*
+
+phrase: ESCAPED_STRING | WORD
+
+SEARCH: /[sS][eE][aA][rR][cC][hH]/
+LOGIC: /[aA][nN][dD]|[oO][rR]/
+OP: "=" | "!=" | ">" | "<" | ">=" | "<="
+IDENT: /[A-Za-z_][A-Za-z0-9_.-]*/
+WORD: /[A-Za-z0-9_.:-]+/
+PIPE: "|"
+
+%import common.ESCAPED_STRING
+%import common.WS
+%ignore WS

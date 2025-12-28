@@ -3,11 +3,10 @@
 from maverick_engine.validation_engine.metrics.semantics.structured_outputs import (
     SemanticValidationResult,
 )
-from maverick_engine.validation_engine.metrics.semantics.promql_semantics_validator import (
-    PromQLSemanticsValidator,
-)
+
+# Note: PromQLSemanticsValidator is not imported here to avoid circular imports.
+# Import directly from maverick_engine.validation_engine.metrics.semantics.promql_semantics_validator
 
 __all__ = [
     "SemanticValidationResult",
-    "PromQLSemanticsValidator",
 ]

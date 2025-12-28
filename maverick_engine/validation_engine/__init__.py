@@ -1,10 +1,7 @@
-"""Validation engine for metric expressions."""
+"""Validation engine for metrics and logs."""
 
 from maverick_engine.validation_engine.metrics.structured_outputs import (
     MetricExtractionResponse,
-)
-from maverick_engine.validation_engine.metrics.semantics.structured_outputs import (
-    SemanticValidationResult,
 )
 from maverick_engine.validation_engine.agent.metrics import (
     PromQLQueryExplainerAgent,
@@ -13,9 +10,20 @@ from maverick_engine.validation_engine.agent.metrics import (
 )
 
 __all__ = [
-    "SemanticValidationResult",
+    # Metrics (optional)
+    "MetricsSemanticValidationResult",
     "MetricExtractionResponse",
     "PromQLQueryExplainerAgent",
     "PromQLMetricNameExtractorAgent",
     "SemanticValidationError",
+    # Logs
+    "LogQueryValidator",
+    "LogsSemanticValidator",
+    "LogQueryValidationResult",
+    "LogSchemaValidationResult",
+    "LogSemanticValidationResult",
+    "LogSyntaxValidationResult",
+    "LogQLSyntaxValidator",
+    "SplunkSPLSyntaxValidator",
+    "LogsSchemaValidator",
 ]

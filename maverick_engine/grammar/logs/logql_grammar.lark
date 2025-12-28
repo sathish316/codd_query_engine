@@ -1,0 +1,21 @@
+# Minimal LogQL grammar for syntax validation of log queries.
+
+?start: query
+
+?query: selector pipeline*
+
+selector: "{" [matcher ("," matcher)*] "}"
+matcher: IDENT OP VALUE
+
+pipeline: PIPE_OP VALUE           -> filter_stage
+        | "|" IDENT               -> pipe_identifier
+        | "|" "json"              -> json_stage
+
+OP: "=" | "!=" | "=~" | "!~"
+PIPE_OP: "|=" | "|~" | "!~" | "!="
+IDENT: /[A-Za-z_][A-Za-z0-9_-]*/
+VALUE: ESCAPED_STRING
+
+%import common.ESCAPED_STRING
+%import common.WS
+%ignore WS

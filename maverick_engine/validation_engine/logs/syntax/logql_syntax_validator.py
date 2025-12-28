@@ -1,4 +1,4 @@
-"""PromQL syntax validator using a Lark grammar."""
+"""LogQL syntax validator using a minimal Lark grammar."""
 
 from __future__ import annotations
 
@@ -8,11 +8,11 @@ from maverick_engine.validation_engine.grammar_validator import (
 )
 
 
-class PromQLSyntaxValidator:
-    """Validates PromQL syntax by parsing against a Lark grammar."""
+class LogQLSyntaxValidator:
+    """Validates LogQL syntax by parsing against a simplified grammar."""
 
     def __init__(self):
-        self._validator = GrammarValidator("metrics/promql_grammar.lark", "PromQL")
+        self._validator = GrammarValidator("logs/logql_grammar.lark", "LogQL")
 
     def validate(self, query: str) -> SyntaxValidationResult:
         return self._validator.validate(query)
