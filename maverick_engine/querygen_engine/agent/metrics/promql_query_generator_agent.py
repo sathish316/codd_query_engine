@@ -58,7 +58,6 @@ class PromQLQueryGeneratorAgent:
         self.instructions_manager = instructions_manager
         self.preprocessor = preprocessor
         self.promql_validator = promql_validator
-        self.validation_call_count = 0
         self._init_agent()
 
     def _init_agent(self):

@@ -14,6 +14,7 @@ class LogQueryIntent:
     description: str
     backend: LogQueryBackend
     patterns: Sequence[LogPattern]
+    service_label: str | None = "service"
     service: str | None = None
     default_level: str = "error"
     limit: int = 200
