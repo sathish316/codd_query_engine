@@ -1,0 +1,21 @@
+[project]
+name = "maverick-mcp-server"
+version = "0.1.0"
+description = "Maverick MCP Server - FastMCP-based observability tools"
+requires-python = ">=3.13"
+dependencies = [
+    "fastmcp>=2.14.1",
+    "maverick-engine",
+    "maverick-dal",
+]
+
+[tool.uv.sources]
+maverick-engine = { workspace = true }
+maverick-dal = { workspace = true }
+
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["maverick_mcp_server"]

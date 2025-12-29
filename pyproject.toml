@@ -5,6 +5,7 @@ description = "Maverick - Multi-module data platform"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
+    "fastmcp>=2.14.1",
     "maverick-dal",
     "maverick-engine",
     "maverick-service",
@@ -31,7 +32,12 @@ maverick-service = { workspace = true }
 opus-agent-base = { path = "../opus_agents/opus_agent_base" }
 
 [tool.uv.workspace]
-members = ["maverick_dal", "maverick_engine", "maverick_service"]
+members = [
+    "maverick_dal",
+ "maverick_engine",
+ "maverick_service",
+ "maverick_mcp_server",
+]
 
 [tool.pytest.ini_options]
 markers = [
