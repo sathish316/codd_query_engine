@@ -1,18 +1,36 @@
 """Metrics-related MCP tools."""
 
 import json
+from maverick_engine.querygen_engine.metrics.structured_inputs import MetricsQueryIntent
+from maverick_mcp_server.client import MetricsClient
+from maverick_mcp_server.config import MaverickConfig
+
+# Initialize the metrics client once (module-level singleton)
+_metrics_client = None
+
+
+def _get_metrics_client() -> MetricsClient:
+    """Get or create the metrics client singleton."""
+    global _metrics_client
+    if _metrics_client is None:
+        # Use default config (can be customized via environment variables later)
+        config = MaverickConfig()
+        _metrics_client = MetricsClient(config=config)
+    return _metrics_client
 
 
 async def search_relevant_metrics(problem_json: str, limit: int = 5) -> str:
-    """Search for metrics relevant to an alert or incident.
+    """Search for metrics relevant to a problem - alert or incident.
+
+    Uses semantic search to find metrics similar to the problem description.
 
     Args:
-        problem_json: JSON string containing alert or incident data with at least a 'description' field.
-                     Can include 'keywords', 'suggested_metrics', 'category', etc.
+        problem_json: JSON string containing problem data with at least a 'description' field.
+                     Can include 'keywords', 'category', etc.
         limit: Maximum number of metrics to return (default: 5)
 
     Returns:
-        JSON string with relevant metrics ranked by relevance score.
+        JSON string with relevant metrics ranked by similarity score.
 
     Example input:
         {
@@ -23,75 +41,34 @@ async def search_relevant_metrics(problem_json: str, limit: int = 5) -> str:
 
     Example output:
         {
+          "query": "API experiencing high latency",
           "metrics": [
             {
               "metric_name": "http_request_duration_seconds",
-              "relevance_score": 0.8,
-              "reason": "Matches 2 keyword(s) from source data"
+              "similarity_score": 0.85,
+              "description": "HTTP request duration",
+              ...
             }
-          ],
-          "total_searched": 1523
+          ]
         }
     """
-    try:
-        from maverick_dal.metrics.promql_client import PromQLClient
-    except ImportError as e:
-        return json.dumps(
-            {"error": f"Prometheus client not available: {e}", "metrics": []}
-        )
-
     try:
         # Parse input
         problem_data = json.loads(problem_json)
 
-        # Extract search keywords
-        keywords = []
-        if "description" in problem_data:
-            keywords.extend(problem_data["description"].lower().split())
-        if "keywords" in problem_data:
-            keywords.extend(problem_data["keywords"])
-        if "suggested_metrics" in problem_data:
-            keywords.extend(problem_data["suggested_metrics"])
+        # Extract description for semantic search
+        description = problem_data.get("description", "")
+        if not description:
+            return json.dumps({"error": "description field is required", "metrics": []})
 
-        # Clean keywords
-        keywords = list(
-            set([k for k in keywords if len(k) > 3 and k not in {"the", "and", "for"}])
-        )
-
-        # Fetch available metrics
-        prom_url = "http://localhost:9090"  # TODO: Make configurable
-        with PromQLClient(prom_url, timeout=30.0) as client:
-            all_metrics = client.get_label_values("__name__")
-
-        # Score metrics by keyword overlap
-        scored_metrics = []
-        for metric in all_metrics:
-            metric_lower = metric.lower()
-            score = sum(1 for keyword in keywords if keyword in metric_lower)
-            if score > 0:
-                scored_metrics.append((score, metric))
-
-        # Sort and take top N
-        scored_metrics.sort(key=lambda x: (-x[0], x[1]))
-        top_metrics = scored_metrics[:limit]
-
-        # Build result
-        results = [
-            {
-                "metric_name": metric,
-                "relevance_score": (
-                    min(score / len(keywords), 1.0) if keywords else 0.0
-                ),
-                "reason": f"Matches {score} keyword(s) from source data",
-            }
-            for score, metric in top_metrics
-        ]
+        # Get client and search
+        client = _get_metrics_client()
+        results = client.search_relevant_metrics(description, limit=limit)
 
         return json.dumps(
             {
-                "query": f"keywords: {', '.join(keywords[:5])}",
+                "query": description,
                 "metrics": results,
-                "total_searched": len(all_metrics),
             },
             indent=2,
         )
@@ -134,56 +111,18 @@ async def construct_promql_query(metrics_query_intent: str) -> str:
         }
     """
     try:
-        from maverick_engine.querygen_engine.metrics.imports import MetricsQueryIntent
-        from maverick_engine.querygen_engine.agent.metrics.promql_query_generator_agent import (
-            PromQLQueryGeneratorAgent,
-        )
-        from maverick_engine.querygen_engine.metrics.preprocessor.promql_querygen_preprocessor import (
-            PromQLQuerygenPreprocessor,
-        )
-        from maverick_engine.validation_engine.metrics.promql_imports import (
-            PromQLValidator,
-        )
-        from maverick_engine.agent_imports import ConfigManager, InstructionsManager
-        from maverick_engine.utils.file_utils import expand_path
-    except ImportError as e:
-        return json.dumps(
-            {
-                "error": f"Query generation dependencies not available: {e}",
-                "query": "",
-                "success": False,
-            }
-        )
-
-    try:
         # Parse intent
         intent_data = json.loads(metrics_query_intent)
         intent = MetricsQueryIntent(**intent_data)
 
-        # Initialize components
-        config_manager = ConfigManager(expand_path("$HOME/.maverick"), "config.yml")
-        instructions_manager = InstructionsManager()
-        preprocessor = PromQLQuerygenPreprocessor(config_manager, instructions_manager)
-        validator = PromQLValidator(
-            syntax_validator=None, schema_validator=None, semantics_validator=None
-        )
-
-        # Create agent and generate query
-        agent = PromQLQueryGeneratorAgent(
-            config_manager=config_manager,
-            instructions_manager=instructions_manager,
-            preprocessor=preprocessor,
-            promql_validator=validator,
-        )
-
-        result = agent.generate_query(intent)
+        # Get client and generate query
+        client = _get_metrics_client()
+        result = client.construct_promql_query(intent)
 
         return json.dumps(
             {
-                "query": result.query,
+                **result,
                 "intent": intent_data,
-                "success": result.success,
-                "error": result.error if hasattr(result, "error") else None,
             },
             indent=2,
         )

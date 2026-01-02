@@ -1,1 +1,1 @@
-"""MCP tools for Maverick."""
+"""MCP tools for Maverick Query Engine"""

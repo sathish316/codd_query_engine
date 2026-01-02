@@ -7,11 +7,14 @@ dependencies = [
     "fastmcp>=2.14.1",
     "maverick-engine",
     "maverick-dal",
+    "chromadb>=1.4.0",
+    "opus-agent-base",
 ]
 
 [tool.uv.sources]
 maverick-engine = { workspace = true }
 maverick-dal = { workspace = true }
+opus-agent-base = { path = "../../opus_agents/opus_agent_base" }
 
 [build-system]
 requires = ["setuptools>=68", "wheel"]
