@@ -6,6 +6,8 @@ from maverick_engine.querygen_engine.metrics.structured_inputs import MetricsQue
 from maverick_engine.querygen_engine.metrics.structured_outputs import (
     QueryGenerationResult,
 )
+from opus_agent_base.config.config_manager import ConfigManager
+from opus_agent_base.prompt.instructions_manager import InstructionsManager
 
 
 class MetricsClient:
@@ -16,7 +18,12 @@ class MetricsClient:
     - MetricsPromQLClient for PromQL query generation
     """
 
-    def __init__(self, config: MaverickConfig):
+    def __init__(
+        self,
+        config: MaverickConfig,
+        config_manager: ConfigManager,
+        instructions_manager: InstructionsManager,
+    ):
         """
         Initialize the metrics client.
 
@@ -24,7 +31,7 @@ class MetricsClient:
             config: MaverickConfig instance
         """
         self.config = config
-        self.promql = MetricsPromQLClient(config)
+        self.promql = MetricsPromQLClient(config, config_manager, instructions_manager)
 
     def search_relevant_metrics(self, query: str, limit: int = 5) -> list[dict]:
         """

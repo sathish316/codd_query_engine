@@ -3,11 +3,13 @@
 from maverick_engine.querygen_engine.metrics.structured_inputs import MetricsQueryIntent
 
 from maverick_mcp_server.config import MaverickConfig
-from maverick_mcp_server.client.promql_module import PromQLModule
-from maverick_mcp_server.client.opus_module import OpusModule
 from maverick_engine.querygen_engine.metrics.structured_outputs import (
     QueryGenerationResult,
 )
+from opus_agent_base.config.config_manager import ConfigManager
+from opus_agent_base.prompt.instructions_manager import InstructionsManager
+
+from maverick_mcp_server.client.provider.promql_module import PromQLModule
 
 
 class MetricsPromQLClient:
@@ -19,24 +21,29 @@ class MetricsPromQLClient:
     - PromQL query generation from intent
     """
 
-    def __init__(self, config: MaverickConfig):
+    def __init__(
+        self,
+        config: MaverickConfig,
+        config_manager: ConfigManager,
+        instructions_manager: InstructionsManager,
+    ):
         """
         Initialize the metrics client.
 
         Args:
             config: MaverickConfig instance
+            config_manager: ConfigManager instance
+            instructions_manager: InstructionsManager instance
         """
         self.config = config
+        self.config_manager = config_manager
+        self.instructions_manager = instructions_manager
         self.semantic_metadata_store = PromQLModule.get_semantic_store(config)
         self.metrics_metadata_store = PromQLModule.get_metrics_metadata_store(config)
-        # Opus components
-        self.config_manager = OpusModule.get_config_manager(config)
-        self.instructions_manager = OpusModule.get_instructions_manager()
         # Metrics PromQL Query Generator
         self.promql_validator = PromQLModule.get_promql_validator(
             self.config_manager, self.instructions_manager, self.metrics_metadata_store
         )
-
         # Query generator will be created lazily when needed
         self._promql_query_generator = None
 

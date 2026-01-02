@@ -3,6 +3,7 @@
 from maverick_mcp_server.config import MaverickConfig
 from maverick_mcp_server.client.metrics_client import MetricsClient
 from maverick_mcp_server.client.logs_client import LogsClient
+from maverick_mcp_server.client.provider import OpusModule
 
 
 class MaverickClient:
@@ -22,5 +23,11 @@ class MaverickClient:
             config: MaverickConfig instance
         """
         self.config = config
-        self.metrics = MetricsClient(config)
-        self.logs = LogsClient(config)
+        # Opus components
+        self.config_manager = OpusModule.get_config_manager(config)
+        self.instructions_manager = OpusModule.get_instructions_manager()
+
+        self.metrics = MetricsClient(
+            config, self.config_manager, self.instructions_manager
+        )
+        self.logs = LogsClient(config, self.config_manager, self.instructions_manager)
