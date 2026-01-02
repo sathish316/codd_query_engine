@@ -3,17 +3,33 @@
 from opus_agent_base.config.config_manager import ConfigManager
 from opus_agent_base.prompt.instructions_manager import InstructionsManager
 
+from maverick_dal.logs.logql_query_executor import LogQLQueryExecutor, LokiConfig
 from maverick_engine.validation_engine.logs.log_query_validator import LogQueryValidator
-from maverick_engine.validation_engine.logs.syntax import (
-    LogQLSyntaxValidator,
-)
 from maverick_engine.querygen_engine.agent.logs.logql_query_generator_agent import (
     LogQLQueryGeneratorAgent,
 )
+from maverick_mcp_server.config import MaverickConfig
 
 
 class LogQLModule:
     """Module for LogQL operations - provides configured dependencies."""
+
+    @classmethod
+    def get_logql_query_executor(cls, config: MaverickConfig) -> LogQLQueryExecutor:
+        """
+        Provide a configured LogQLQueryExecutor instance.
+
+        Args:
+            config: MaverickConfig with Loki configuration
+
+        Returns:
+            LogQLQueryExecutor instance
+        """
+        loki_config = LokiConfig(
+            base_url=config.loki.base_url,
+            timeout=config.loki.timeout,
+        )
+        return LogQLQueryExecutor(loki_config)
 
     @classmethod
     def get_logql_query_generator(
@@ -38,28 +54,3 @@ class LogQLModule:
             instructions_manager=instructions_manager,
             log_query_validator=log_query_validator,
         )
-
-    @classmethod
-    def get_log_query_validator(cls) -> LogQueryValidator:
-        """
-        Provide a LogQueryValidator instance with syntax validators.
-
-        Returns:
-            LogQueryValidator instance with LogQL and Splunk validators
-        """
-        syntax_validators = {
-            "loki": cls._get_logql_syntax_validator(),
-            "splunk": cls._get_splunk_syntax_validator(),
-        }
-
-        return LogQueryValidator(syntax_validators=syntax_validators)
-
-    @classmethod
-    def _get_logql_syntax_validator(cls) -> LogQLSyntaxValidator:
-        """
-        Provide a LogQLSyntaxValidator instance.
-
-        Returns:
-            LogQLSyntaxValidator instance
-        """
-        return LogQLSyntaxValidator()

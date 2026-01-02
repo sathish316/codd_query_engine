@@ -4,14 +4,15 @@ from maverick_mcp_server.config import MaverickConfig
 from opus_agent_base.config.config_manager import ConfigManager
 from opus_agent_base.prompt.instructions_manager import InstructionsManager
 from maverick_mcp_server.client.logs_logql_client import LogsLogQLClient
+from maverick_mcp_server.client.logs_splunk_client import LogsSplunkClient
 
 
 class LogsClient:
     """
     Client for logs operations.
 
-    Placeholder for future log query generation:
-    - LogQL query generation
+    Provides:
+    - LogQL query generation for Loki
     - Splunk SPL query generation
     """
 
@@ -26,9 +27,11 @@ class LogsClient:
 
         Args:
             config: MaverickConfig instance
+            config_manager: ConfigManager instance
+            instructions_manager: InstructionsManager instance
         """
         self.config = config
         self.config_manager = config_manager
         self.instructions_manager = instructions_manager
         self.logql = LogsLogQLClient(config, config_manager, instructions_manager)
-        # TODO: Add LogQL and Splunk clients when implemented
+        self.splunk = LogsSplunkClient(config, config_manager, instructions_manager)

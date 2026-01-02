@@ -5,7 +5,13 @@ from maverick_mcp_server.client.metrics_client import MetricsClient
 from maverick_mcp_server.client.metrics_promql_client import MetricsPromQLClient
 from maverick_mcp_server.client.logs_client import LogsClient
 from maverick_mcp_server.client.logs_logql_client import LogsLogQLClient
-from maverick_mcp_server.client.provider import PromQLModule, LogQLModule, OpusModule
+from maverick_mcp_server.client.logs_splunk_client import LogsSplunkClient
+from maverick_mcp_server.client.provider import (
+    PromQLModule,
+    LogQLModule,
+    SplunkModule,
+    OpusModule,
+)
 
 __all__ = [
     "MaverickClient",
@@ -13,7 +19,9 @@ __all__ = [
     "MetricsPromQLClient",
     "LogsClient",
     "LogsLogQLClient",
+    "LogsSplunkClient",
     "PromQLModule",
     "LogQLModule",
+    "SplunkModule",
     "OpusModule",
 ]

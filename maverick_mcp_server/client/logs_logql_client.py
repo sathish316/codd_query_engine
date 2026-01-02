@@ -8,7 +8,7 @@ from maverick_engine.querygen_engine.logs.structured_outputs import (
 from opus_agent_base.config.config_manager import ConfigManager
 from opus_agent_base.prompt.instructions_manager import InstructionsManager
 
-from maverick_mcp_server.client.provider.logql_module import LogQLModule
+from maverick_mcp_server.client.provider import LogsModule, LogQLModule
 
 
 class LogsLogQLClient:
@@ -32,6 +32,8 @@ class LogsLogQLClient:
 
         Args:
             config: MaverickConfig instance
+            config_manager: ConfigManager instance
+            instructions_manager: InstructionsManager instance
         """
         self.config = config
 
@@ -39,8 +41,8 @@ class LogsLogQLClient:
         self.config_manager = config_manager
         self.instructions_manager = instructions_manager
 
-        # LogQL validator
-        self.log_query_validator = LogQLModule.get_log_query_validator()
+        # LogQL validator (shared across all log backends)
+        self.log_query_validator = LogsModule.get_log_query_validator()
 
         # LogQL Query generator
         self._logql_query_generator = None
