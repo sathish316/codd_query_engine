@@ -47,8 +47,9 @@ class PromQLModule:
         Returns:
             MetricsSemanticMetadataStore instance
         """
-        chromadb_client = chromadb.PersistentClient(
-            path=config.semantic_store.chromadb_path
+        chromadb_client = chromadb.HttpClient(
+            host=config.semantic_store.chromadb_host,
+            port=config.semantic_store.chromadb_port,
         )
 
         return MetricsSemanticMetadataStore(
