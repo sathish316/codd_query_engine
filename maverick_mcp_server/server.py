@@ -1,12 +1,28 @@
 #!/usr/bin/env python3
 """Maverick MCP Server - FastMCP-based observability tools server."""
 
+import json
 from mcp.server.fastmcp import FastMCP
 
-from maverick_mcp_server.tools import logs, metrics
+from maverick_mcp_server.client import MaverickClient
+from maverick_mcp_server.config import MaverickConfig
+from maverick_engine.querygen_engine.metrics.structured_inputs import MetricsQueryIntent
+from maverick_engine.querygen_engine.logs.structured_inputs import LogQueryIntent
 
 # Create FastMCP server
 mcp = FastMCP("Maverick Observability Server")
+
+# Initialize Maverick client (module-level singleton)
+_maverick_client: MaverickClient | None = None
+
+
+def _get_maverick_client() -> MaverickClient:
+    """Get or create the Maverick client singleton."""
+    global _maverick_client
+    if _maverick_client is None:
+        config = MaverickConfig()
+        _maverick_client = MaverickClient(config=config)
+    return _maverick_client
 
 
 # Register metrics tools
@@ -33,7 +49,30 @@ async def search_relevant_metrics(problem_json: str, limit: int = 5) -> str:
           ]
         }
     """
-    return await metrics.search_relevant_metrics(problem_json, limit)
+    try:
+        # Parse input
+        problem_data = json.loads(problem_json)
+        description = problem_data.get("description", "")
+
+        if not description:
+            return json.dumps({"error": "description field is required", "metrics": []})
+
+        # Get client and search
+        client = _get_maverick_client()
+        results = client.metrics.search_relevant_metrics(problem_json, limit=limit)
+
+        return json.dumps(
+            {
+                "query": problem_json,
+                "metrics": results,
+            },
+            indent=2,
+        )
+
+    except json.JSONDecodeError as e:
+        return json.dumps({"error": f"Invalid JSON input: {e}", "metrics": []})
+    except Exception as e:
+        return json.dumps({"error": f"Error searching metrics: {e}", "metrics": []})
 
 
 @mcp.tool()
@@ -69,7 +108,30 @@ async def construct_promql_query(metrics_query_intent: str) -> str:
           "success": true
         }
     """
-    return await metrics.construct_promql_query(metrics_query_intent)
+    try:
+        # Parse intent
+        intent_data = json.loads(metrics_query_intent)
+        intent = MetricsQueryIntent(**intent_data)
+
+        # Get client and generate query
+        client = _get_maverick_client()
+        result = client.metrics.construct_promql_query(intent)
+
+        return json.dumps(
+            {
+                "query": result.query,
+                "success": result.success,
+                "intent": intent_data,
+            },
+            indent=2,
+        )
+
+    except json.JSONDecodeError as e:
+        return json.dumps(
+            {"error": f"Invalid JSON input: {e}", "query": "", "success": False}
+        )
+    except Exception as e:
+        return json.dumps({"error": str(e), "query": "", "success": False})
 
 
 # Register logs tools
@@ -106,7 +168,38 @@ async def construct_logql_query(log_query_intent: str) -> str:
           "success": true
         }
     """
-    return await logs.construct_logql_query(log_query_intent)
+    try:
+        # Parse intent
+        intent_data = json.loads(log_query_intent)
+
+        # Ensure backend is loki
+        if intent_data.get("backend") != "loki":
+            intent_data["backend"] = "loki"
+
+        intent = LogQueryIntent(**intent_data)
+
+        # Get client and generate query
+        client = _get_maverick_client()
+        result = client.logs.logql.construct_logql_query(intent)
+
+        return json.dumps(
+            {
+                "query": result.query,
+                "backend": "loki",
+                "success": result.success,
+                "intent": intent_data,
+            },
+            indent=2,
+        )
+
+    except json.JSONDecodeError as e:
+        return json.dumps(
+            {"error": f"Invalid JSON input: {e}", "query": "", "success": False}
+        )
+    except Exception as e:
+        return json.dumps(
+            {"error": str(e), "query": "", "backend": "loki", "success": False}
+        )
 
 
 @mcp.tool()
@@ -141,7 +234,38 @@ async def construct_splunk_query(log_query_intent: str) -> str:
           "success": true
         }
     """
-    return await logs.construct_splunk_query(log_query_intent)
+    try:
+        # Parse intent
+        intent_data = json.loads(log_query_intent)
+
+        # Ensure backend is splunk
+        if intent_data.get("backend") != "splunk":
+            intent_data["backend"] = "splunk"
+
+        intent = LogQueryIntent(**intent_data)
+
+        # Get client and generate query
+        client = _get_maverick_client()
+        result = client.logs.splunk.construct_spl_query(intent)
+
+        return json.dumps(
+            {
+                "query": result.query,
+                "backend": "splunk",
+                "success": result.success,
+                "intent": intent_data,
+            },
+            indent=2,
+        )
+
+    except json.JSONDecodeError as e:
+        return json.dumps(
+            {"error": f"Invalid JSON input: {e}", "query": "", "success": False}
+        )
+    except Exception as e:
+        return json.dumps(
+            {"error": str(e), "query": "", "backend": "splunk", "success": False}
+        )
 
 
 def main():
