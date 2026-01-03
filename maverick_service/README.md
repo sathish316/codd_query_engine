@@ -42,22 +42,22 @@ uv sync
    # Run with uvicorn (from workspace root)
    uv run uvicorn maverick_service.main:app --reload
 
-   # Or specify host and port
-   uv run uvicorn maverick_service.main:app --host 0.0.0.0 --port 8000 --reload
+   # Or specify host and port (default is 2840)
+   uv run uvicorn maverick_service.main:app --host 0.0.0.0 --port 2840 --reload
    ```
 
 3. **Verify the service is running:**
    ```bash
-   curl http://localhost:8000/health
+   curl http://localhost:2840/health
    ```
 
 ### Accessing the API
 
 The service will be available at:
-- **API Base URL:** http://localhost:8000
-- **Interactive Swagger Docs:** http://localhost:8000/docs
-- **Alternative ReDoc:** http://localhost:8000/redoc
-- **OpenAPI JSON:** http://localhost:8000/openapi.json
+- **API Base URL:** http://localhost:2840
+- **Interactive Swagger Docs:** http://localhost:2840/docs
+- **Alternative ReDoc:** http://localhost:2840/redoc
+- **OpenAPI JSON:** http://localhost:2840/openapi.json
 
 ### Using Postman
 
@@ -67,7 +67,7 @@ The service will be available at:
    - Select the file: `maverick_service/scripts/postman/maverick_service_collection.json`
 
 2. **Configure environment:**
-   - The collection uses a variable `{{baseUrl}}` set to `http://localhost:8000`
+   - The collection uses a variable `{{baseUrl}}` set to `http://localhost:2840`
    - If your service runs on a different host/port, update this variable in Postman
 
 3. **Try the APIs:**
@@ -238,6 +238,6 @@ The service uses:
 The `maverick_mcp_server` package provides an MCP (Model Context Protocol) server that exposes the same functionality as this REST service. The MCP server uses HTTP client to connect to this service, making it easy to integrate with Claude Desktop and other MCP clients.
 
 To use the MCP server:
-1. Start this Maverick Service (on http://localhost:8000)
+1. Start this Maverick Service (on http://localhost:2840)
 2. Configure the MCP server with `MAVERICK_SERVICE_URL` environment variable if needed
 3. Run the MCP server to expose tools via MCP protocol
