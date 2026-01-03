@@ -122,7 +122,7 @@ pytest tests
 ## Dependencies
 
 - `maverick-engine`: Query generation and validation engine
-- `maverick-dal`: Data access layer for Redis and ChromaDB
+- `maverick-dal`: Data access layer
 - `opus-agent-base`: LLM agent framework
 - `chromadb`: Vector store for semantic search
 - `redis`: Metrics metadata store

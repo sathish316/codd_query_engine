@@ -5,7 +5,7 @@ from maverick_lib import MaverickClient, MaverickConfig
 
 
 @pytest.mark.integration
-def test_maverick_client_end_to_end_initialization():
+def test_maverick_client_initialization():
     """Test MaverickClient can be initialized and configured end-to-end."""
     # Create custom config
     config = MaverickConfig(
@@ -39,6 +39,14 @@ def test_maverick_client_opus_components():
     assert client.config_manager is not None
     assert client.instructions_manager is not None
 
+    # Verify they're passed to metrics client (which exposes them)
+    assert client.metrics.config_manager is not None
+    assert client.metrics.instructions_manager is not None
+    assert client.metrics.config_manager == client.config_manager
+    assert client.metrics.instructions_manager == client.instructions_manager
+
     # Verify they're passed to logs client (which exposes them)
     assert client.logs.config_manager is not None
     assert client.logs.instructions_manager is not None
+    assert client.logs.config_manager == client.config_manager
+    assert client.logs.instructions_manager == client.instructions_manager

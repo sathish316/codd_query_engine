@@ -1,7 +1,7 @@
 Metadata-Version: 2.4
 Name: maverick-lib
 Version: 0.1.0
-Summary: Maverick Client Library - Reusable observability client for metrics and logs
+Summary: Maverick Client Library - Client library for Maverick query engine
 Requires-Python: >=3.13
 Description-Content-Type: text/markdown
 Requires-Dist: maverick-engine
@@ -13,7 +13,7 @@ Requires-Dist: pydantic>=2.0.0
 
 # Maverick Lib
 
-Reusable client library for observability operations (metrics and logs).
+Client library for Maverick query engine.
 
 ## Features
 

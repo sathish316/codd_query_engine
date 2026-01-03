@@ -1,6 +1,6 @@
 # Maverick CLI
 
-Command-line interface for Maverick observability operations.
+Command-line interface for Maverick query engine.
 
 ## Installation
 

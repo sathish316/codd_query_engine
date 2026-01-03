@@ -49,8 +49,8 @@ class PromQLQueryRequest(BaseModel):
     filters: Optional[dict[str, str]] = None
 
 
-class QueryResponse(BaseModel):
-    """Response model for query generation."""
+class MetricsQueryResponse(BaseModel):
+    """Response model for metrics query generation."""
 
     query: str
     success: bool
@@ -82,7 +82,7 @@ async def search_metrics(request: MetricsSearchRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.post("/promql/generate", response_model=QueryResponse)
+@router.post("/promql/generate", response_model=MetricsQueryResponse)
 async def generate_promql_query(request: PromQLQueryRequest):
     """
     Generate a PromQL query from metrics query intent.
@@ -118,7 +118,7 @@ async def generate_promql_query(request: PromQLQueryRequest):
         client = get_client()
         result = client.metrics.construct_promql_query(intent)
 
-        return QueryResponse(
+        return MetricsQueryResponse(
             query=result.query, success=result.success, error=result.error
         )
     except Exception as e:

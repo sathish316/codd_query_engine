@@ -7,6 +7,7 @@ from typing import Optional
 from maverick_lib.client import MaverickClient
 from maverick_lib.config import MaverickConfig
 from maverick_engine.querygen_engine.logs.structured_inputs import LogQueryIntent
+from maverick_engine.logs.log_patterns import LogPattern
 
 router = APIRouter()
 
@@ -23,8 +24,8 @@ def get_client() -> MaverickClient:
     return _client
 
 
-class LogPattern(BaseModel):
-    """Log pattern model."""
+class LogPatternRequest(BaseModel):
+    """Request model for log pattern."""
 
     pattern: str
     level: Optional[str] = None
@@ -35,7 +36,7 @@ class LogQLQueryRequest(BaseModel):
 
     description: str
     service: str
-    patterns: list[LogPattern]
+    patterns: list[LogPatternRequest]
     namespace: Optional[str] = None
     default_level: Optional[str] = None
     limit: int = 200
@@ -46,13 +47,13 @@ class SplunkQueryRequest(BaseModel):
 
     description: str
     service: str
-    patterns: list[LogPattern]
+    patterns: list[LogPatternRequest]
     default_level: Optional[str] = None
     limit: int = 200
 
 
-class QueryResponse(BaseModel):
-    """Response model for query generation."""
+class LogsQueryResponse(BaseModel):
+    """Response model for logs query generation."""
 
     query: str
     backend: str
@@ -60,7 +61,7 @@ class QueryResponse(BaseModel):
     error: Optional[str] = None
 
 
-@router.post("/logql/generate", response_model=QueryResponse)
+@router.post("/logql/generate", response_model=LogsQueryResponse)
 async def generate_logql_query(request: LogQLQueryRequest):
     """
     Generate a LogQL query for Loki.
@@ -81,17 +82,20 @@ async def generate_logql_query(request: LogQLQueryRequest):
         }
     """
     try:
-        # Convert patterns to dict format
-        patterns_dict = [p.model_dump() for p in request.patterns]
+        # Convert request patterns to LogPattern dataclass instances
+        log_patterns = [
+            LogPattern(pattern=p.pattern, level=p.level or "info")
+            for p in request.patterns
+        ]
 
         # Create intent
         intent = LogQueryIntent(
             description=request.description,
             backend="loki",
             service=request.service,
-            patterns=patterns_dict,
+            patterns=log_patterns,
             namespace=request.namespace,
-            default_level=request.default_level,
+            default_level=request.default_level or "error",
             limit=request.limit,
         )
 
@@ -99,7 +103,7 @@ async def generate_logql_query(request: LogQLQueryRequest):
         client = get_client()
         result = client.logs.logql.construct_logql_query(intent)
 
-        return QueryResponse(
+        return LogsQueryResponse(
             query=result.query,
             backend="loki",
             success=result.success,
@@ -109,7 +113,7 @@ async def generate_logql_query(request: LogQLQueryRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.post("/splunk/generate", response_model=QueryResponse)
+@router.post("/splunk/generate", response_model=LogsQueryResponse)
 async def generate_splunk_query(request: SplunkQueryRequest):
     """
     Generate a Splunk SPL query.
@@ -130,16 +134,19 @@ async def generate_splunk_query(request: SplunkQueryRequest):
         }
     """
     try:
-        # Convert patterns to dict format
-        patterns_dict = [p.model_dump() for p in request.patterns]
+        # Convert request patterns to LogPattern dataclass instances
+        log_patterns = [
+            LogPattern(pattern=p.pattern, level=p.level or "info")
+            for p in request.patterns
+        ]
 
         # Create intent
         intent = LogQueryIntent(
             description=request.description,
             backend="splunk",
             service=request.service,
-            patterns=patterns_dict,
-            default_level=request.default_level,
+            patterns=log_patterns,
+            default_level=request.default_level or "error",
             limit=request.limit,
         )
 
@@ -147,7 +154,7 @@ async def generate_splunk_query(request: SplunkQueryRequest):
         client = get_client()
         result = client.logs.splunk.construct_spl_query(intent)
 
-        return QueryResponse(
+        return LogsQueryResponse(
             query=result.query,
             backend="splunk",
             success=result.success,

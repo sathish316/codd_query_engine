@@ -1,5 +1,6 @@
 """E2E integration tests for Maverick Service REST APIs."""
 
+import pytest
 from fastapi.testclient import TestClient
 
 from maverick_service.main import app
@@ -7,6 +8,7 @@ from maverick_service.main import app
 client = TestClient(app)
 
 
+@pytest.mark.integration
 class TestMetricsIntegration:
     """E2E integration tests for metrics endpoints."""
 
@@ -66,6 +68,7 @@ class TestMetricsIntegration:
             assert "http_requests_total" in data["query"]
 
 
+@pytest.mark.integration
 class TestLogsIntegration:
     """E2E integration tests for logs endpoints."""
 
@@ -140,6 +143,7 @@ class TestLogsIntegration:
             assert "api-gateway" in data["query"]
 
 
+@pytest.mark.integration
 class TestEndpointValidation:
     """Test request validation for all endpoints."""
 

@@ -8,7 +8,7 @@ from maverick_cli.commands import metrics, logs
 # Create main app
 app = typer.Typer(
     name="maverick",
-    help="Maverick CLI - Observability operations from the command line",
+    help="Maverick CLI - CLI for Maverick query engine",
     no_args_is_help=True,
     add_completion=False,
 )
@@ -30,7 +30,7 @@ app.command(name="construct-splunk-query")(logs.construct_splunk_query)
 @app.callback()
 def main():
     """
-    Maverick CLI - Observability operations from the command line.
+    Maverick CLI - CLI for Maverick query engine.
 
     Use --help with any command to see detailed usage information.
     """
