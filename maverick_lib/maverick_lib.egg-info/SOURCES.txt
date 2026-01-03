@@ -1,0 +1,8 @@
+README.md
+pyproject.toml
+maverick_lib/__init__.py
+maverick_lib.egg-info/PKG-INFO
+maverick_lib.egg-info/SOURCES.txt
+maverick_lib.egg-info/dependency_links.txt
+maverick_lib.egg-info/requires.txt
+maverick_lib.egg-info/top_level.txt

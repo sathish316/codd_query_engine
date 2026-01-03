@@ -38,6 +38,7 @@ members = [
  "maverick_service",
  "maverick_mcp_server",
  "maverick_lib",
+ "maverick_cli",
 ]
 
 [tool.pytest.ini_options]
