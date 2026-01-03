@@ -1,7 +1,11 @@
 """Main FastAPI application for Maverick Service."""
 
 from fastapi import FastAPI
-from maverick_service.api.controllers import hello_controller
+from maverick_service.api.controllers import (
+    hello_controller,
+    metrics_controller,
+    logs_controller,
+)
 
 # Create FastAPI app
 app = FastAPI(
@@ -12,6 +16,8 @@ app = FastAPI(
 
 # Include routers
 app.include_router(hello_controller.router, prefix="/api", tags=["hello"])
+app.include_router(metrics_controller.router, prefix="/api/metrics", tags=["metrics"])
+app.include_router(logs_controller.router, prefix="/api/logs", tags=["logs"])
 
 
 @app.get("/")

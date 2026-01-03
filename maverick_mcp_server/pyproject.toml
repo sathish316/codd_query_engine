@@ -5,17 +5,11 @@ description = "Maverick MCP Server - FastMCP-based observability tools"
 requires-python = ">=3.13"
 dependencies = [
     "fastmcp>=2.14.1",
-    "maverick-lib",
-    "maverick-engine",
-    "maverick-dal",
-    "opus-agent-base",
+    "httpx>=0.24.0",
+    "pydantic>=2.0.0",
 ]
 
-[tool.uv.sources]
-maverick-lib = { workspace = true }
-maverick-engine = { workspace = true }
-maverick-dal = { workspace = true }
-opus-agent-base = { path = "../../opus_agents/opus_agent_base" }
+# No workspace dependencies needed - uses HTTP client to connect to Maverick service
 
 [build-system]
 requires = ["setuptools>=68", "wheel"]

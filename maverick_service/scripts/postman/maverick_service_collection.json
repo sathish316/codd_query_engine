@@ -1,0 +1,293 @@
+{
+  "info": {
+    "name": "Maverick Service API",
+    "description": "FastAPI REST service for Maverick observability operations - metrics search, PromQL generation, LogQL generation, and Splunk query generation",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "version": "0.1.0"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8000",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Health & Info",
+      "item": [
+        {
+          "name": "Root - Service Info",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/",
+              "host": ["{{baseUrl}}"],
+              "path": [""]
+            },
+            "description": "Get service information including version and documentation links"
+          },
+          "response": []
+        },
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/health",
+              "host": ["{{baseUrl}}"],
+              "path": ["health"]
+            },
+            "description": "Check if the service is healthy"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Hello World (Examples)",
+      "item": [
+        {
+          "name": "Hello GET",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/hello?name=World",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "hello"],
+              "query": [
+                {
+                  "key": "name",
+                  "value": "World",
+                  "description": "Name for greeting"
+                }
+              ]
+            },
+            "description": "Example GET endpoint with query parameter"
+          },
+          "response": []
+        },
+        {
+          "name": "Hello POST",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"World\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/hello",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "hello"]
+            },
+            "description": "Example POST endpoint with JSON payload"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Metrics",
+      "item": [
+        {
+          "name": "Search Metrics",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"API request latency\",\n  \"limit\": 5\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/metrics/search",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "metrics", "search"]
+            },
+            "description": "Search for relevant metrics using semantic search. Returns metrics with similarity scores."
+          },
+          "response": []
+        },
+        {
+          "name": "Search Metrics - High Latency",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"API experiencing high latency\",\n  \"limit\": 10\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/metrics/search",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "metrics", "search"]
+            },
+            "description": "Example: Search for metrics related to high latency issues"
+          },
+          "response": []
+        },
+        {
+          "name": "Generate PromQL Query",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"description\": \"API error rate for payment service\",\n  \"namespace\": \"production\",\n  \"metric_name\": \"http_requests_total\",\n  \"aggregation\": \"rate\",\n  \"filters\": {\n    \"service\": \"payments\",\n    \"status\": \"500\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/metrics/promql/generate",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "metrics", "promql", "generate"]
+            },
+            "description": "Generate a PromQL query from metrics query intent"
+          },
+          "response": []
+        },
+        {
+          "name": "Generate PromQL - CPU Usage",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"description\": \"Average CPU usage by service\",\n  \"namespace\": \"production\",\n  \"metric_name\": \"container_cpu_usage_seconds_total\",\n  \"aggregation\": \"avg\",\n  \"group_by\": [\"service\", \"pod\"]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/metrics/promql/generate",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "metrics", "promql", "generate"]
+            },
+            "description": "Example: Generate PromQL for CPU usage monitoring"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Logs",
+      "item": [
+        {
+          "name": "Generate LogQL Query",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"description\": \"Find error logs in payment service\",\n  \"service\": \"payments\",\n  \"patterns\": [\n    {\n      \"pattern\": \"error\",\n      \"level\": \"error\"\n    },\n    {\n      \"pattern\": \"timeout\"\n    }\n  ],\n  \"namespace\": \"production\",\n  \"limit\": 200\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/logs/logql/generate",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "logs", "logql", "generate"]
+            },
+            "description": "Generate a LogQL query for Loki from log query intent"
+          },
+          "response": []
+        },
+        {
+          "name": "Generate LogQL - Auth Failures",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"description\": \"Authentication failures in API gateway\",\n  \"service\": \"api-gateway\",\n  \"patterns\": [\n    {\n      \"pattern\": \"authentication failed\",\n      \"level\": \"warn\"\n    },\n    {\n      \"pattern\": \"unauthorized\"\n    }\n  ],\n  \"namespace\": \"production\",\n  \"limit\": 100\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/logs/logql/generate",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "logs", "logql", "generate"]
+            },
+            "description": "Example: Find authentication failure logs"
+          },
+          "response": []
+        },
+        {
+          "name": "Generate Splunk Query",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"description\": \"Search for timeout errors\",\n  \"service\": \"api-gateway\",\n  \"patterns\": [\n    {\n      \"pattern\": \"timeout\",\n      \"level\": \"error\"\n    },\n    {\n      \"pattern\": \"connection refused\"\n    }\n  ],\n  \"default_level\": \"error\",\n  \"limit\": 100\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/logs/splunk/generate",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "logs", "splunk", "generate"]
+            },
+            "description": "Generate a Splunk SPL query from log query intent"
+          },
+          "response": []
+        },
+        {
+          "name": "Generate Splunk - Database Errors",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"description\": \"Database connection errors\",\n  \"service\": \"payments\",\n  \"patterns\": [\n    {\n      \"pattern\": \"database\",\n      \"level\": \"error\"\n    },\n    {\n      \"pattern\": \"connection pool exhausted\"\n    }\n  ],\n  \"default_level\": \"error\",\n  \"limit\": 50\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/logs/splunk/generate",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "logs", "splunk", "generate"]
+            },
+            "description": "Example: Find database connection errors"
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}

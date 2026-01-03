@@ -2,38 +2,53 @@
 """Maverick MCP Server - FastMCP-based observability tools server."""
 
 import json
+import os
+from typing import Any
+import httpx
 from mcp.server.fastmcp import FastMCP
-
-from maverick_engine.querygen_engine.logs.structured_outputs import (
-    QueryGenerationResult,
-)
-from maverick_lib.client import MaverickClient
-from maverick_lib.config import MaverickConfig
-from maverick_engine.querygen_engine.metrics.structured_inputs import MetricsQueryIntent
-from maverick_engine.querygen_engine.logs.structured_inputs import LogQueryIntent
-from maverick_engine.validation_engine.metrics.structured_outputs import SearchResult
 
 # Create FastMCP server
 mcp = FastMCP("Maverick Observability Server")
 
-# Initialize Maverick client (module-level singleton)
-_maverick_client: MaverickClient | None = None
+# Maverick service base URL (configurable via environment variable)
+MAVERICK_SERVICE_URL = os.getenv("MAVERICK_SERVICE_URL", "http://localhost:8000")
 
 
-def _get_maverick_client() -> MaverickClient:
-    """Get or create the Maverick client singleton."""
-    global _maverick_client
-    if _maverick_client is None:
-        config = MaverickConfig()
-        _maverick_client = MaverickClient(config=config)
-    return _maverick_client
+def _make_request(
+    endpoint: str, method: str = "POST", json_data: dict | None = None
+) -> dict[str, Any]:
+    """Make HTTP request to Maverick service.
+
+    Args:
+        endpoint: API endpoint path (e.g., "/api/metrics/search")
+        method: HTTP method (default: POST)
+        json_data: JSON payload for request
+
+    Returns:
+        Response JSON as dictionary
+
+    Raises:
+        httpx.HTTPError: If request fails
+    """
+    url = f"{MAVERICK_SERVICE_URL}{endpoint}"
+
+    with httpx.Client(timeout=30.0) as client:
+        if method == "POST":
+            response = client.post(url, json=json_data)
+        elif method == "GET":
+            response = client.get(url, params=json_data)
+        else:
+            raise ValueError(f"Unsupported HTTP method: {method}")
+
+        response.raise_for_status()
+        return response.json()
 
 
 # Register metrics tools
 @mcp.tool()
 async def search_relevant_metrics(
     problem_json: str, limit: int = 5
-) -> list[SearchResult]:
+) -> list[dict[str, Any]]:
     """Search for Prometheus metrics relevant to an alert or incident.
 
     This tool uses semantic search to find metrics that are most relevant to
@@ -44,7 +59,7 @@ async def search_relevant_metrics(
         limit: Maximum number of metrics to return (default: 5)
 
     Returns:
-        List of SearchResult objects with ranked metrics and relevance scores
+        List of metric results with ranked metrics and relevance scores
 
     Example:
         Input: "API experiencing high latency"
@@ -58,20 +73,25 @@ async def search_relevant_metrics(
         ]
     """
     try:
-        # Get client and search
-        client = _get_maverick_client()
-        results = client.metrics.search_relevant_metrics(problem_json, limit=limit)
-        return results
+        # Make request to metrics search endpoint
+        response = _make_request(
+            endpoint="/api/metrics/search",
+            method="POST",
+            json_data={"query": problem_json, "limit": limit},
+        )
 
-    except Exception:
-        # Return empty list on error (matching return type)
+        return response.get("results", [])
+
+    except Exception as e:
+        # Return empty list on error
+        print(f"Error searching metrics: {e}")
         return []
 
 
 @mcp.tool()
 async def construct_promql_query(
-    metrics_query_intent: MetricsQueryIntent,
-) -> QueryGenerationResult | dict:
+    metrics_query_intent: str,
+) -> dict[str, Any]:
     """Generate a valid PromQL query from a metrics query intent.
 
     Takes a high-level description of what metrics you want to query and generates
@@ -106,20 +126,20 @@ async def construct_promql_query(
     try:
         # Parse intent
         intent_data = json.loads(metrics_query_intent)
-        intent = MetricsQueryIntent(**intent_data)
 
-        # Get client and generate query
-        client = _get_maverick_client()
-        result = client.metrics.construct_promql_query(intent)
+        # Make request to PromQL generation endpoint
+        response = _make_request(
+            endpoint="/api/metrics/promql/generate",
+            method="POST",
+            json_data=intent_data,
+        )
 
-        return result
+        return response
 
     except json.JSONDecodeError as e:
-        return json.dumps(
-            {"error": f"Invalid JSON input: {e}", "query": "", "success": False}
-        )
+        return {"error": f"Invalid JSON input: {e}", "query": "", "success": False}
     except Exception as e:
-        return json.dumps({"error": str(e), "query": "", "success": False})
+        return {"error": str(e), "query": "", "success": False}
 
 
 # Register logs tools
@@ -133,7 +153,6 @@ async def construct_logql_query(log_query_intent: str) -> str:
     Args:
         log_query_intent: JSON with query intent. Required fields:
             - description: What logs to search for
-            - backend: Must be "loki"
             - service: Service name
             - patterns: List of patterns like [{"pattern": "error", "level": "error"}]
             Optional fields:
@@ -147,7 +166,6 @@ async def construct_logql_query(log_query_intent: str) -> str:
     Example:
         Input: {
           "description": "Find error logs in payments",
-          "backend": "loki",
           "service": "payments",
           "patterns": [{"pattern": "error", "level": "error"}]
         }
@@ -160,21 +178,17 @@ async def construct_logql_query(log_query_intent: str) -> str:
         # Parse intent
         intent_data = json.loads(log_query_intent)
 
-        # Ensure backend is loki
-        if intent_data.get("backend") != "loki":
-            intent_data["backend"] = "loki"
-
-        intent = LogQueryIntent(**intent_data)
-
-        # Get client and generate query
-        client = _get_maverick_client()
-        result = client.logs.logql.construct_logql_query(intent)
+        # Make request to LogQL generation endpoint
+        response = _make_request(
+            endpoint="/api/logs/logql/generate", method="POST", json_data=intent_data
+        )
 
         return json.dumps(
             {
-                "query": result.query,
-                "backend": "loki",
-                "success": result.success,
+                "query": response.get("query", ""),
+                "backend": response.get("backend", "loki"),
+                "success": response.get("success", False),
+                "error": response.get("error"),
                 "intent": intent_data,
             },
             indent=2,
@@ -200,7 +214,6 @@ async def construct_splunk_query(log_query_intent: str) -> str:
     Args:
         log_query_intent: JSON with query intent. Required fields:
             - description: What logs to search for
-            - backend: Must be "splunk"
             - service: Service name
             - patterns: List of patterns like [{"pattern": "timeout"}]
             Optional fields:
@@ -213,7 +226,6 @@ async def construct_splunk_query(log_query_intent: str) -> str:
     Example:
         Input: {
           "description": "Search for timeout errors",
-          "backend": "splunk",
           "service": "api-gateway",
           "patterns": [{"pattern": "timeout"}]
         }
@@ -226,21 +238,17 @@ async def construct_splunk_query(log_query_intent: str) -> str:
         # Parse intent
         intent_data = json.loads(log_query_intent)
 
-        # Ensure backend is splunk
-        if intent_data.get("backend") != "splunk":
-            intent_data["backend"] = "splunk"
-
-        intent = LogQueryIntent(**intent_data)
-
-        # Get client and generate query
-        client = _get_maverick_client()
-        result = client.logs.splunk.construct_spl_query(intent)
+        # Make request to Splunk generation endpoint
+        response = _make_request(
+            endpoint="/api/logs/splunk/generate", method="POST", json_data=intent_data
+        )
 
         return json.dumps(
             {
-                "query": result.query,
-                "backend": "splunk",
-                "success": result.success,
+                "query": response.get("query", ""),
+                "backend": response.get("backend", "splunk"),
+                "success": response.get("success", False),
+                "error": response.get("error"),
                 "intent": intent_data,
             },
             indent=2,
