@@ -19,8 +19,9 @@ services:
   redis:
       image: redis/redis-stack-server:latest
       container_name: maverick_redis
+      command: ["redis-stack-server", "--port", "6380"]
       ports:
-        - "6380:6379"
+        - "6380:6380"
       volumes:
         - ./redis-data:/data
 

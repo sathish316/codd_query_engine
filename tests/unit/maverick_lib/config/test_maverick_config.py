@@ -67,7 +67,7 @@ def test_redis_config_defaults():
     config = RedisConfig()
 
     assert config.host == "localhost"
-    assert config.port == 6379
+    assert config.port == 6380
     assert config.db == 0
 
 

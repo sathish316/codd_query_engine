@@ -168,7 +168,7 @@ class MetricsSemanticIndexerJob:
                 print("[2/4] Updating Redis metadata store...")
                 self._update_redis_store(namespace, metrics)
                 logger.info(
-                    "Redis metadata store updated",
+                    f"Redis metadata store updated with {len(metrics)} metric names (namespace: {namespace})",
                     extra={"namespace": namespace, "count": len(metrics)},
                 )
                 print(f"      ✓ Redis updated with {len(metrics)} metric names\n")

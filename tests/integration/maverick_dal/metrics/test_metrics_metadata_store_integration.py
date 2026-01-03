@@ -18,7 +18,7 @@ from maverick_dal.metrics.metrics_metadata_store import MetricsMetadataStore
 @pytest.fixture
 def redis_client():
     """Provide a Redis client for testing."""
-    return redis.Redis(host="localhost", port=6379, decode_responses=True)
+    return redis.Redis(host="localhost", port=6380, decode_responses=True)
 
 
 @pytest.mark.integration

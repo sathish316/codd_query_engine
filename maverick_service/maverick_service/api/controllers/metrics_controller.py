@@ -57,6 +57,21 @@ class MetricsQueryResponse(BaseModel):
     error: Optional[str] = None
 
 
+class MetricExistsRequest(BaseModel):
+    """Request model for checking if a metric exists."""
+
+    namespace: str
+    metric_name: str
+
+
+class MetricExistsResponse(BaseModel):
+    """Response model for metric existence check."""
+
+    exists: bool
+    namespace: str
+    metric_name: str
+
+
 @router.post("/search", response_model=MetricsSearchResponse)
 async def search_metrics(request: MetricsSearchRequest):
     """
@@ -119,6 +134,34 @@ async def generate_promql_query(request: PromQLQueryRequest):
 
         return MetricsQueryResponse(
             query=result.query, success=result.success, error=result.error
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/exists", response_model=MetricExistsResponse)
+async def check_metric_exists(request: MetricExistsRequest):
+    """
+    Check if a metric name exists in a namespace.
+
+    Args:
+        request: Namespace and metric name to check
+
+    Returns:
+        Boolean indicating if metric exists in the namespace
+
+    Example:
+        POST /api/metrics/exists
+        Body: {
+          "namespace": "production",
+          "metric_name": "http_requests_total"
+        }
+    """
+    try:
+        client = get_client()
+        exists = client.metrics.metric_exists(request.namespace, request.metric_name)
+        return MetricExistsResponse(
+            exists=exists, namespace=request.namespace, metric_name=request.metric_name
         )
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

@@ -7,6 +7,6 @@ class RedisConfig(BaseModel):
     """Configuration for Redis client."""
 
     host: str = "localhost"
-    port: int = 6379
+    port: int = 6380
     db: int = 0
     decode_responses: bool = True

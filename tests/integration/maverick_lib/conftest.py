@@ -18,7 +18,7 @@ def maverick_client():
     Uses default configuration which points to:
     - Prometheus at http://host.docker.internal:9090
     - Loki at http://host.docker.internal:3100
-    - Redis at localhost:6379
+    - Redis at localhost:6380
     - ChromaDB (default location)
     """
     config = MaverickConfig()

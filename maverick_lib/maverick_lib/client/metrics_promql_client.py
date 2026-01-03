@@ -111,3 +111,16 @@ class MetricsPromQLClient:
         result = await self.promql_query_generator.generate_query(namespace, intent)
 
         return result
+
+    def metric_exists(self, namespace: str, metric_name: str) -> bool:
+        """
+        Check if a metric name exists in a namespace.
+
+        Args:
+            namespace: Namespace identifier
+            metric_name: Metric name to check
+
+        Returns:
+            True if metric exists in namespace, False otherwise
+        """
+        return self.metrics_metadata_store.is_valid_metric_name(namespace, metric_name)

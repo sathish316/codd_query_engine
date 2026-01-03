@@ -54,7 +54,7 @@ python -m maverick_jobs.metrics_semantic_indexer_main \
     --namespace "production:order-service" \
     --promql-url "http://localhost:9090" \
     --redis-host "localhost" \
-    --redis-port 6379 \
+    --redis-port 6380 \
     --redis-db 0 \
     --chromadb-host "localhost" \
     --chromadb-port 8000 \
@@ -70,7 +70,7 @@ python -m maverick_jobs.metrics_semantic_indexer_main \
 | `--namespace` | Yes | - | Namespace for metrics (format: `tenant:service`) |
 | `--promql-url` | No | `http://localhost:9090` | Prometheus base URL |
 | `--redis-host` | No | `localhost` | Redis host |
-| `--redis-port` | No | `6379` | Redis port |
+| `--redis-port` | No | `6380` | Redis port |
 | `--redis-db` | No | `0` | Redis database number |
 | `--chromadb-host` | No | `localhost` | ChromaDB host |
 | `--chromadb-port` | No | `8000` | ChromaDB port |
@@ -223,7 +223,7 @@ Ensure services are running:
 
 ```bash
 # Start Redis
-docker run -d -p 6379:6379 redis:latest
+docker run -d -p 6380:6379 redis:latest
 
 # Start ChromaDB
 docker run -d -p 8000:8000 chromadb/chroma:latest

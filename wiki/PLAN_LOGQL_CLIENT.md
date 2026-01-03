@@ -36,7 +36,7 @@ import redis
 from maverick_dal.logs import LogsMetadataClient
 
 # Initialize
-redis_client = redis.Redis(host='localhost', port=6379, decode_responses=True)
+redis_client = redis.Redis(host='localhost', port=6380, decode_responses=True)
 client = LogsMetadataClient(redis_client)
 
 # Add stream labels

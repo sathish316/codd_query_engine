@@ -65,3 +65,16 @@ class MetricsClient:
             QueryGenerationResult with final query and metadata
         """
         return await self.promql.construct_promql_query(intent, namespace)
+
+    def metric_exists(self, namespace: str, metric_name: str) -> bool:
+        """
+        Check if a metric name exists in a namespace.
+
+        Args:
+            namespace: Namespace identifier
+            metric_name: Metric name to check
+
+        Returns:
+            True if metric exists in namespace, False otherwise
+        """
+        return self.promql.metric_exists(namespace, metric_name)
