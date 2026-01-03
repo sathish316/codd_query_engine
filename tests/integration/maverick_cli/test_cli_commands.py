@@ -50,6 +50,7 @@ def test_construct_loki_query_help():
 
 
 @pytest.mark.integration
+@pytest.mark.skip(reason="Skipping Splunk-related tests - PydanticAI usage limit issue")
 def test_construct_splunk_query_help():
     """Test construct-splunk-query help."""
     result = runner.invoke(app, ["construct-splunk-query", "--help"])

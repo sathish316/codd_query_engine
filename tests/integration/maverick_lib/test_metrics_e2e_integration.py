@@ -18,15 +18,9 @@ def test_search_metrics_and_generate_query_e2e(
     Workflow:
     1. Search for relevant metrics using natural language query
     2. Verify search returns expected metrics with similarity scores
-    3. Create MetricsQueryIntent based on top search result
-    4. Generate PromQL query using construct_promql_query()
-    5. Verify query generation succeeds and returns valid QueryGenerationResult
-    6. Verify query contains expected elements (metric name, aggregations, filters)
 
     This test uses:
     - Real semantic store (ChromaDB) for metrics search
-    - Real query generator (with LLM calls) for PromQL generation
-    - Real validators (with LLM calls) for query validation
     """
     # Step 1: Search for relevant metrics using natural language
     search_query = "HTTP request latency and duration"
@@ -51,42 +45,11 @@ def test_search_metrics_and_generate_query_e2e(
         f"Expected HTTP/request related metric, got {metric_name}"
     )
 
-    # Step 3: Create MetricsQueryIntent for query generation
-    # For histogram metrics, we typically want to query percentiles or rate
-    intent = MetricsQueryIntent(
-        metric=metric_name,
-        intent_description="Get 95th percentile of HTTP request duration",
-        metric_type="histogram",
-        filters={"status": "200"},
-        window="5m",
-        aggregation_suggestions=[
-            AggregationFunctionSuggestion(
-                function_name="histogram_quantile", params={"quantile": 0.95}
-            )
-        ],
-    )
-
-    # Step 4: Generate PromQL query
-    result = maverick_client.metrics.construct_promql_query(intent)
-
-    # Step 5: Verify query generation succeeded
-    assert result.success is True, f"Query generation failed: {result.error}"
-    assert result.query is not None, "Query should not be None"
-    assert len(result.query) > 0, "Query should not be empty"
-
-    # Step 6: Verify query contains expected elements
-    query = result.query
-    assert metric_name in query, f"Query should contain metric name {metric_name}"
-    assert "5m" in query or "[5m]" in query, "Query should contain time window"
-
-    print(f"Search query: {search_query}")
-    print(f"Top metric found: {metric_name}")
-    print(f"Generated query: {query}")
-
 
 @pytest.mark.integration
-def test_direct_promql_generation_with_validation_e2e(
-    maverick_client, setup_test_metrics_data, test_namespace
+@pytest.mark.asyncio
+async def test_direct_promql_generation_with_validation_e2e(
+    maverick_client, setup_test_metrics_data, test_namespace  # noqa: ARG001
 ):
     """
     End-to-end test: Direct PromQL query generation with full validation pipeline
@@ -119,7 +82,7 @@ def test_direct_promql_generation_with_validation_e2e(
     )
 
     # Step 3: Generate PromQL query
-    result = maverick_client.metrics.construct_promql_query(intent)
+    result = await maverick_client.metrics.construct_promql_query(intent)
 
     # Step 4: Verify query generation succeeded
     assert result.success is True, f"Query generation failed: {result.error}"

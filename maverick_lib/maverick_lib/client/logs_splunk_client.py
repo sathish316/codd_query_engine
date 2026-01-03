@@ -54,7 +54,7 @@ class LogsSplunkClient:
             )
         return self._spl_query_generator
 
-    def construct_spl_query(self, intent: LogQueryIntent) -> QueryGenerationResult:
+    async def construct_spl_query(self, intent: LogQueryIntent) -> QueryGenerationResult:
         """
         Generate a valid Splunk SPL query from log query intent.
 
@@ -64,7 +64,7 @@ class LogsSplunkClient:
         Returns:
             QueryGenerationResult with final query and metadata
         """
-        result = self.spl_query_generator.generate_query(intent)
+        result = await self.spl_query_generator.generate_query(intent)
         return result
 
     def __enter__(self):

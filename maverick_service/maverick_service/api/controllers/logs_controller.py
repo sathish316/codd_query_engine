@@ -101,7 +101,7 @@ async def generate_logql_query(request: LogQLQueryRequest):
 
         # Generate query
         client = get_client()
-        result = client.logs.logql.construct_logql_query(intent)
+        result = await client.logs.logql.construct_logql_query(intent)
 
         return LogsQueryResponse(
             query=result.query,
@@ -152,7 +152,7 @@ async def generate_splunk_query(request: SplunkQueryRequest):
 
         # Generate query
         client = get_client()
-        result = client.logs.splunk.construct_spl_query(intent)
+        result = await client.logs.splunk.construct_spl_query(intent)
 
         return LogsQueryResponse(
             query=result.query,

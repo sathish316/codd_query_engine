@@ -106,17 +106,16 @@ async def generate_promql_query(request: PromQLQueryRequest):
     try:
         # Create intent
         intent = MetricsQueryIntent(
-            description=request.description,
-            namespace=request.namespace,
-            metric_name=request.metric_name,
-            aggregation=request.aggregation,
-            group_by=request.group_by,
-            filters=request.filters,
+            metric=request.metric_name or "",
+            intent_description=request.description,
+            metric_type=request.aggregation or "gauge",
+            group_by=request.group_by or [],
+            filters=request.filters or {},
         )
 
         # Generate query
         client = get_client()
-        result = client.metrics.construct_promql_query(intent)
+        result = await client.metrics.construct_promql_query(intent, request.namespace)
 
         return MetricsQueryResponse(
             query=result.query, success=result.success, error=result.error

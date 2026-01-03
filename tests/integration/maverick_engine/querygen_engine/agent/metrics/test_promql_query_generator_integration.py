@@ -125,7 +125,8 @@ class TestPromQLQueryGeneratorIntegration:
             promql_validator=promql_validator,
         )
 
-    def test_generate_query_happy_path_counter_with_rate(
+    @pytest.mark.asyncio
+    async def test_generate_query_happy_path_counter_with_rate(
         self, query_generator, metadata_store
     ):
         """
@@ -161,7 +162,7 @@ class TestPromQLQueryGeneratorIntegration:
         )
 
         # Act: Generate query using ReAct pattern
-        result = query_generator.generate_query(namespace, intent)
+        result = await query_generator.generate_query(namespace, intent)
 
         # Assert: Verify the generation succeeded
         print("\n=== Query Generation Result (ReAct Pattern) ===")

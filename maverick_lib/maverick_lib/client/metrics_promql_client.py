@@ -95,18 +95,19 @@ class MetricsPromQLClient:
 
         return search_results
 
-    def construct_promql_query(
-        self, intent: MetricsQueryIntent
+    async def construct_promql_query(
+        self, intent: MetricsQueryIntent, namespace: str = ""
     ) -> QueryGenerationResult:
         """
         Generate a valid PromQL query from metrics query intent.
 
         Args:
             intent: MetricsQueryIntent with query requirements
+            namespace: Optional namespace for schema validation
 
         Returns:
             QueryGenerationResult with final query and metadata
         """
-        result = self.promql_query_generator.generate_query(intent)
+        result = await self.promql_query_generator.generate_query(namespace, intent)
 
         return result

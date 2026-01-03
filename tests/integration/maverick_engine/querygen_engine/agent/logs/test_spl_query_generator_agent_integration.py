@@ -64,7 +64,7 @@ class TestSplunkSPLQueryGeneratorAgentIntegration:
             log_query_validator=log_query_validator,
         )
 
-    def test_generate_query_happy_path_simple_error_search(self, query_generator):
+    async def test_generate_query_happy_path_simple_error_search(self, query_generator):
         """
         Integration test for happy path query generation with ReAct pattern.
 
@@ -89,7 +89,7 @@ class TestSplunkSPLQueryGeneratorAgentIntegration:
         )
 
         # Act: Generate query using ReAct pattern
-        result = query_generator.generate_query(intent)
+        result = await query_generator.generate_query(intent)
 
         # Assert: Verify the generation succeeded
         print("\n=== Query Generation Result (ReAct Pattern) ===")

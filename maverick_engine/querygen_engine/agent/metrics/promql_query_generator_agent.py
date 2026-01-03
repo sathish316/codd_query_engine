@@ -79,7 +79,7 @@ class PromQLQueryGeneratorAgent:
             .build_agent()
         )
 
-    def generate_query(
+    async def generate_query(
         self, namespace: str, intent: MetricsQueryIntent
     ) -> QueryGenerationResult:
         """
@@ -135,7 +135,7 @@ class PromQLQueryGeneratorAgent:
             # Execute LLM query generation with ReAct pattern
             logger.info("Executing agent with ReAct pattern")
 
-            result = self.agent.run_sync(generation_prompt, deps=preprocessed_intent)
+            result = await self.agent.run(generation_prompt, deps=preprocessed_intent)
 
             logger.info(
                 "Query generation completed",

@@ -16,7 +16,6 @@ dependencies = [
 [tool.uv.sources]
 maverick-engine = { workspace = true }
 maverick-dal = { workspace = true }
-opus-agent-base = { path = "../../opus_agents/opus_agent_base" }
 
 [dependency-groups]
 dev = [

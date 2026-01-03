@@ -70,7 +70,7 @@ class LogQLQueryGeneratorAgent:
             .build_agent()
         )
 
-    def generate_query(self, intent: LogQueryIntent) -> QueryGenerationResult:
+    async def generate_query(self, intent: LogQueryIntent) -> QueryGenerationResult:
         """
         Generate a LogQL query using ReAct pattern with validation tool.
 
@@ -106,7 +106,7 @@ class LogQLQueryGeneratorAgent:
             # Execute LLM query generation with ReAct pattern
             logger.info("Executing agent with ReAct pattern")
 
-            result = self.agent.run_sync(generation_prompt, deps=intent)
+            result = await self.agent.run(generation_prompt, deps=intent)
 
             logger.info(
                 "Query generation completed",

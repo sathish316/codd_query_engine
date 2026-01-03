@@ -3,7 +3,7 @@ Unit tests for PromQL query generator agent with ReAct pattern.
 """
 
 import pytest
-from unittest.mock import Mock
+from unittest.mock import Mock, AsyncMock
 from dataclasses import dataclass
 
 from maverick_engine.querygen_engine.metrics.structured_inputs import (
@@ -74,7 +74,7 @@ def generator_agent(
             query='rate(http_requests_total{status="500"}[5m])',
             reasoning="Generated rate() query for counter metric",
         )
-        self.agent.run_sync = Mock(return_value=MockAgentResult(output=result))
+        self.agent.run = AsyncMock(return_value=MockAgentResult(output=result))
 
     # Patch _init_agent before creating the instance
     monkeypatch.setattr(PromQLQueryGeneratorAgent, "_init_agent", mock_init_agent)
@@ -93,7 +93,8 @@ def generator_agent(
 class TestGenerateQuery:
     """Test query generation with ReAct pattern."""
 
-    def test_generate_query_for_counter_metric(self, generator_agent):
+    @pytest.mark.asyncio
+    async def test_generate_query_for_counter_metric(self, generator_agent):
         """Test query generation for a counter metric with rate aggregation."""
         # Arrange
         intent = MetricsQueryIntent(
@@ -108,7 +109,7 @@ class TestGenerateQuery:
         )
 
         # Act
-        result = generator_agent.generate_query("default", intent)
+        result = await generator_agent.generate_query("default", intent)
 
         # Assert
         assert isinstance(result, QueryGenerationResult)

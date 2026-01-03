@@ -30,8 +30,12 @@ class MetricsClient:
 
         Args:
             config: MaverickConfig instance
+            config_manager: ConfigManager instance
+            instructions_manager: InstructionsManager instance
         """
         self.config = config
+        self.config_manager = config_manager
+        self.instructions_manager = instructions_manager
         self.promql = MetricsPromQLClient(config, config_manager, instructions_manager)
 
     def search_relevant_metrics(self, query: str, limit: int = 5) -> list[SearchResult]:
@@ -47,16 +51,17 @@ class MetricsClient:
         """
         return self.promql.search_relevant_metrics(query, limit)
 
-    def construct_promql_query(
-        self, intent: MetricsQueryIntent
+    async def construct_promql_query(
+        self, intent: MetricsQueryIntent, namespace: str = ""
     ) -> QueryGenerationResult:
         """
         Generate a valid PromQL query from metrics query intent.
 
         Args:
             intent: MetricsQueryIntent with query requirements
+            namespace: Optional namespace for schema validation
 
         Returns:
             QueryGenerationResult with final query and metadata
         """
-        return self.promql.construct_promql_query(intent)
+        return await self.promql.construct_promql_query(intent, namespace)

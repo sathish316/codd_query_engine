@@ -58,7 +58,7 @@ class LogsLogQLClient:
             )
         return self._logql_query_generator
 
-    def construct_logql_query(self, intent: LogQueryIntent) -> QueryGenerationResult:
+    async def construct_logql_query(self, intent: LogQueryIntent) -> QueryGenerationResult:
         """
         Generate a valid LogQL query from log query intent.
 
@@ -68,7 +68,7 @@ class LogsLogQLClient:
         Returns:
             QueryGenerationResult with final query and metadata
         """
-        result = self.logql_query_generator.generate_query(intent)
+        result = await self.logql_query_generator.generate_query(intent)
         return result
 
     def __enter__(self):
