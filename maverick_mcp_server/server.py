@@ -40,39 +40,32 @@ async def search_relevant_metrics(
     your problem description, alert, or incident.
 
     Args:
-        problem_json: JSON string with problem data. Must include 'description' field.
-                     Can also include 'keywords', 'category', 'suggested_metrics'.
+        problem_json: Search query string
         limit: Maximum number of metrics to return (default: 5)
 
     Returns:
-        JSON with ranked list of relevant metrics with relevance scores.
+        List of SearchResult objects with ranked metrics and relevance scores
 
     Example:
-        Input: {"description": "API experiencing high latency", "category": "performance"}
-        Output: {
-          "metrics": [
-            {"metric_name": "http_request_duration_seconds", "relevance_score": 0.8, ...}
-          ]
-        }
+        Input: "API experiencing high latency"
+        Output: [
+            {
+                "metric_name": "http_request_duration_seconds",
+                "similarity_score": 0.85,
+                "description": "HTTP request duration in seconds",
+                ...
+            }
+        ]
     """
     try:
-        # Parse input
-        # problem_data = json.loads(problem_json)
-        # description = problem_data.get("description", "")
-
-        # if not description:
-        # return json.dumps({"error": "description field is required", "metrics": []})
-
         # Get client and search
         client = _get_maverick_client()
         results = client.metrics.search_relevant_metrics(problem_json, limit=limit)
-
         return results
 
-    except json.JSONDecodeError as e:
-        return json.dumps({"error": f"Invalid JSON input: {e}", "metrics": []})
-    except Exception as e:
-        return json.dumps({"error": f"Error searching metrics: {e}", "metrics": []})
+    except Exception:
+        # Return empty list on error (matching return type)
+        return []
 
 
 @mcp.tool()

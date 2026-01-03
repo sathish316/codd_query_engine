@@ -65,9 +65,35 @@ class MetricsPromQLClient:
             limit: Maximum number of results to return
 
         Returns:
-            List of metrics with similarity scores and metadata
+            List of SearchResult objects with similarity scores and metadata
         """
-        return self.semantic_metadata_store.search_metadata(query, n_results=limit)
+        # Get raw results from semantic store
+        raw_results = self.semantic_metadata_store.search_metadata(
+            query, n_results=limit
+        )
+
+        # Convert to SearchResult TypedDict format
+        search_results: list[SearchResult] = []
+        for result in raw_results:
+            search_result: SearchResult = {
+                "metric_name": result.get("metric_name", ""),
+                "similarity_score": result.get("similarity_score", 0.0),
+                "type": result.get("type", ""),
+                "description": result.get("description", ""),
+                "unit": result.get("unit", ""),
+                "category": result.get("category", ""),
+                "subcategory": result.get("subcategory", ""),
+                "category_description": result.get("category_description", ""),
+                "golden_signal_type": result.get("golden_signal_type", ""),
+                "golden_signal_description": result.get(
+                    "golden_signal_description", ""
+                ),
+                "meter_type": result.get("meter_type", ""),
+                "meter_type_description": result.get("meter_type_description", ""),
+            }
+            search_results.append(search_result)
+
+        return search_results
 
     def construct_promql_query(
         self, intent: MetricsQueryIntent

@@ -12,9 +12,6 @@ import chromadb
 
 from maverick_engine.models.metrics_common import MetricMetadata
 from maverick_engine.validation_engine.metrics.validation_result import ValidationError
-from maverick_engine.validation_engine.metrics.structured_outputs import (
-    SearchResult,
-)
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -266,7 +263,7 @@ class MetricsSemanticMetadataStore:
             logger.warning(f"Error checking if metric exists: {e}")
             return False
 
-    def search_metadata(self, query: str, n_results: int = 10) -> list[SearchResult]:
+    def search_metadata(self, query: str, n_results: int = 10) -> list[dict]:
         """
         Search for metrics using semantic similarity.
 
