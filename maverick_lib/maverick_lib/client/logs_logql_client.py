@@ -1,22 +1,24 @@
-"""Lean client for Splunk SPL operations - query generation."""
+"""Client for LogQL operations - query generation."""
 
+from maverick_lib.config import MaverickConfig
 from maverick_engine.querygen_engine.logs.structured_inputs import LogQueryIntent
 from maverick_engine.querygen_engine.logs.structured_outputs import (
     QueryGenerationResult,
 )
-
-from maverick_mcp_server.config import MaverickConfig
-from maverick_mcp_server.client.provider import LogsModule, SplunkModule
 from opus_agent_base.config.config_manager import ConfigManager
 from opus_agent_base.prompt.instructions_manager import InstructionsManager
 
+from maverick_lib.client.provider import LogsModule, LogQLModule
 
-class LogsSplunkClient:
+
+class LogsLogQLClient:
     """
-    Lean client for Splunk SPL operations.
+    Lean client for LogQL operations.
 
     Provides:
-    - Splunk SPL query generation from intent
+    - LogQL query generation from intent
+    - Query execution against Loki
+    - Label and label values retrieval
     """
 
     def __init__(
@@ -26,10 +28,12 @@ class LogsSplunkClient:
         instructions_manager: InstructionsManager,
     ):
         """
-        Initialize the Splunk SPL client.
+        Initialize the LogQL client.
 
         Args:
             config: MaverickConfig instance
+            config_manager: ConfigManager instance
+            instructions_manager: InstructionsManager instance
         """
         self.config = config
 
@@ -37,26 +41,26 @@ class LogsSplunkClient:
         self.config_manager = config_manager
         self.instructions_manager = instructions_manager
 
-        # Log query validator (shared across all log backends)
+        # LogQL validator (shared across all log backends)
         self.log_query_validator = LogsModule.get_log_query_validator()
 
-        # Query generator will be created lazily when needed
-        self._spl_query_generator = None
+        # LogQL Query generator
+        self._logql_query_generator = None
 
     @property
-    def spl_query_generator(self):
-        """Lazily initialize and return the Splunk SPL query generator."""
-        if self._spl_query_generator is None:
-            self._spl_query_generator = SplunkModule.get_spl_query_generator(
+    def logql_query_generator(self):
+        """Lazily initialize and return the LogQL query generator."""
+        if self._logql_query_generator is None:
+            self._logql_query_generator = LogQLModule.get_logql_query_generator(
                 self.config_manager,
                 self.instructions_manager,
                 self.log_query_validator,
             )
-        return self._spl_query_generator
+        return self._logql_query_generator
 
-    def construct_spl_query(self, intent: LogQueryIntent) -> QueryGenerationResult:
+    def construct_logql_query(self, intent: LogQueryIntent) -> QueryGenerationResult:
         """
-        Generate a valid Splunk SPL query from log query intent.
+        Generate a valid LogQL query from log query intent.
 
         Args:
             intent: LogQueryIntent with query requirements
@@ -64,7 +68,7 @@ class LogsSplunkClient:
         Returns:
             QueryGenerationResult with final query and metadata
         """
-        result = self.spl_query_generator.generate_query(intent)
+        result = self.logql_query_generator.generate_query(intent)
         return result
 
     def __enter__(self):
@@ -73,4 +77,4 @@ class LogsSplunkClient:
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         """Context manager exit."""
-        pass
+        self.close()

@@ -27,7 +27,7 @@ from maverick_engine.querygen_engine.agent.metrics.promql_query_generator_agent 
 from maverick_engine.validation_engine.agent.metrics.promql_metricname_extractor_agent import (
     PromQLMetricNameExtractorAgent,
 )
-from maverick_mcp_server.config import MaverickConfig
+from maverick_lib.config import MaverickConfig
 from maverick_engine.validation_engine.metrics.semantics.promql_semantics_validator import (
     PromQLSemanticsValidator,
 )

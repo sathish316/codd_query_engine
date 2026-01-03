@@ -26,4 +26,7 @@ mcp_config:
       validator:
         enabled: true
 
+metrics:
+  semantic_store:
+    namespace: "default:beer-service"
 # Environment Variables (set these in your shell)

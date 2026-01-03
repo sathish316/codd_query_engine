@@ -1,9 +1,9 @@
 """Main Maverick client composing all observability operations."""
 
-from maverick_mcp_server.config import MaverickConfig
-from maverick_mcp_server.client.metrics_client import MetricsClient
-from maverick_mcp_server.client.logs_client import LogsClient
-from maverick_mcp_server.client.provider import OpusModule
+from maverick_lib.config import MaverickConfig
+from maverick_lib.client.metrics_client import MetricsClient
+from maverick_lib.client.logs_client import LogsClient
+from maverick_lib.client.provider import OpusModule
 
 
 class MaverickClient:

@@ -1,7 +1,7 @@
 """Metrics client composing PromQL-specific operations."""
 
-from maverick_mcp_server.config import MaverickConfig
-from maverick_mcp_server.client.metrics_promql_client import MetricsPromQLClient
+from maverick_lib.config import MaverickConfig
+from maverick_lib.client.metrics_promql_client import MetricsPromQLClient
 from maverick_engine.querygen_engine.metrics.structured_inputs import MetricsQueryIntent
 from maverick_engine.querygen_engine.metrics.structured_outputs import (
     QueryGenerationResult,

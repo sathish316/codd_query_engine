@@ -4,7 +4,7 @@ from pathlib import Path
 from opus_agent_base.config.config_manager import ConfigManager
 from opus_agent_base.prompt.instructions_manager import InstructionsManager
 
-from maverick_mcp_server.config import MaverickConfig
+from maverick_lib.config import MaverickConfig
 
 
 class OpusModule:

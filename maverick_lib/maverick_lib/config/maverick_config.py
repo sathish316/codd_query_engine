@@ -1,11 +1,11 @@
 """Main configuration for Maverick MCP Server."""
 
 from pydantic import BaseModel, Field
-from maverick_mcp_server.config.semantic_store_config import SemanticStoreConfig
-from maverick_mcp_server.config.redis_config import RedisConfig
-from maverick_mcp_server.config.loki_config import LokiConfig
-from maverick_mcp_server.config.splunk_config import SplunkConfig
-from maverick_mcp_server.config.prometheus_config import PrometheusConfig
+from maverick_lib.config.semantic_store_config import SemanticStoreConfig
+from maverick_lib.config.redis_config import RedisConfig
+from maverick_lib.config.loki_config import LokiConfig
+from maverick_lib.config.splunk_config import SplunkConfig
+from maverick_lib.config.prometheus_config import PrometheusConfig
 from maverick_engine.utils.file_utils import expand_path
 
 

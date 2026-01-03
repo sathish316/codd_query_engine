@@ -8,7 +8,7 @@ from maverick_engine.validation_engine.logs.log_query_validator import LogQueryV
 from maverick_engine.querygen_engine.agent.logs.logql_query_generator_agent import (
     LogQLQueryGeneratorAgent,
 )
-from maverick_mcp_server.config import MaverickConfig
+from maverick_lib.config import MaverickConfig
 
 
 class LogQLModule:

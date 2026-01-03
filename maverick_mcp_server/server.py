@@ -7,8 +7,8 @@ from mcp.server.fastmcp import FastMCP
 from maverick_engine.querygen_engine.logs.structured_outputs import (
     QueryGenerationResult,
 )
-from maverick_mcp_server.client import MaverickClient
-from maverick_mcp_server.config import MaverickConfig
+from maverick_lib.client import MaverickClient
+from maverick_lib.config import MaverickConfig
 from maverick_engine.querygen_engine.metrics.structured_inputs import MetricsQueryIntent
 from maverick_engine.querygen_engine.logs.structured_inputs import LogQueryIntent
 from maverick_engine.validation_engine.metrics.structured_outputs import SearchResult

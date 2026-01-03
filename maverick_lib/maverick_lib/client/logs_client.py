@@ -1,10 +1,10 @@
 """Logs client for log query operations."""
 
-from maverick_mcp_server.config import MaverickConfig
+from maverick_lib.config import MaverickConfig
 from opus_agent_base.config.config_manager import ConfigManager
 from opus_agent_base.prompt.instructions_manager import InstructionsManager
-from maverick_mcp_server.client.logs_logql_client import LogsLogQLClient
-from maverick_mcp_server.client.logs_splunk_client import LogsSplunkClient
+from maverick_lib.client.logs_logql_client import LogsLogQLClient
+from maverick_lib.client.logs_splunk_client import LogsSplunkClient
 
 
 class LogsClient:

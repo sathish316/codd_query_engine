@@ -2,14 +2,14 @@
 
 from maverick_engine.querygen_engine.metrics.structured_inputs import MetricsQueryIntent
 
-from maverick_mcp_server.config import MaverickConfig
+from maverick_lib.config import MaverickConfig
 from maverick_engine.querygen_engine.metrics.structured_outputs import (
     QueryGenerationResult,
 )
 from opus_agent_base.config.config_manager import ConfigManager
 from opus_agent_base.prompt.instructions_manager import InstructionsManager
 from maverick_engine.validation_engine.metrics.structured_outputs import SearchResult
-from maverick_mcp_server.client.provider.promql_module import PromQLModule
+from maverick_lib.client.provider.promql_module import PromQLModule
 
 
 class MetricsPromQLClient:
