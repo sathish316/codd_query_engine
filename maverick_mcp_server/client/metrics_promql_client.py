@@ -8,7 +8,7 @@ from maverick_engine.querygen_engine.metrics.structured_outputs import (
 )
 from opus_agent_base.config.config_manager import ConfigManager
 from opus_agent_base.prompt.instructions_manager import InstructionsManager
-
+from maverick_engine.validation_engine.metrics.structured_outputs import SearchResult
 from maverick_mcp_server.client.provider.promql_module import PromQLModule
 
 
@@ -56,7 +56,7 @@ class MetricsPromQLClient:
             )
         return self._promql_query_generator
 
-    def search_relevant_metrics(self, query: str, limit: int = 5) -> list[dict]:
+    def search_relevant_metrics(self, query: str, limit: int = 5) -> list[SearchResult]:
         """
         Search for metrics relevant to a query using semantic search.
 

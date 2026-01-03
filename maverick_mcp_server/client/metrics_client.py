@@ -8,6 +8,7 @@ from maverick_engine.querygen_engine.metrics.structured_outputs import (
 )
 from opus_agent_base.config.config_manager import ConfigManager
 from opus_agent_base.prompt.instructions_manager import InstructionsManager
+from maverick_engine.validation_engine.metrics.structured_outputs import SearchResult
 
 
 class MetricsClient:
@@ -33,7 +34,7 @@ class MetricsClient:
         self.config = config
         self.promql = MetricsPromQLClient(config, config_manager, instructions_manager)
 
-    def search_relevant_metrics(self, query: str, limit: int = 5) -> list[dict]:
+    def search_relevant_metrics(self, query: str, limit: int = 5) -> list[SearchResult]:
         """
         Search for metrics relevant to a query using semantic search.
 

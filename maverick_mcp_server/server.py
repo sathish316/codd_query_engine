@@ -4,10 +4,14 @@
 import json
 from mcp.server.fastmcp import FastMCP
 
+from maverick_engine.querygen_engine.logs.structured_outputs import (
+    QueryGenerationResult,
+)
 from maverick_mcp_server.client import MaverickClient
 from maverick_mcp_server.config import MaverickConfig
 from maverick_engine.querygen_engine.metrics.structured_inputs import MetricsQueryIntent
 from maverick_engine.querygen_engine.logs.structured_inputs import LogQueryIntent
+from maverick_engine.validation_engine.metrics.structured_outputs import SearchResult
 
 # Create FastMCP server
 mcp = FastMCP("Maverick Observability Server")
@@ -27,7 +31,9 @@ def _get_maverick_client() -> MaverickClient:
 
 # Register metrics tools
 @mcp.tool()
-async def search_relevant_metrics(problem_json: str, limit: int = 5) -> str:
+async def search_relevant_metrics(
+    problem_json: str, limit: int = 5
+) -> list[SearchResult]:
     """Search for Prometheus metrics relevant to an alert or incident.
 
     This tool uses semantic search to find metrics that are most relevant to
@@ -51,23 +57,17 @@ async def search_relevant_metrics(problem_json: str, limit: int = 5) -> str:
     """
     try:
         # Parse input
-        problem_data = json.loads(problem_json)
-        description = problem_data.get("description", "")
+        # problem_data = json.loads(problem_json)
+        # description = problem_data.get("description", "")
 
-        if not description:
-            return json.dumps({"error": "description field is required", "metrics": []})
+        # if not description:
+        # return json.dumps({"error": "description field is required", "metrics": []})
 
         # Get client and search
         client = _get_maverick_client()
         results = client.metrics.search_relevant_metrics(problem_json, limit=limit)
 
-        return json.dumps(
-            {
-                "query": problem_json,
-                "metrics": results,
-            },
-            indent=2,
-        )
+        return results
 
     except json.JSONDecodeError as e:
         return json.dumps({"error": f"Invalid JSON input: {e}", "metrics": []})
@@ -76,7 +76,9 @@ async def search_relevant_metrics(problem_json: str, limit: int = 5) -> str:
 
 
 @mcp.tool()
-async def construct_promql_query(metrics_query_intent: str) -> str:
+async def construct_promql_query(
+    metrics_query_intent: MetricsQueryIntent,
+) -> QueryGenerationResult | dict:
     """Generate a valid PromQL query from a metrics query intent.
 
     Takes a high-level description of what metrics you want to query and generates
@@ -117,14 +119,7 @@ async def construct_promql_query(metrics_query_intent: str) -> str:
         client = _get_maverick_client()
         result = client.metrics.construct_promql_query(intent)
 
-        return json.dumps(
-            {
-                "query": result.query,
-                "success": result.success,
-                "intent": intent_data,
-            },
-            indent=2,
-        )
+        return result
 
     except json.JSONDecodeError as e:
         return json.dumps(
