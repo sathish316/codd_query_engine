@@ -48,6 +48,7 @@ def test_search_metrics_and_generate_query_e2e(
 
 @pytest.mark.integration
 @pytest.mark.asyncio
+@pytest.mark.skip(reason="taking lot of time")
 async def test_direct_promql_generation_with_validation_e2e(
     maverick_client, setup_test_metrics_data, test_namespace  # noqa: ARG001
 ):

@@ -34,6 +34,14 @@ class TestPromQLValidator:
     """Test suite for PromQLValidator pipeline."""
 
     @pytest.fixture
+    def mock_config_manager(self):
+        """Create a mock config manager."""
+        mock_config = Mock()
+        # Configure to return True for all validation stages by default
+        mock_config.get.return_value = True
+        return mock_config
+
+    @pytest.fixture
     def mock_syntax_validator(self):
         """Create a mock syntax validator."""
         return Mock()
@@ -50,10 +58,11 @@ class TestPromQLValidator:
 
     @pytest.fixture
     def validator(
-        self, mock_syntax_validator, mock_schema_validator, mock_semantics_validator
+        self, mock_config_manager, mock_syntax_validator, mock_schema_validator, mock_semantics_validator
     ):
         """Create a PromQLValidator with mocked dependencies."""
         return PromQLValidator(
+            config_manager=mock_config_manager,
             syntax_validator=mock_syntax_validator,
             schema_validator=mock_schema_validator,
             semantics_validator=mock_semantics_validator,

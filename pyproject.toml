@@ -48,3 +48,4 @@ markers = [
 ]
 addopts = "-m 'not integration'"
 testpaths = ["tests"]
+asyncio_mode = "auto"

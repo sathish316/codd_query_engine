@@ -154,6 +154,8 @@ class PromQLModule:
         )
 
         return PromQLValidator(
+            config_manager=config_manager,
+            instructions_manager=instructions_manager,
             syntax_validator=syntax_validator,
             schema_validator=schema_validator,
             semantics_validator=semantics_validator,

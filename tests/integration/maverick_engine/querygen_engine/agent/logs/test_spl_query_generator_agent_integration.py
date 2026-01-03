@@ -46,9 +46,12 @@ class TestSplunkSPLQueryGeneratorAgentIntegration:
         return SplunkSPLSyntaxValidator()
 
     @pytest.fixture
-    def log_query_validator(self, splunk_syntax_validator):
+    def log_query_validator(self, config_manager, splunk_syntax_validator):
         """Initialize Splunk SPL validator pipeline."""
-        return LogQueryValidator(syntax_validators={"splunk": splunk_syntax_validator})
+        return LogQueryValidator(
+            syntax_validators={"splunk": splunk_syntax_validator},
+            config_manager=config_manager,
+        )
 
     @pytest.fixture
     def query_generator(

@@ -37,7 +37,7 @@ class PromQLValidator(Validator[ValidationResult]):
 
     def __init__(
         self,
-        config_manager: ConfigManager = None,
+        config_manager: ConfigManager,
         instructions_manager: InstructionsManager = None,
         syntax_validator: MetricsSyntaxValidator = None,
         schema_validator: MetricsSchemaValidator = None,
@@ -75,23 +75,38 @@ class PromQLValidator(Validator[ValidationResult]):
         Returns:
             ValidationResult: The result from the last validation stage that ran
         """
+        # Read validation configuration
+        syntax_enabled = self._config_manager.get_setting("mcp_config.metrics.promql.validation.syntax.enabled", True)
+        schema_enabled = self._config_manager.get_setting("mcp_config.metrics.promql.validation.schema.enabled", True)
+        semantics_enabled = self._config_manager.get_setting("mcp_config.metrics.promql.validation.semantics.enabled", True)
+
         # Stage 1: Syntax validation
-        result = self._syntax_validator.validate(query)
-        if not result.is_valid:
-            logger.warning(f"Syntax validation failed: {result.error}")
-            return result
+        if syntax_enabled and self._syntax_validator:
+            result = self._syntax_validator.validate(query)
+            if not result.is_valid:
+                logger.warning(f"Syntax validation failed: {result.error}")
+                return result
+        else:
+            logger.info("Syntax validation skipped (disabled in config)")
+            result = ValidationResult(is_valid=True, error=None)
 
         # Stage 2: Schema validation
-        result = self._schema_validator.validate(namespace, query)
-        if not result.is_valid:
-            logger.warning(f"Schema validation failed: {result.error}")
-            return result
+        if schema_enabled and self._schema_validator:
+            result = self._schema_validator.validate(namespace, query)
+            if not result.is_valid:
+                logger.warning(f"Schema validation failed: {result.error}")
+                return result
+        else:
+            logger.info("Schema validation skipped (disabled in config)")
 
         # Stage 3: Semantics validation (if intent provided and validator available)
-        if intent and self._semantics_validator:
+        if semantics_enabled and intent and self._semantics_validator:
             result = self._semantics_validator.validate(intent, query)
             if not result.is_valid:
                 logger.warning("Semantic validation failed")
                 return result
+        else:
+            if not semantics_enabled:
+                logger.info("Semantics validation skipped (disabled in config)")
 
         return result

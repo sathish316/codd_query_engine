@@ -46,9 +46,12 @@ class TestLogQLQueryGeneratorAgentIntegration:
         return LogQLSyntaxValidator()
 
     @pytest.fixture
-    def log_query_validator(self, logql_syntax_validator):
+    def log_query_validator(self, config_manager, logql_syntax_validator):
         """Initialize LogQL validator pipeline."""
-        return LogQueryValidator(syntax_validators={"loki": logql_syntax_validator})
+        return LogQueryValidator(
+            syntax_validators={"loki": logql_syntax_validator},
+            config_manager=config_manager,
+        )
 
     @pytest.fixture
     def query_generator(

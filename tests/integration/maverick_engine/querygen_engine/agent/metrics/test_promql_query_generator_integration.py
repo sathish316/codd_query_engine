@@ -98,12 +98,16 @@ class TestPromQLQueryGeneratorIntegration:
     @pytest.fixture
     def promql_validator(
         self,
+        config_manager,
+        instructions_manager,
         promql_syntax_validator,
         promql_schema_validator,
         promql_semantics_validator,
     ):
         """Initialize PromQL validator pipeline."""
         return PromQLValidator(
+            config_manager=config_manager,
+            instructions_manager=instructions_manager,
             syntax_validator=promql_syntax_validator,
             schema_validator=promql_schema_validator,
             semantics_validator=promql_semantics_validator,

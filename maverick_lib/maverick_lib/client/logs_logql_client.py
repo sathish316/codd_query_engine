@@ -42,7 +42,7 @@ class LogsLogQLClient:
         self.instructions_manager = instructions_manager
 
         # LogQL validator (shared across all log backends)
-        self.log_query_validator = LogsModule.get_log_query_validator()
+        self.log_query_validator = LogsModule.get_log_query_validator(config_manager)
 
         # LogQL Query generator
         self._logql_query_generator = None

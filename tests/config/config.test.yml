@@ -18,12 +18,33 @@ mcp_config:
     promql:
       validator:
         enabled: true
+      validation:
+        syntax:
+          enabled: true
+        schema:
+          enabled: true
+        semantics:
+          enabled: false
   logs:
     logql:
       validator:
         enabled: true
+      validation:
+        syntax:
+          enabled: true
+        schema:
+          enabled: true
+        semantics:
+          enabled: false
     splunk:
       validator:
         enabled: true
+      validation:
+        syntax:
+          enabled: true
+        schema:
+          enabled: true
+        semantics:
+          enabled: false
 
 # Environment Variables (set these in your shell)

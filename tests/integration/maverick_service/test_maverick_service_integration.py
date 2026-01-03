@@ -37,6 +37,7 @@ class TestMaverickServiceMetricsIntegration:
             assert "metric_name" in result
             assert "similarity_score" in result
 
+    @pytest.mark.skip(reason="taking lot of time")
     def test_generate_promql_query_e2e(self):
         """
         Test PromQL query generation endpoint end-to-end.

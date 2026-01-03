@@ -82,9 +82,13 @@ class TestPromQLValidatorPipelineIntegration:
         )
 
     @pytest.fixture
-    def promql_validator(self, syntax_validator, schema_validator, semantic_validator):
+    def promql_validator(
+        self, config_manager, instructions_manager, syntax_validator, schema_validator, semantic_validator
+    ):
         """Create the complete PromQL validator pipeline."""
         return PromQLValidator(
+            config_manager=config_manager,
+            instructions_manager=instructions_manager,
             syntax_validator=syntax_validator,
             schema_validator=schema_validator,
             semantics_validator=semantic_validator,

@@ -38,7 +38,7 @@ class LogsSplunkClient:
         self.instructions_manager = instructions_manager
 
         # Log query validator (shared across all log backends)
-        self.log_query_validator = LogsModule.get_log_query_validator()
+        self.log_query_validator = LogsModule.get_log_query_validator(config_manager)
 
         # Query generator will be created lazily when needed
         self._spl_query_generator = None
