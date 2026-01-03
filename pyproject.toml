@@ -12,6 +12,7 @@ dependencies = [
     "openai>=2.14.0",
     "pydantic>=2.12.5",
     "pydantic-ai>=1.39.0",
+    "pydantic-ai-slim[logfire]>=1.39.0",
     "redis>=7.1.0",
 ]
 
