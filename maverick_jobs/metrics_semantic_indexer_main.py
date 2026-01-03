@@ -6,7 +6,7 @@ Usage (Indexing Mode):
         --namespace "production:order-service" \\
         --promql-url "http://localhost:9090" \\
         --redis-host "localhost" \\
-        --redis-port 6379 \\
+        --redis-port 6380 \\
         --chromadb-host "localhost" \\
         --chromadb-port 8000 \\
         --batch-size 10 \\
@@ -18,7 +18,7 @@ Usage (Indexing with Exclusions):
         --promql-url "http://localhost:9090" \\
         --exclude-pattern "^(go_|process_|promhttp_)" \\
         --redis-host "localhost" \\
-        --redis-port 6379 \\
+        --redis-port 6380 \\
         --chromadb-host "localhost" \\
         --chromadb-port 8000
 
@@ -87,7 +87,7 @@ def parse_args():
     )
 
     parser.add_argument(
-        "--redis-port", type=int, default=6379, help="Redis port (default: 6379)"
+        "--redis-port", type=int, default=6380, help="Redis port (default: 6380)"
     )
 
     parser.add_argument(

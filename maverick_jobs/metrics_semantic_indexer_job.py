@@ -167,6 +167,10 @@ class MetricsSemanticIndexerJob:
             if not dry_run:
                 print("[2/4] Updating Redis metadata store...")
                 self._update_redis_store(namespace, metrics)
+                logger.info(
+                    "Redis metadata store updated",
+                    extra={"namespace": namespace, "count": len(metrics)},
+                )
                 print(f"      ✓ Redis updated with {len(metrics)} metric names\n")
             else:
                 print("[2/4] Updating Redis metadata store... [SKIPPED - DRY RUN]\n")
