@@ -1,5 +1,10 @@
 """Main FastAPI application for Maverick Service."""
 
+import os
+
+# Avoid HuggingFace tokenizers fork warnings in uvicorn workers.
+os.environ.setdefault("TOKENIZERS_PARALLELISM", "false")
+
 from fastapi import FastAPI
 from maverick_service.api.controllers import (
     hello_controller,
