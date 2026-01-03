@@ -1,7 +1,7 @@
 Metadata-Version: 2.4
 Name: maverick-lib
 Version: 0.1.0
-Summary: Maverick Client Library - Client library for Maverick query engine
+Summary: Maverick Client Library - Reusable observability client for metrics and logs
 Requires-Python: >=3.13
 Description-Content-Type: text/markdown
 Requires-Dist: maverick-engine
@@ -13,7 +13,7 @@ Requires-Dist: pydantic>=2.0.0
 
 # Maverick Lib
 
-Client library for Maverick query engine.
+Reusable client library for observability operations (metrics and logs).
 
 ## Features
 
@@ -135,7 +135,7 @@ pytest tests
 ## Dependencies
 
 - `maverick-engine`: Query generation and validation engine
-- `maverick-dal`: Data access layer for Redis and ChromaDB
+- `maverick-dal`: Data access layer
 - `opus-agent-base`: LLM agent framework
 - `chromadb`: Vector store for semantic search
 - `redis`: Metrics metadata store

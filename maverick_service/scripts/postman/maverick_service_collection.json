@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "Maverick Service API",
-    "description": "FastAPI REST service for Maverick observability operations - metrics search, PromQL generation, LogQL generation, and Splunk query generation",
+    "description": "FastAPI REST service for Maverick query engine - metrics search, PromQL generation, LogQL generation, and Splunk query generation",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
     "version": "0.1.0"
   },

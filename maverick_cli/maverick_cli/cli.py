@@ -3,7 +3,7 @@
 import typer
 from rich.console import Console
 
-from maverick_cli.commands import metrics, logs
+from maverick_cli.maverick_cli.commands import metrics, logs
 
 # Create main app
 app = typer.Typer(

@@ -3,7 +3,7 @@
 import pytest
 from typer.testing import CliRunner
 
-from maverick_cli.cli import app
+from maverick_cli.maverick_cli.cli import app
 
 runner = CliRunner()
 

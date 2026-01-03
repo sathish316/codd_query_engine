@@ -19,9 +19,13 @@ FastAPI REST service for Maverick query engine.
 ## Features
 
 - FastAPI-based REST API
-- Hello World endpoints (GET and POST)
+- Metrics search using semantic search
+- PromQL query generation for Prometheus
+- LogQL query generation for Loki
+- Splunk SPL query generation
 - Auto-generated OpenAPI documentation
 - Health check endpoint
+- Comprehensive test coverage (unit + E2E integration tests)
 
 ## Installation
 
@@ -30,105 +34,224 @@ FastAPI REST service for Maverick query engine.
 uv sync
 ```
 
-## Running the Service
+## Quick Start
 
-```bash
-# Run with uvicorn
-uv run uvicorn maverick_service.main:app --reload
+### Prerequisites
 
-# Or specify host and port
-uv run uvicorn maverick_service.main:app --host 0.0.0.0 --port 8000 --reload
-```
+- Python 3.13+
+- Redis (for caching)
+- ChromaDB (for semantic search)
+- Environment variables for LLM API access (if using query generation features)
+
+### Starting the Service
+
+1. **Install dependencies:**
+   ```bash
+   # From workspace root
+   uv sync
+   ```
+
+2. **Start the service:**
+   ```bash
+   # Run with uvicorn (from workspace root)
+   uv run uvicorn maverick_service.main:app --reload
+
+   # Or specify host and port
+   uv run uvicorn maverick_service.main:app --host 0.0.0.0 --port 8000 --reload
+   ```
+
+3. **Verify the service is running:**
+   ```bash
+   curl http://localhost:8000/health
+   ```
+
+### Accessing the API
 
 The service will be available at:
-- API: http://localhost:8000
-- Interactive docs: http://localhost:8000/docs
-- Alternative docs: http://localhost:8000/redoc
+- **API Base URL:** http://localhost:8000
+- **Interactive Swagger Docs:** http://localhost:8000/docs
+- **Alternative ReDoc:** http://localhost:8000/redoc
+- **OpenAPI JSON:** http://localhost:8000/openapi.json
+
+### Using Postman
+
+1. **Import the Postman collection:**
+   - Open Postman
+   - Click "Import" button
+   - Select the file: `maverick_service/scripts/postman/maverick_service_collection.json`
+
+2. **Configure environment:**
+   - The collection uses a variable `{{baseUrl}}` set to `http://localhost:8000`
+   - If your service runs on a different host/port, update this variable in Postman
+
+3. **Try the APIs:**
+   - Start with the "Health Check" request to verify connectivity
+   - Explore the "Metrics" and "Logs" folders for observability operations
+   - Each request includes example payloads that you can modify
 
 ## API Endpoints
 
 ### Root Endpoints
 
 **GET /**
-- Description: Root endpoint with service information
-- Response:
-  ```json
-  {
-    "message": "Welcome to Maverick Service",
-    "version": "0.1.0",
-    "docs": "/docs"
-  }
-  ```
+- Root endpoint with service information
+- Response: `{"message": "Welcome to Maverick Service", "version": "0.1.0", "docs": "/docs"}`
 
 **GET /health**
-- Description: Health check endpoint
-- Response:
-  ```json
-  {
-    "status": "healthy"
-  }
-  ```
+- Health check endpoint
+- Response: `{"status": "healthy"}`
 
-### Hello World Endpoints
+### Metrics Endpoints
 
-**GET /api/hello**
-- Description: Hello world endpoint with query parameter
-- Parameters:
-  - `name` (query, required): Name for greeting
-- Response:
-  ```json
-  {
-    "message": "Hello, World!",
-    "name": "World"
-  }
-  ```
-- Example:
-  ```bash
-  curl "http://localhost:8000/api/hello?name=World"
-  ```
-
-**POST /api/hello**
-- Description: Hello world endpoint with payload
+**POST /api/metrics/search**
+- Search for relevant metrics using semantic search
 - Request Body:
   ```json
   {
-    "name": "World"
+    "query": "API request latency",
+    "limit": 5
   }
   ```
 - Response:
   ```json
   {
-    "message": "Hello, World!",
-    "name": "World"
+    "results": [
+      {
+        "metric_name": "http_request_duration_seconds",
+        "similarity_score": 0.85,
+        "description": "HTTP request duration",
+        "metric_type": "histogram"
+      }
+    ],
+    "count": 1
   }
   ```
-- Example:
-  ```bash
-  curl -X POST "http://localhost:8000/api/hello" \
-    -H "Content-Type: application/json" \
-    -d '{"name": "World"}'
+
+**POST /api/metrics/promql/generate**
+- Generate a PromQL query from metrics query intent
+- Request Body:
+  ```json
+  {
+    "description": "API error rate for payment service",
+    "namespace": "production",
+    "metric_name": "http_requests_total",
+    "aggregation": "rate",
+    "filters": {"service": "payments", "status": "500"}
+  }
+  ```
+- Response:
+  ```json
+  {
+    "query": "rate(http_requests_total{service=\"payments\", status=\"500\"}[5m])",
+    "success": true,
+    "error": null
+  }
+  ```
+
+### Logs Endpoints
+
+**POST /api/logs/logql/generate**
+- Generate a LogQL query for Loki
+- Request Body:
+  ```json
+  {
+    "description": "Find error logs in payment service",
+    "service": "payments",
+    "patterns": [
+      {"pattern": "error", "level": "error"},
+      {"pattern": "timeout"}
+    ],
+    "namespace": "production",
+    "limit": 200
+  }
+  ```
+- Response:
+  ```json
+  {
+    "query": "{service=\"payments\"} |~ \"error\" | level=\"error\"",
+    "backend": "loki",
+    "success": true,
+    "error": null
+  }
+  ```
+
+**POST /api/logs/splunk/generate**
+- Generate a Splunk SPL query
+- Request Body:
+  ```json
+  {
+    "description": "Search for timeout errors",
+    "service": "api-gateway",
+    "patterns": [
+      {"pattern": "timeout", "level": "error"}
+    ],
+    "limit": 100
+  }
+  ```
+- Response:
+  ```json
+  {
+    "query": "search service=\"api-gateway\" level=\"error\" \"timeout\" | head 100",
+    "backend": "splunk",
+    "success": true,
+    "error": null
+  }
   ```
 
 ## Testing
+
+The service includes comprehensive test coverage with both unit tests and E2E integration tests.
 
 ```bash
 # Run all tests
 uv run pytest maverick_service/tests -v
 
+# Run specific test files
+uv run pytest maverick_service/tests/test_integration.py -v
+uv run pytest maverick_service/tests/test_metrics_controller.py -v
+uv run pytest maverick_service/tests/test_logs_controller.py -v
+
 # Run with coverage
 uv run pytest maverick_service/tests --cov=maverick_service
+
+# Run only unit tests (with mocking)
+uv run pytest maverick_service/tests/test_*_controller.py -v
+
+# Run only E2E integration tests (no mocking)
+uv run pytest maverick_service/tests/test_integration.py -v
 ```
 
 ## Development
 
 The service is organized with:
-- `maverick_service/main.py`: Main FastAPI application
+- `maverick_service/main.py`: Main FastAPI application with router registration
 - `maverick_service/api/controllers/`: API endpoint controllers
+  - `metrics_controller.py`: Metrics search and PromQL generation
+  - `logs_controller.py`: LogQL and Splunk query generation
+  - `hello_controller.py`: Example endpoints
 - `maverick_service/tests/`: Test suite
+  - `test_integration.py`: E2E integration tests
+  - `test_metrics_controller.py`: Unit tests for metrics endpoints
+  - `test_logs_controller.py`: Unit tests for logs endpoints
+  - `test_hello_controller.py`: Unit tests for example endpoints
+- `maverick_service/scripts/postman/`: Postman collection for API testing
 
-## API Documentation
+### Architecture
 
-Once the service is running, visit:
-- Swagger UI: http://localhost:8000/docs
-- ReDoc: http://localhost:8000/redoc
-- OpenAPI JSON: http://localhost:8000/openapi.json
+The service uses:
+- **FastAPI** for REST API framework
+- **Pydantic** for request/response validation
+- **maverick_lib** for business logic (metrics search, query generation)
+- **httpx** for HTTP client operations
+- Singleton pattern for MaverickClient to optimize resource usage
+
+## Related Services
+
+### Maverick MCP Server
+
+The `maverick_mcp_server` package provides an MCP (Model Context Protocol) server that exposes the same functionality as this REST service. The MCP server uses HTTP client to connect to this service, making it easy to integrate with Claude Desktop and other MCP clients.
+
+To use the MCP server:
+1. Start this Maverick Service (on http://localhost:8000)
+2. Configure the MCP server with `MAVERICK_SERVICE_URL` environment variable if needed
+3. Run the MCP server to expose tools via MCP protocol

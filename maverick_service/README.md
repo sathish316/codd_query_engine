@@ -1,6 +1,6 @@
 # Maverick Service
 
-FastAPI REST service for Maverick observability operations.
+FastAPI REST service for Maverick query engine.
 
 ## Features
 

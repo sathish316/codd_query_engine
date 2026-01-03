@@ -9,7 +9,7 @@ client = TestClient(app)
 
 
 @pytest.mark.integration
-class TestMetricsIntegration:
+class TestMaverickServiceMetricsIntegration:
     """E2E integration tests for metrics endpoints."""
 
     def test_search_metrics_e2e(self):
@@ -69,7 +69,7 @@ class TestMetricsIntegration:
 
 
 @pytest.mark.integration
-class TestLogsIntegration:
+class TestMaverickServiceLogsIntegration:
     """E2E integration tests for logs endpoints."""
 
     def test_generate_logql_query_e2e(self):
@@ -144,7 +144,7 @@ class TestLogsIntegration:
 
 
 @pytest.mark.integration
-class TestEndpointValidation:
+class TestMaverickServiceEndpointValidation:
     """Test request validation for all endpoints."""
 
     def test_metrics_search_missing_query(self):

@@ -10,7 +10,7 @@ from maverick_service.api.controllers import (
 # Create FastAPI app
 app = FastAPI(
     title="Maverick Service",
-    description="FastAPI REST service for Maverick observability operations",
+    description="FastAPI REST service for Maverick query engine",
     version="0.1.0",
 )
 
@@ -34,3 +34,10 @@ async def root():
 async def health():
     """Health check endpoint."""
     return {"status": "healthy"}
+
+
+def main():
+    """Run the Maverick Service with uvicorn."""
+    import uvicorn
+
+    uvicorn.run(app, host="0.0.0.0", port=2840)
