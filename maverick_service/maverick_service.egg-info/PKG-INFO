@@ -1,0 +1,19 @@
+Metadata-Version: 2.4
+Name: maverick-service
+Version: 0.1.0
+Summary: Maverick Service - FastAPI REST service for observability operations
+Requires-Python: >=3.13
+Description-Content-Type: text/markdown
+Requires-Dist: maverick-dal
+Requires-Dist: maverick-engine
+Requires-Dist: fastapi>=0.100.0
+Requires-Dist: uvicorn>=0.20.0
+Requires-Dist: pydantic>=2.0.0
+
+# Maverick Service
+
+API and business logic layer for the Maverick platform.
+
+## Dependencies
+- maverick-dal: Data access layer
+- maverick-engine: Query processing and validation
