@@ -25,6 +25,7 @@ mcp_config:
           enabled: true
         semantics:
           enabled: false
+          confidence_threshold: 2
   logs:
     logql:
       validator:

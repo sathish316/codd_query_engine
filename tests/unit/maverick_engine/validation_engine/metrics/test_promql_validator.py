@@ -216,6 +216,8 @@ class TestPromQLValidator:
             explanation="rate() should not be used on gauge metrics",
             original_intent_summary="Average of gauge over time",
             actual_query_behavior="Rate calculation on gauge",
+            confidence_score=1,
+            reasoning="Critical error - applying rate() to a gauge metric",
         )
 
         # Execute
@@ -262,6 +264,8 @@ class TestPromQLValidator:
             explanation="Query matches metric and some filters, but missing method filter",
             original_intent_summary="Rate with status and method filters",
             actual_query_behavior="Rate with only status filter",
+            confidence_score=3,
+            reasoning="Missing endpoint filter makes the query broader than intended, but it still measures the core metric",
         )
 
         # Execute

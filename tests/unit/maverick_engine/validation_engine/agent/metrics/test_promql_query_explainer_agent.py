@@ -51,7 +51,8 @@ def mock_agent():
         explanation="Query correctly uses rate() on a counter metric",
         original_intent_summary="Calculate per-second rate of HTTP 500 errors over 5m",
         actual_query_behavior="Calculates per-second rate of http_requests_total with status=500 over 5 minutes",
-        confidence=0.95,
+        confidence_score=5,
+        reasoning="Perfect alignment - correct metric type handling, exact filters, correct time window, and appropriate aggregation function.",
     )
 
     agent.run_sync.return_value = MockAgentResult(output=result)
@@ -113,6 +114,8 @@ class TestValidateSemanticMatch:
             explanation="Query uses rate() on a gauge metric, which is incorrect",
             original_intent_summary="Calculate average memory usage over 5m",
             actual_query_behavior="Calculates rate of change for memory_usage_bytes gauge",
+            confidence_score=1,
+            reasoning="Critical error - applying rate() to a gauge metric. Rate is for counters that always increase, not gauges with fluctuating values.",
         )
         mock_agent.run_sync.return_value = MockAgentResult(output=mismatch_result)
 
@@ -145,6 +148,8 @@ class TestValidateSemanticMatch:
             explanation="Query uses 99th percentile instead of 95th, but structure is correct",
             original_intent_summary="Calculate 95th percentile latency for /users endpoint",
             actual_query_behavior="Calculates 99th percentile latency for /users endpoint",
+            confidence_score=4,
+            reasoning="Uses 99th percentile instead of 95th, but the query structure is correct and will provide useful latency data. The difference is minor and doesn't compromise the monitoring goal.",
         )
         mock_agent.run_sync.return_value = MockAgentResult(output=partial_result)
 
