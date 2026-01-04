@@ -10,6 +10,8 @@ from typing import Any, Optional
 from datetime import datetime
 import httpx
 
+from maverick_lib.config import PrometheusConfig
+
 
 class PromQLClient:
     """
@@ -18,29 +20,47 @@ class PromQLClient:
     Provides methods for metadata retrieval and query execution.
 
     Args:
-        base_url: Prometheus server URL (e.g., "http://localhost:9090")
-        timeout: Request timeout in seconds
-        headers: Optional custom headers for authentication
+        config: PrometheusConfig object with connection settings
+        base_url: (Deprecated) Prometheus server URL (e.g., "http://localhost:9090")
+        timeout: (Deprecated) Request timeout in seconds
+        headers: (Deprecated) Optional custom headers for authentication
     """
 
     def __init__(
         self,
-        base_url: str,
-        timeout: float = 30.0,
+        config: Optional[PrometheusConfig] = None,
+        base_url: Optional[str] = None,
+        timeout: Optional[float] = None,
         headers: Optional[dict[str, str]] = None,
     ):
         """
         Initialize PromQL client.
 
         Args:
-            base_url: Prometheus server URL
-            timeout: Request timeout in seconds
-            headers: Optional custom headers
+            config: PrometheusConfig object (preferred)
+            base_url: Prometheus server URL (deprecated, use config)
+            timeout: Request timeout in seconds (deprecated, use config)
+            headers: Optional custom headers (deprecated, use config)
         """
-        self.base_url = base_url.rstrip("/")
-        self.timeout = timeout
-        self.headers = headers or {}
-        self.client = httpx.Client(timeout=timeout, headers=self.headers)
+        # Support both new config-based initialization and legacy parameter-based initialization
+        if config is not None:
+            self.base_url = config.base_url.rstrip("/")
+            self.timeout = config.timeout
+            # Build headers from auth_token if present
+            self.headers = {}
+            if config.auth_token:
+                self.headers["Authorization"] = f"Bearer {config.auth_token}"
+            if headers:
+                self.headers.update(headers)
+        else:
+            # Legacy initialization for backward compatibility
+            if base_url is None:
+                raise ValueError("Either config or base_url must be provided")
+            self.base_url = base_url.rstrip("/")
+            self.timeout = timeout if timeout is not None else 30.0
+            self.headers = headers or {}
+
+        self.client = httpx.Client(timeout=self.timeout, headers=self.headers)
 
     def __enter__(self):
         """Context manager entry."""

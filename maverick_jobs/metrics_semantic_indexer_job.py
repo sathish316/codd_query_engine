@@ -22,6 +22,7 @@ from maverick_dal.metrics.metrics_metadata_store import MetricsMetadataStore
 from maverick_dal.metrics.metrics_semantic_metadata_store import (
     MetricsSemanticMetadataStore,
 )
+from maverick_lib.config import PrometheusConfig
 
 from maverick_engine.semantic_engine.agent.metrics_enrichment_agent import (
     MetricsEnrichmentAgent,
@@ -64,25 +65,36 @@ class MetricsSemanticIndexerJob:
 
     def __init__(
         self,
-        promql_base_url: str,
         redis_client: redis.Redis,
         chromadb_client: chromadb.ClientAPI,
         config_manager: ConfigManager,
         instructions_manager: InstructionsManager,
+        prometheus_config: Optional[PrometheusConfig] = None,
+        promql_base_url: Optional[str] = None,
         batch_size: int = 10,
     ):
         """
         Initialize the semantic indexer job.
 
         Args:
-            promql_base_url: Base URL for Prometheus server
             redis_client: Redis client for metadata store
             chromadb_client: ChromaDB client for semantic store
             config_manager: Configuration manager for LLM agent
             instructions_manager: Instructions manager for LLM agent
+            prometheus_config: PrometheusConfig object (preferred)
+            promql_base_url: (Deprecated) Base URL for Prometheus server
             batch_size: Number of metrics to process in each batch
         """
-        self.promql_base_url = promql_base_url
+        # Support both new config-based initialization and legacy parameter-based initialization
+        if prometheus_config is not None:
+            self.prometheus_config = prometheus_config
+        elif promql_base_url is not None:
+            # Legacy support: create config from base_url
+            self.prometheus_config = PrometheusConfig(base_url=promql_base_url)
+        else:
+            # Use default config
+            self.prometheus_config = PrometheusConfig()
+
         self.batch_size = batch_size
 
         # Initialize clients and stores
@@ -100,7 +112,7 @@ class MetricsSemanticIndexerJob:
 
         logger.info(
             f"Initialized MetricsSemanticIndexerJob with batch_size={batch_size}",
-            extra={"batch_size": batch_size, "promql_url": promql_base_url},
+            extra={"batch_size": batch_size, "promql_url": self.prometheus_config.base_url},
         )
 
     def run(
@@ -266,7 +278,7 @@ class MetricsSemanticIndexerJob:
             List of metric metadata dictionaries with 'metric', 'type', 'help' keys
         """
         try:
-            with PromQLClient(base_url=self.promql_base_url) as client:
+            with PromQLClient(config=self.prometheus_config) as client:
                 self.promql_client = client
 
                 # Check health

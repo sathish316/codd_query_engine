@@ -42,6 +42,12 @@ from maverick_jobs.metrics_semantic_indexer_job import MetricsSemanticIndexerJob
 from maverick_dal.metrics.metrics_semantic_metadata_store import (
     MetricsSemanticMetadataStore,
 )
+from maverick_lib.config import (
+    MaverickConfig,
+    RedisConfig,
+    SemanticStoreConfig,
+    PrometheusConfig,
+)
 
 from opus_agent_base.config.config_manager import ConfigManager
 from opus_agent_base.prompt.instructions_manager import InstructionsManager
@@ -165,7 +171,7 @@ def parse_args():
 
 def initialize_clients(args):
     """
-    Initialize Redis and ChromaDB clients.
+    Initialize Redis and ChromaDB clients using MaverickConfig models.
 
     Args:
         args: Parsed command line arguments
@@ -174,28 +180,41 @@ def initialize_clients(args):
         Tuple of (redis_client, chromadb_client)
     """
     try:
-        # Initialize Redis client
-        redis_client = redis.Redis(
+        # Create config objects from CLI arguments
+        redis_config = RedisConfig(
             host=args.redis_host,
             port=args.redis_port,
             db=args.redis_db,
             decode_responses=True,
         )
 
+        semantic_store_config = SemanticStoreConfig(
+            chromadb_host=args.chromadb_host,
+            chromadb_port=args.chromadb_port,
+        )
+
+        # Initialize Redis client using config model
+        redis_client = redis.Redis(
+            host=redis_config.host,
+            port=redis_config.port,
+            db=redis_config.db,
+            decode_responses=redis_config.decode_responses,
+        )
+
         # Test Redis connection
         redis_client.ping()
-        logger.info(f"Connected to Redis at {args.redis_host}:{args.redis_port}")
+        logger.info(f"Connected to Redis at {redis_config.host}:{redis_config.port}")
 
-        # Initialize ChromaDB client
+        # Initialize ChromaDB client using config model
         chromadb_client = chromadb.HttpClient(
-            host=args.chromadb_host,
-            port=args.chromadb_port,
+            host=semantic_store_config.chromadb_host,
+            port=semantic_store_config.chromadb_port,
         )
 
         # Test ChromaDB connection
         chromadb_client.heartbeat()
         logger.info(
-            f"Connected to ChromaDB at {args.chromadb_host}:{args.chromadb_port}"
+            f"Connected to ChromaDB at {semantic_store_config.chromadb_host}:{semantic_store_config.chromadb_port}"
         )
 
         return redis_client, chromadb_client
@@ -297,14 +316,20 @@ def main():
         logger.info("=" * 70)
 
         try:
-            # Initialize ChromaDB client only
+            # Create config object from CLI arguments
+            semantic_store_config = SemanticStoreConfig(
+                chromadb_host=args.chromadb_host,
+                chromadb_port=args.chromadb_port,
+            )
+
+            # Initialize ChromaDB client only using config model
             chromadb_client = chromadb.HttpClient(
-                host=args.chromadb_host,
-                port=args.chromadb_port,
+                host=semantic_store_config.chromadb_host,
+                port=semantic_store_config.chromadb_port,
             )
             chromadb_client.heartbeat()
             logger.info(
-                f"Connected to ChromaDB at {args.chromadb_host}:{args.chromadb_port}"
+                f"Connected to ChromaDB at {semantic_store_config.chromadb_host}:{semantic_store_config.chromadb_port}"
             )
 
             # Run query
@@ -339,13 +364,16 @@ def main():
         # Initialize agent managers
         config_manager, instructions_manager = initialize_agent_managers()
 
+        # Create Prometheus config from CLI arguments
+        prometheus_config = PrometheusConfig(base_url=args.promql_url)
+
         # Create indexer job
         indexer = MetricsSemanticIndexerJob(
-            promql_base_url=args.promql_url,
             redis_client=redis_client,
             chromadb_client=chromadb_client,
             config_manager=config_manager,
             instructions_manager=instructions_manager,
+            prometheus_config=prometheus_config,
             batch_size=args.batch_size,
         )
 
