@@ -12,6 +12,7 @@ from maverick_engine.querygen_engine.metrics.structured_outputs import (
     PromQLQueryResponse,
     QueryGenerationResult,
     QueryGenerationError,
+    QueryGenerationContext,
 )
 from maverick_engine.querygen_engine.metrics.preprocessor.metrics_querygen_preprocessor import (
     MetricsQuerygenPreprocessor,
@@ -89,14 +90,14 @@ class PromQLQueryGeneratorAgent:
         1. Generate an initial query based on the intent
         2. Use the validate_promql_query tool to check the query
         3. If validation fails, adjust the query based on feedback
-        4. Repeat until the query passes all validations or max iterations
+        4. Repeat until the query passes all validations or max attempts reached
 
         Args:
+            namespace: Namespace for schema validation
             intent: The metrics query intent
-            namespace: Optional namespace for schema validation
 
         Returns:
-            QueryGenerationResult with final query and metadata
+            QueryGenerationResult with final query, attempts, and metadata
 
         Raises:
             QueryGenerationError: If query generation fails
@@ -127,6 +128,23 @@ class PromQLQueryGeneratorAgent:
                 },
             )
 
+            # Get max_attempts from config (default: 5)
+            max_attempts = self.config_manager.get_setting(
+                "mcp_config.metrics.promql.generation.max_attempts", 5
+            )
+
+            # Create generation context with attempt tracking
+            generation_context = QueryGenerationContext(
+                intent=preprocessed_intent,
+                namespace=namespace,
+                max_attempts=max_attempts,
+            )
+
+            logger.info(
+                f"Generation context created with max_attempts={max_attempts}",
+                extra={"max_attempts": max_attempts},
+            )
+
             # Format the generation prompt
             generation_prompt = self._format_generation_prompt(
                 namespace, preprocessed_intent
@@ -135,19 +153,30 @@ class PromQLQueryGeneratorAgent:
             # Execute LLM query generation with ReAct pattern
             logger.info("Executing agent with ReAct pattern")
 
-            result = await self.agent.run(generation_prompt, deps=preprocessed_intent)
+            result = await self.agent.run(generation_prompt, deps=generation_context)
 
             logger.info(
                 "Query generation completed",
                 extra={
                     "metric": preprocessed_intent.metric,
                     "query": result.output.query,
+                    "total_attempts": len(generation_context.attempts),
                 },
+            )
+
+            # Determine if generation was successful
+            # Success = last attempt was valid OR we have a query (even if max attempts reached)
+            last_attempt_valid = (
+                generation_context.attempts
+                and generation_context.attempts[-1].validation_result
+                and generation_context.attempts[-1].validation_result.get("is_valid", False)
             )
 
             return QueryGenerationResult(
                 query=result.output.query,
-                success=True,
+                success=last_attempt_valid or len(generation_context.attempts) > 0,
+                attempts=generation_context.attempts,
+                total_attempts=len(generation_context.attempts),
             )
 
         except Exception as e:
@@ -207,13 +236,6 @@ class PromQLQueryGeneratorAgent:
 - Suggested Aggregations: {agg_suggestions_str}
 - Namespace: {namespace}
 
-**IMPORTANT INSTRUCTIONS:**
-1. Generate a PromQL query that matches this intent
-2. Use the `validate_promql_query` tool to validate your query. Pass a namespace to validator tool for some of the validations.
-3. If validation fails, carefully read the feedback and fix the errors
-4. Keep validating and refining until you get "ALL VALIDATIONS PASSED"
-5. The validation tool will check syntax, schema (if applicable), and semantic correctness and provide feedback to fix the errors if required.
-
-Generate the best possible PromQL query for the intent, then validate it using the tool."""
+Generate the best PromQL query that matches this intent. Use the suggested aggregations as guidance based on the metric type. After generating the query, validate it using the `validate_promql_query` tool (pass namespace and intent parameters). If validation fails, adjust the query based on the feedback."""
 
         return prompt
