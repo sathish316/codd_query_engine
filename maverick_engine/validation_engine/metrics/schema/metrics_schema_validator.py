@@ -62,7 +62,7 @@ class MetricsSchemaValidator:
 
         # Parse expression to extract metric names
         try:
-            metric_names = self._parser.parse(metric_expression)
+            metric_names = self._parser.parse(metric_expression, namespace)
         except MetricExpressionParseError as e:
             return SchemaValidationResult.parse_error(str(e), e)
         except Exception as e:

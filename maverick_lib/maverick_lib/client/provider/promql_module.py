@@ -27,6 +27,15 @@ from maverick_engine.querygen_engine.agent.metrics.promql_query_generator_agent 
 from maverick_engine.validation_engine.agent.metrics.promql_metricname_extractor_agent import (
     PromQLMetricNameExtractorAgent,
 )
+from maverick_engine.validation_engine.metrics.schema.metric_validation_strategy import (
+    MetricValidationStrategy,
+)
+from maverick_engine.validation_engine.metrics.schema.substring_metric_parser import (
+    SubstringMetricParser,
+)
+from maverick_engine.validation_engine.metrics.schema.fuzzy_metric_parser import (
+    FuzzyMetricParser,
+)
 from maverick_lib.config import MaverickConfig
 from maverick_engine.validation_engine.metrics.semantics.promql_semantics_validator import (
     PromQLSemanticsValidator,
@@ -179,19 +188,44 @@ class PromQLModule:
         instructions_manager: InstructionsManager,
     ) -> MetricsSchemaValidator:
         """
-        Provide a MetricsSchemaValidator instance.
+        Provide a MetricsSchemaValidator instance with the configured parser strategy.
 
         Args:
             metadata_store: MetricsMetadataStore instance
-            metric_extractor_agent: PromQLMetricNameExtractorAgent instance
+            config_manager: ConfigManager instance
+            instructions_manager: InstructionsManager instance
 
         Returns:
-            MetricsSchemaValidator instance
+            MetricsSchemaValidator instance with the appropriate metric parser
         """
-        metric_extractor_agent = cls._get_metric_extractor_agent(
-            config_manager, instructions_manager
-        )
-        return MetricsSchemaValidator(metadata_store, metric_extractor_agent)
+        # Get the strategy from config (default to fuzzy)
+        strategy_str = config_manager.get_setting(
+            "mcp_config.metrics.promql.validation.schema.strategy", "fuzzy"
+        ).lower()
+
+        # Create the appropriate parser based on strategy
+        if strategy_str == "llm":
+            parser = cls._get_metric_extractor_agent(config_manager, instructions_manager)
+        elif strategy_str == "substring":
+            parser = SubstringMetricParser(metadata_store)
+        elif strategy_str == "fuzzy":
+            # Get fuzzy matching config parameters
+            top_k = config_manager.get_setting(
+                "mcp_config.metrics.promql.validation.schema.fuzzy.top_k", 10
+            )
+            min_similarity_score = config_manager.get_setting(
+                "mcp_config.metrics.promql.validation.schema.fuzzy.min_similarity_score", 60
+            )
+            parser = FuzzyMetricParser(
+                metadata_store,
+                top_k=top_k,
+                min_similarity_score=min_similarity_score,
+            )
+        else:
+            # Fallback to fuzzy for invalid strategy
+            parser = FuzzyMetricParser(metadata_store)
+
+        return MetricsSchemaValidator(metadata_store, parser)
 
     @classmethod
     def _get_metric_extractor_agent(

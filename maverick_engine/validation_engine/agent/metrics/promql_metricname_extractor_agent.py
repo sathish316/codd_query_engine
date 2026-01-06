@@ -65,7 +65,7 @@ class PromQLMetricNameExtractorAgent(MetricExpressionParser):
     def _get_agent(self):
         return self.agent
 
-    def parse(self, metric_expression: str) -> set[str]:
+    def parse(self, metric_expression: str, namespace: str = "") -> set[str]:
         """
         Parse a metric expression and extract unique metric names.
 
@@ -74,6 +74,7 @@ class PromQLMetricNameExtractorAgent(MetricExpressionParser):
 
         Args:
             metric_expression: The expression string to parse
+            namespace: Optional namespace (not used by LLM parser)
 
         Returns:
             Set of unique metric names found in the expression
