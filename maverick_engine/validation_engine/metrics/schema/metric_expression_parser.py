@@ -15,12 +15,13 @@ class MetricExpressionParser(Protocol):
     or generic Exception on parse failures.
     """
 
-    def parse(self, metric_expression: str) -> set[str]:
+    def parse(self, metric_expression: str, namespace: str = "") -> set[str]:
         """
         Parse a metric expression and extract unique metric names.
 
         Args:
             metric_expression: The expression string to parse
+            namespace: Optional namespace for validation (used by substring/fuzzy parsers)
 
         Returns:
             Set of unique metric names found in the expression
