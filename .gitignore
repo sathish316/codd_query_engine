@@ -5,3 +5,4 @@ uv.lock
 maverick_engine.egg-info
 redis-data
 *.log
+POST.md

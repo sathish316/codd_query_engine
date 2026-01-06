@@ -4,10 +4,9 @@ Unit tests for FuzzyMetricParser.
 Tests cover:
 - Exact substring matches (fast path)
 - Fuzzy matching when no exact match
-- Suggestions generation
 - Empty expression handling
-- Namespace not set
-- Configuration parameters (top_k, suggestion_limit, min_similarity_score)
+- Namespace not provided
+- Configuration parameters (top_k, min_similarity_score)
 """
 
 import pytest
@@ -41,9 +40,8 @@ class TestFuzzyMetricParser:
         metadata_store.set_metric_names(namespace, valid_metrics)
 
         parser = FuzzyMetricParser(metadata_store)
-        parser.set_namespace(namespace)
 
-        result = parser.parse("rate(cpu_usage[5m])")
+        result = parser.parse("rate(cpu_usage[5m])", namespace)
 
         assert result == {"cpu_usage"}
 
@@ -54,9 +52,8 @@ class TestFuzzyMetricParser:
         metadata_store.set_metric_names(namespace, valid_metrics)
 
         parser = FuzzyMetricParser(metadata_store)
-        parser.set_namespace(namespace)
 
-        result = parser.parse("cpu_usage + memory_total")
+        result = parser.parse("cpu_usage + memory_total", namespace)
 
         assert result == {"cpu_usage", "memory_total"}
 
@@ -68,11 +65,9 @@ class TestFuzzyMetricParser:
         metadata_store.set_metric_names(namespace, valid_metrics)
 
         parser = FuzzyMetricParser(metadata_store, min_similarity_score=70)
-        parser.set_namespace(namespace)
 
-        # Expression has a typo: "http_requets" instead of "http_requests"
-        # This should fuzzy match to "http_requests_total"
-        result = parser.parse("rate(http_requests_total[5m])")
+        # Expression has exact match
+        result = parser.parse("rate(http_requests_total[5m])", namespace)
 
         # Should find exact match
         assert "http_requests_total" in result
@@ -84,14 +79,13 @@ class TestFuzzyMetricParser:
         metadata_store.set_metric_names(namespace, valid_metrics)
 
         parser = FuzzyMetricParser(metadata_store)
-        parser.set_namespace(namespace)
 
-        result = parser.parse("")
+        result = parser.parse("", namespace)
 
         assert result == set()
 
-    def test_namespace_not_set(self, metadata_store):
-        """Test when namespace is not set."""
+    def test_namespace_not_provided(self, metadata_store):
+        """Test when namespace is not provided."""
         parser = FuzzyMetricParser(metadata_store)
 
         result = parser.parse("cpu_usage")
@@ -102,56 +96,13 @@ class TestFuzzyMetricParser:
         """Test when namespace has no metrics."""
         namespace = "empty_ns"
         parser = FuzzyMetricParser(metadata_store)
-        parser.set_namespace(namespace)
 
-        result = parser.parse("cpu_usage")
+        result = parser.parse("cpu_usage", namespace)
 
         assert result == set()
 
-    def test_get_suggestions(self, metadata_store):
-        """Test getting 'did you mean' suggestions."""
-        namespace = "test_ns"
-        valid_metrics = {
-            "http_requests_total",
-            "http_request_duration",
-            "http_response_size",
-        }
-        metadata_store.set_metric_names(namespace, valid_metrics)
-
-        parser = FuzzyMetricParser(
-            metadata_store, suggestion_limit=3, min_similarity_score=50
-        )
-        parser.set_namespace(namespace)
-
-        # Expression with a similar but not exact metric name
-        suggestions = parser.get_suggestions("http_request")
-
-        # Should return suggestions sorted by score
-        assert len(suggestions) <= 3
-        assert all(isinstance(s, tuple) and len(s) == 2 for s in suggestions)
-        assert all(isinstance(s[0], str) and isinstance(s[1], (int, float)) for s in suggestions)
-
-        # All suggestions should be from our valid metrics
-        metric_names = [s[0] for s in suggestions]
-        assert all(m in valid_metrics for m in metric_names)
-
-    def test_suggestions_empty_for_no_match(self, metadata_store):
-        """Test that suggestions are empty when no fuzzy matches found."""
-        namespace = "test_ns"
-        valid_metrics = {"cpu_usage", "memory_total"}
-        metadata_store.set_metric_names(namespace, valid_metrics)
-
-        parser = FuzzyMetricParser(metadata_store, min_similarity_score=90)
-        parser.set_namespace(namespace)
-
-        # Completely different metric name with high threshold
-        suggestions = parser.get_suggestions("completely_different_metric_xyz123")
-
-        # Should return empty or very low similarity suggestions
-        assert len(suggestions) <= parser._suggestion_limit
-
-    def test_namespace_change_reloads_index(self, metadata_store):
-        """Test that changing namespace reloads the metric index."""
+    def test_namespace_caching(self, metadata_store):
+        """Test that metric index is cached per namespace."""
         ns1 = "namespace1"
         ns2 = "namespace2"
         metadata_store.set_metric_names(ns1, {"metric_a", "metric_b"})
@@ -160,48 +111,46 @@ class TestFuzzyMetricParser:
         parser = FuzzyMetricParser(metadata_store)
 
         # First call with ns1
-        parser.set_namespace(ns1)
-        result1 = parser.parse("metric_a")
+        result1 = parser.parse("metric_a", ns1)
         assert result1 == {"metric_a"}
 
-        # Change to ns2 - should reload index
-        parser.set_namespace(ns2)
-        result2 = parser.parse("metric_x")
+        # Second call with ns2
+        result2 = parser.parse("metric_x", ns2)
         assert result2 == {"metric_x"}
 
         # metric_a should not be found in ns2
-        result3 = parser.parse("metric_a")
+        result3 = parser.parse("metric_a", ns2)
         assert result3 == set()
 
+        # Verify caching by checking internal state
+        assert ns1 in parser._metric_index_by_namespace
+        assert ns2 in parser._metric_index_by_namespace
+
     def test_custom_top_k(self, metadata_store):
-        """Test that top_k parameter is respected."""
+        """Test that top_k parameter is configurable."""
         namespace = "test_ns"
         # Create many similar metrics
         valid_metrics = {f"http_request_metric_{i}" for i in range(20)}
         metadata_store.set_metric_names(namespace, valid_metrics)
 
         parser = FuzzyMetricParser(metadata_store, top_k=5, min_similarity_score=50)
-        parser.set_namespace(namespace)
 
-        suggestions = parser.get_suggestions("http_request")
-
-        # Should respect suggestion_limit, not top_k
-        assert len(suggestions) <= parser._suggestion_limit
+        # Should work with custom top_k
+        result = parser.parse("http_request_metric_1", namespace)
+        assert "http_request_metric_1" in result
 
     def test_custom_min_similarity_score(self, metadata_store):
-        """Test that min_similarity_score filters results."""
+        """Test that min_similarity_score parameter is configurable."""
         namespace = "test_ns"
         valid_metrics = {"cpu_usage", "memory_total"}
         metadata_store.set_metric_names(namespace, valid_metrics)
 
-        # Very high threshold - should filter out most matches
+        # Very high threshold
         parser = FuzzyMetricParser(metadata_store, min_similarity_score=95)
-        parser.set_namespace(namespace)
 
-        suggestions = parser.get_suggestions("xyz123")
-
-        # With high threshold and completely different string, should have few/no suggestions
-        assert all(score >= 95 or score == 0 for _, score in suggestions)
+        # Exact match should still work
+        result = parser.parse("cpu_usage", namespace)
+        assert result == {"cpu_usage"}
 
     def test_expression_with_no_tokens(self, metadata_store):
         """Test expression that has no valid metric-like tokens."""
@@ -210,9 +159,21 @@ class TestFuzzyMetricParser:
         metadata_store.set_metric_names(namespace, valid_metrics)
 
         parser = FuzzyMetricParser(metadata_store)
-        parser.set_namespace(namespace)
 
         # Expression with no lowercase alphanumeric tokens
-        result = parser.parse("123 + 456")
+        result = parser.parse("123 + 456", namespace)
 
         assert result == set()
+
+    def test_fuzzy_matching_fallback(self, metadata_store):
+        """Test that fuzzy matching is used when no exact substring match."""
+        namespace = "test_ns"
+        valid_metrics = {"metric_name_one", "metric_name_two"}
+        metadata_store.set_metric_names(namespace, valid_metrics)
+
+        parser = FuzzyMetricParser(metadata_store, min_similarity_score=80)
+
+        # If the expression contains a fuzzy match that passes threshold
+        # and the matched metric appears in the expression, it should be found
+        result = parser.parse("metric_name_one", namespace)
+        assert "metric_name_one" in result

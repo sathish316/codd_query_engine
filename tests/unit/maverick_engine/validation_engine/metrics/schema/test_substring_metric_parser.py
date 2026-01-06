@@ -5,7 +5,7 @@ Tests cover:
 - Happy path with metrics found as substrings
 - No matches found
 - Empty expression handling
-- Namespace not set
+- Namespace not provided
 - Multiple metrics matching
 """
 
@@ -40,9 +40,8 @@ class TestSubstringMetricParser:
         metadata_store.set_metric_names(namespace, valid_metrics)
 
         parser = SubstringMetricParser(metadata_store)
-        parser.set_namespace(namespace)
 
-        result = parser.parse("rate(cpu_usage[5m])")
+        result = parser.parse("rate(cpu_usage[5m])", namespace)
 
         assert result == {"cpu_usage"}
 
@@ -53,9 +52,8 @@ class TestSubstringMetricParser:
         metadata_store.set_metric_names(namespace, valid_metrics)
 
         parser = SubstringMetricParser(metadata_store)
-        parser.set_namespace(namespace)
 
-        result = parser.parse("cpu_usage + memory_total")
+        result = parser.parse("cpu_usage + memory_total", namespace)
 
         assert result == {"cpu_usage", "memory_total"}
 
@@ -66,9 +64,8 @@ class TestSubstringMetricParser:
         metadata_store.set_metric_names(namespace, valid_metrics)
 
         parser = SubstringMetricParser(metadata_store)
-        parser.set_namespace(namespace)
 
-        result = parser.parse("rate(network_bytes[5m])")
+        result = parser.parse("rate(network_bytes[5m])", namespace)
 
         assert result == set()
 
@@ -79,14 +76,13 @@ class TestSubstringMetricParser:
         metadata_store.set_metric_names(namespace, valid_metrics)
 
         parser = SubstringMetricParser(metadata_store)
-        parser.set_namespace(namespace)
 
-        result = parser.parse("")
+        result = parser.parse("", namespace)
 
         assert result == set()
 
-    def test_namespace_not_set(self, metadata_store):
-        """Test when namespace is not set."""
+    def test_namespace_not_provided(self, metadata_store):
+        """Test when namespace is not provided."""
         parser = SubstringMetricParser(metadata_store)
 
         result = parser.parse("cpu_usage")
@@ -97,9 +93,8 @@ class TestSubstringMetricParser:
         """Test when namespace has no metrics."""
         namespace = "empty_ns"
         parser = SubstringMetricParser(metadata_store)
-        parser.set_namespace(namespace)
 
-        result = parser.parse("cpu_usage")
+        result = parser.parse("cpu_usage", namespace)
 
         assert result == set()
 
@@ -111,17 +106,16 @@ class TestSubstringMetricParser:
         metadata_store.set_metric_names(namespace, valid_metrics)
 
         parser = SubstringMetricParser(metadata_store)
-        parser.set_namespace(namespace)
 
         # Expression contains "cpu_usage" which matches both "cpu", "cpu_usage"
-        result = parser.parse("rate(cpu_usage[5m])")
+        result = parser.parse("rate(cpu_usage[5m])", namespace)
 
         # All metrics that appear as substrings should be found
         assert "cpu" in result
         assert "cpu_usage" in result
 
-    def test_namespace_change(self, metadata_store):
-        """Test changing namespace between calls."""
+    def test_namespace_caching(self, metadata_store):
+        """Test that metric index is cached per namespace."""
         ns1 = "namespace1"
         ns2 = "namespace2"
         metadata_store.set_metric_names(ns1, {"metric_a", "metric_b"})
@@ -130,15 +124,17 @@ class TestSubstringMetricParser:
         parser = SubstringMetricParser(metadata_store)
 
         # First call with ns1
-        parser.set_namespace(ns1)
-        result1 = parser.parse("metric_a")
+        result1 = parser.parse("metric_a", ns1)
         assert result1 == {"metric_a"}
 
         # Second call with ns2
-        parser.set_namespace(ns2)
-        result2 = parser.parse("metric_x")
+        result2 = parser.parse("metric_x", ns2)
         assert result2 == {"metric_x"}
 
         # metric_a should not be found in ns2
-        result3 = parser.parse("metric_a")
+        result3 = parser.parse("metric_a", ns2)
         assert result3 == set()
+
+        # Verify caching by checking internal state
+        assert ns1 in parser._metric_index_by_namespace
+        assert ns2 in parser._metric_index_by_namespace

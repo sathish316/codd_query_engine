@@ -19,11 +19,9 @@ class SchemaValidationResult(ValidationResult):
         is_valid: Inherited from ValidationResult - True if all metrics exist in namespace
         error: Inherited from ValidationResult - Error message for parser failures or other issues
         invalid_metrics: List of metric names not found in namespace
-        suggestions: Optional "did you mean" suggestions as list of (metric_name, score) tuples
     """
 
     invalid_metrics: list[str] = Field(default_factory=list)
-    suggestions: list[tuple[str, float]] = Field(default_factory=list)
 
     @classmethod
     def success(cls) -> "SchemaValidationResult":
@@ -34,17 +32,13 @@ class SchemaValidationResult(ValidationResult):
     def failure(
         cls,
         invalid_metrics: list[str],
-        namespace: str,
-        suggestions: Optional[list[tuple[str, float]]] = None
+        namespace: str
     ) -> "SchemaValidationResult":
-        """Create a failure result with invalid metrics and optional suggestions."""
-        error_msg = cls._build_error_message(
-            invalid_metrics, namespace, suggestions or []
-        )
+        """Create a failure result with invalid metrics."""
+        error_msg = cls._build_error_message(invalid_metrics, namespace)
         return cls(
             is_valid=False,
             invalid_metrics=invalid_metrics,
-            suggestions=suggestions or [],
             error=error_msg
         )
 
@@ -64,10 +58,9 @@ class SchemaValidationResult(ValidationResult):
     def _build_error_message(
         invalid_metrics: list[str],
         namespace: str,
-        suggestions: list[tuple[str, float]],
         max_display: int = 5
     ) -> str:
-        """Build a formatted error message for invalid metrics with optional suggestions."""
+        """Build a formatted error message for invalid metrics."""
         count = len(invalid_metrics)
         if count == 0:
             return ""
@@ -75,17 +68,6 @@ class SchemaValidationResult(ValidationResult):
         displayed = invalid_metrics[:max_display]
         metrics_str = ", ".join(f"'{m}'" for m in displayed)
 
-        base_msg = ""
         if count > max_display:
-            base_msg = f"Found {count} invalid metrics in namespace '{namespace}': {metrics_str}, and {count - max_display} more"
-        else:
-            base_msg = f"Found {count} invalid metric(s) in namespace '{namespace}': {metrics_str}"
-
-        # Add suggestions if available
-        if suggestions:
-            suggestions_str = ", ".join(
-                f"'{name}' (score: {score:.0f})" for name, score in suggestions
-            )
-            base_msg += f". Did you mean: {suggestions_str}?"
-
-        return base_msg
+            return f"Found {count} invalid metrics in namespace '{namespace}': {metrics_str}, and {count - max_display} more"
+        return f"Found {count} invalid metric(s) in namespace '{namespace}': {metrics_str}"

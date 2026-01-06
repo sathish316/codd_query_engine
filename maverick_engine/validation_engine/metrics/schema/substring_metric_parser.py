@@ -33,18 +33,28 @@ class SubstringMetricParser(MetricExpressionParser):
 
     def __init__(self, metadata_store: MetricsMetadataStore):
         self._metadata_store = metadata_store
-        self._namespace: str = ""
+        self._metric_index_by_namespace: dict[str, set[str]] = {}
 
-    def set_namespace(self, namespace: str) -> None:
+    def _get_metric_index(self, namespace: str) -> set[str]:
         """
-        Set the namespace for metric validation.
+        Get metric index for namespace, loading lazily if needed.
 
         Args:
-            namespace: The namespace to use for fetching valid metrics
-        """
-        self._namespace = namespace
+            namespace: The namespace to get metrics for
 
-    def parse(self, metric_expression: str) -> set[str]:
+        Returns:
+            Set of metric names for the namespace
+        """
+        if namespace not in self._metric_index_by_namespace:
+            valid_metrics = self._metadata_store.get_metric_names(namespace)
+            self._metric_index_by_namespace[namespace] = valid_metrics if valid_metrics else set()
+            logger.info(
+                f"Loaded metric index for namespace: {namespace}",
+                extra={"metric_count": len(self._metric_index_by_namespace[namespace])}
+            )
+        return self._metric_index_by_namespace[namespace]
+
+    def parse(self, metric_expression: str, namespace: str = "") -> set[str]:
         """
         Parse a metric expression and extract metric names using substring matching.
 
@@ -53,6 +63,7 @@ class SubstringMetricParser(MetricExpressionParser):
 
         Args:
             metric_expression: The expression string to parse
+            namespace: The namespace to validate metrics against
 
         Returns:
             Set of unique metric names found in the expression
@@ -65,15 +76,16 @@ class SubstringMetricParser(MetricExpressionParser):
             logger.debug("Empty expression, returning empty set")
             return set()
 
-        if not self._namespace:
-            logger.warning("Namespace not set for SubstringMetricParser")
+        # Guard: namespace required
+        if not namespace:
+            logger.warning("Namespace not provided for SubstringMetricParser")
             return set()
 
         # Get all valid metric names for the namespace
-        valid_metrics = self._metadata_store.get_metric_names(self._namespace)
+        valid_metrics = self._get_metric_index(namespace)
 
         if not valid_metrics:
-            logger.warning(f"No valid metrics found for namespace: {self._namespace}")
+            logger.warning(f"No valid metrics found for namespace: {namespace}")
             return set()
 
         # Find metrics that appear as substrings in the expression
@@ -84,7 +96,7 @@ class SubstringMetricParser(MetricExpressionParser):
 
         logger.info(
             f"Found {len(found_metrics)} metrics using substring matching",
-            extra={"metric_count": len(found_metrics), "namespace": self._namespace}
+            extra={"metric_count": len(found_metrics), "namespace": namespace}
         )
 
         return found_metrics

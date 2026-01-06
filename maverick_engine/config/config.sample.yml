@@ -26,13 +26,11 @@ mcp_config:
           # Strategy for extracting metric names: llm, substring, fuzzy
           # - llm: Uses LLM-based extraction (most accurate, slower, costs API calls)
           # - substring: Direct substring matching (fast, simple)
-          # - fuzzy: Fuzzy matching with suggestions (balanced accuracy and performance)
+          # - fuzzy: Fuzzy matching (balanced accuracy and performance)
           strategy: fuzzy
           fuzzy:
             # Number of fuzzy matches to consider
             top_k: 10
-            # Number of suggestions to return for "did you mean"
-            suggestion_limit: 5
             # Minimum similarity score (0-100) to consider a match
             min_similarity_score: 60
         semantics:

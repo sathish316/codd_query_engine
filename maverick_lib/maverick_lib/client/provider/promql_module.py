@@ -201,26 +201,17 @@ class PromQLModule:
         # Get the strategy from config (default to fuzzy)
         strategy_str = config_manager.get_setting(
             "mcp_config.metrics.promql.validation.schema.strategy", "fuzzy"
-        )
-
-        try:
-            strategy = MetricValidationStrategy(strategy_str.lower())
-        except ValueError:
-            # Default to fuzzy if invalid strategy
-            strategy = MetricValidationStrategy.FUZZY
+        ).lower()
 
         # Create the appropriate parser based on strategy
-        if strategy == MetricValidationStrategy.LLM:
+        if strategy_str == "llm":
             parser = cls._get_metric_extractor_agent(config_manager, instructions_manager)
-        elif strategy == MetricValidationStrategy.SUBSTRING:
+        elif strategy_str == "substring":
             parser = SubstringMetricParser(metadata_store)
-        elif strategy == MetricValidationStrategy.FUZZY:
+        elif strategy_str == "fuzzy":
             # Get fuzzy matching config parameters
             top_k = config_manager.get_setting(
                 "mcp_config.metrics.promql.validation.schema.fuzzy.top_k", 10
-            )
-            suggestion_limit = config_manager.get_setting(
-                "mcp_config.metrics.promql.validation.schema.fuzzy.suggestion_limit", 5
             )
             min_similarity_score = config_manager.get_setting(
                 "mcp_config.metrics.promql.validation.schema.fuzzy.min_similarity_score", 60
@@ -228,12 +219,11 @@ class PromQLModule:
             parser = FuzzyMetricParser(
                 metadata_store,
                 top_k=top_k,
-                suggestion_limit=suggestion_limit,
                 min_similarity_score=min_similarity_score,
             )
         else:
-            # Fallback to LLM
-            parser = cls._get_metric_extractor_agent(config_manager, instructions_manager)
+            # Fallback to fuzzy for invalid strategy
+            parser = FuzzyMetricParser(metadata_store)
 
         return MetricsSchemaValidator(metadata_store, parser)
 

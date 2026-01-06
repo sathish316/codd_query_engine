@@ -8,7 +8,6 @@ Uses MetricsMetadataStore for namespace-aware checks.
 """
 
 import logging
-from typing import TYPE_CHECKING
 
 from maverick_dal.metrics.metrics_metadata_store import MetricsMetadataStore
 from maverick_engine.validation_engine.metrics.schema.metric_expression_parser import (
@@ -18,11 +17,6 @@ from maverick_engine.validation_engine.metrics.schema.metric_expression_parser i
 from maverick_engine.validation_engine.metrics.schema.structured_outputs import (
     SchemaValidationResult,
 )
-
-if TYPE_CHECKING:
-    from maverick_engine.validation_engine.metrics.schema.fuzzy_metric_parser import (
-        FuzzyMetricParser,
-    )
 
 logger = logging.getLogger(__name__)
 
@@ -66,13 +60,9 @@ class MetricsSchemaValidator:
         if not namespace or not namespace.strip():
             return SchemaValidationResult.parse_error("Namespace cannot be blank")
 
-        # Set namespace on parser if it supports it (for substring/fuzzy parsers)
-        if hasattr(self._parser, 'set_namespace'):
-            self._parser.set_namespace(namespace)
-
         # Parse expression to extract metric names
         try:
-            metric_names = self._parser.parse(metric_expression)
+            metric_names = self._parser.parse(metric_expression, namespace)
         except MetricExpressionParseError as e:
             return SchemaValidationResult.parse_error(str(e), e)
         except Exception as e:
@@ -98,22 +88,7 @@ class MetricsSchemaValidator:
                     "total_metrics": len(unique_metrics),
                 },
             )
-
-            # Get suggestions if using fuzzy parser
-            suggestions = []
-            if hasattr(self._parser, 'get_suggestions'):
-                try:
-                    suggestions = self._parser.get_suggestions(metric_expression)
-                    logger.info(
-                        f"Generated {len(suggestions)} suggestions for invalid metrics",
-                        extra={"suggestion_count": len(suggestions)}
-                    )
-                except Exception as e:
-                    logger.warning(f"Failed to generate suggestions: {e}")
-
-            return SchemaValidationResult.failure(
-                sorted(invalid_metrics), namespace, suggestions
-            )
+            return SchemaValidationResult.failure(sorted(invalid_metrics), namespace)
 
         logger.info(
             "Schema validation succeeded",
