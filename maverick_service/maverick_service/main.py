@@ -1,6 +1,7 @@
 """Main FastAPI application for Maverick Service."""
 
 import os
+import logfire
 
 # Avoid HuggingFace tokenizers fork warnings in uvicorn workers.
 os.environ.setdefault("TOKENIZERS_PARALLELISM", "false")
@@ -11,6 +12,9 @@ from maverick_service.api.controllers import (
     metrics_controller,
     logs_controller,
 )
+
+logfire.configure()
+logfire.instrument_pydantic_ai()
 
 # Create FastAPI app
 app = FastAPI(
