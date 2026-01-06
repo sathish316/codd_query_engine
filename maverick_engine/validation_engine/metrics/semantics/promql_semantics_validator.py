@@ -43,6 +43,7 @@ class PromQLSemanticsValidator(MetricsSemanticsValidator):
             config_manager: Configuration manager for agent settings
             instructions_manager: Manager for loading instruction prompts
         """
+        self._config_manager = config_manager
         self._validator = PromQLQueryExplainerAgent(
             config_manager, instructions_manager
         )
@@ -60,7 +61,14 @@ class PromQLSemanticsValidator(MetricsSemanticsValidator):
         Returns:
             SemanticValidationResult indicating whether query matches intent
         """
-        logger.debug(
-            f"Validating semantics for metric '{original_intent.metric}': {generated_query[:100]}..."
+        # Get confidence threshold from config (default: 2, meaning scores 1-2 will fail)
+        threshold = self._config_manager.get_setting(
+            "mcp_config.metrics.promql.validation.semantics.confidence_threshold", 2
         )
-        return self._validator.validate_semantic_match(original_intent, generated_query)
+
+        logger.debug(
+            f"Validating semantics for metric '{original_intent.metric}': {generated_query[:100]}... (threshold: {threshold})"
+        )
+        return self._validator.validate_semantic_match(
+            original_intent, generated_query, threshold
+        )
