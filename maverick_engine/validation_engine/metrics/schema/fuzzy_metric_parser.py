@@ -6,8 +6,6 @@ for fuzzy matching to extract metric names from PromQL expressions.
 """
 
 import logging
-import re
-from typing import Optional
 
 from rapidfuzz import fuzz, process
 
@@ -17,10 +15,6 @@ from maverick_engine.validation_engine.metrics.schema.metric_expression_parser i
 )
 
 logger = logging.getLogger(__name__)
-
-
-# Regex pattern for valid metric name characters
-VALID_METRIC_NAME_PATTERN = re.compile(r"^[a-z][a-z0-9_.]*$")
 
 
 class FuzzyMetricParser(MetricExpressionParser):
@@ -70,8 +64,10 @@ class FuzzyMetricParser(MetricExpressionParser):
         """
         Parse a metric expression and extract metric names using fuzzy matching.
 
-        Uses rapidfuzz to find the top K most similar metric names, then checks
-        if at least one has a substring match.
+        First attempts exact substring matching for speed. If no matches found,
+        uses rapidfuzz to find the top K most similar metric names from the
+        entire expression, then validates that matched metrics appear as
+        substrings in the expression.
 
         Args:
             metric_expression: The expression string to parse
@@ -113,32 +109,22 @@ class FuzzyMetricParser(MetricExpressionParser):
             )
             return found_metrics
 
-        # If no exact substring matches, use fuzzy matching
-        # Extract potential metric name tokens from the expression
-        # Look for alphanumeric sequences that could be metric names
-        tokens = re.findall(r'[a-z][a-z0-9_.]+', metric_expression.lower())
+        # If no exact substring matches, use fuzzy matching on the entire expression
+        matches = process.extract(
+            metric_expression,
+            metric_index,
+            scorer=fuzz.ratio,
+            limit=self._top_k,
+            score_cutoff=self._min_similarity_score
+        )
 
-        if not tokens:
-            logger.debug("No potential metric tokens found in expression")
-            return set()
-
-        # For each token, find fuzzy matches
-        for token in tokens:
-            matches = process.extract(
-                token,
-                metric_index,
-                scorer=fuzz.ratio,
-                limit=self._top_k,
-                score_cutoff=self._min_similarity_score
-            )
-
-            # Check if any fuzzy match has a substring match in the original expression
-            for match_name, score, _ in matches:
-                if match_name in metric_expression:
-                    found_metrics.add(match_name)
-                    logger.debug(
-                        f"Fuzzy match found: {match_name} (score: {score:.1f}) for token: {token}"
-                    )
+        # Check if any fuzzy match has a substring match in the original expression
+        for match_name, score, _ in matches:
+            if match_name in metric_expression:
+                found_metrics.add(match_name)
+                logger.debug(
+                    f"Fuzzy match found: {match_name} (score: {score:.1f})"
+                )
 
         logger.info(
             f"Found {len(found_metrics)} metrics using fuzzy matching",
