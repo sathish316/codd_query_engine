@@ -30,11 +30,17 @@ class SchemaValidationResult(ValidationResult):
 
     @classmethod
     def failure(
-        cls, invalid_metrics: list[str], namespace: str
+        cls,
+        invalid_metrics: list[str],
+        namespace: str
     ) -> "SchemaValidationResult":
         """Create a failure result with invalid metrics."""
         error_msg = cls._build_error_message(invalid_metrics, namespace)
-        return cls(is_valid=False, invalid_metrics=invalid_metrics, error=error_msg)
+        return cls(
+            is_valid=False,
+            invalid_metrics=invalid_metrics,
+            error=error_msg
+        )
 
     @classmethod
     def parse_error(
@@ -50,7 +56,9 @@ class SchemaValidationResult(ValidationResult):
 
     @staticmethod
     def _build_error_message(
-        invalid_metrics: list[str], namespace: str, max_display: int = 5
+        invalid_metrics: list[str],
+        namespace: str,
+        max_display: int = 5
     ) -> str:
         """Build a formatted error message for invalid metrics."""
         count = len(invalid_metrics)
@@ -62,6 +70,4 @@ class SchemaValidationResult(ValidationResult):
 
         if count > max_display:
             return f"Found {count} invalid metrics in namespace '{namespace}': {metrics_str}, and {count - max_display} more"
-        return (
-            f"Found {count} invalid metric(s) in namespace '{namespace}': {metrics_str}"
-        )
+        return f"Found {count} invalid metric(s) in namespace '{namespace}': {metrics_str}"

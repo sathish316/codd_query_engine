@@ -23,8 +23,19 @@ mcp_config:
           enabled: true
         schema:
           enabled: true
+          # Strategy for extracting metric names: llm, substring, fuzzy
+          # - llm: Uses LLM-based extraction (most accurate, slower, costs API calls)
+          # - substring: Direct substring matching (fast, simple)
+          # - fuzzy: Fuzzy matching (balanced accuracy and performance)
+          strategy: fuzzy
+          fuzzy:
+            # Number of fuzzy matches to consider
+            top_k: 10
+            # Minimum similarity score (0-100) to consider a match
+            min_similarity_score: 60
         semantics:
           enabled: false
+          confidence_threshold: 2
   logs:
     logql:
       validator:
@@ -46,5 +57,37 @@ mcp_config:
           enabled: true
         semantics:
           enabled: false
+
+# Redis Configuration
+redis:
+  host: "localhost"
+  port: 6380
+  db: 0
+  decode_responses: true
+
+# Semantic Store (ChromaDB) Configuration
+semantic_store:
+  chromadb_host: "localhost"
+  chromadb_port: 8000
+  chromadb_path: null
+  collection_name: "metrics_semantic_metadata"
+
+# Prometheus Configuration
+prometheus:
+  base_url: "http://localhost:9090"
+  timeout: 30
+  auth_token: null
+
+# Loki Configuration
+loki:
+  base_url: "http://localhost:3100"
+  timeout: 30
+
+# Splunk Configuration
+splunk:
+  base_url: "https://localhost:8089"
+  timeout: 30
+  auth_token: null
+  index: null
 
 # Environment Variables (set these in your shell)

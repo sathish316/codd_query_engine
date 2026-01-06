@@ -1,5 +1,5 @@
 """
-PydanticAI-based LogQL query generator agent with ReAct pattern.
+PydanticAI-based LogQL query generator agent.
 
 This module provides an agent that generates and validates LogQL queries using
 a custom validation tool in a ReAct (Reasoning + Acting) loop.
@@ -13,6 +13,7 @@ from maverick_engine.querygen_engine.logs.structured_outputs import (
     QueryGenerationResult,
     QueryGenerationError,
 )
+from maverick_engine.utils.file_utils import expand_path
 from maverick_engine.validation_engine.logs.log_query_validator import (
     LogQueryValidator,
 )
@@ -63,7 +64,7 @@ class LogQLQueryGeneratorAgent:
             .add_model_manager()
             .instruction(
                 "logql_query_generator_agent_instruction",
-                "maverick_engine/prompts/agent/logs/LOGQL_QUERY_GENERATOR_AGENT_INSTRUCTIONS.md",
+                expand_path("$HOME/.maverick/prompts/agent/logs/LOGQL_QUERY_GENERATOR_AGENT_INSTRUCTIONS.md"),
             )
             .set_output_type(LogQLQueryResponse)
             .custom_tool(LogQLValidatorTool(self.log_query_validator))
@@ -103,8 +104,8 @@ class LogQLQueryGeneratorAgent:
             # Format the generation prompt
             generation_prompt = self._format_generation_prompt(intent)
 
-            # Execute LLM query generation with ReAct pattern
-            logger.info("Executing agent with ReAct pattern")
+            # Execute LLM query generation
+            logger.info("Executing agent for LogQL query generation")
 
             result = await self.agent.run(generation_prompt, deps=intent)
 
