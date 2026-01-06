@@ -109,7 +109,7 @@ class TestPromQLValidator:
         # Verify: Final result is from semantic validation
         assert result.is_valid is True
         assert isinstance(result, SemanticValidationResult)
-        assert result.intent_match is True
+        assert result.confidence_score == 5
 
     def test_syntax_validation_failure_stops_pipeline(
         self,
@@ -211,11 +211,6 @@ class TestPromQLValidator:
         mock_syntax_validator.validate.return_value = SyntaxValidationResult.success()
         mock_schema_validator.validate.return_value = SchemaValidationResult.success()
         mock_semantics_validator.validate.return_value = SemanticValidationResult(
-            intent_match=False,
-            partial_match=False,
-            explanation="rate() should not be used on gauge metrics",
-            original_intent_summary="Average of gauge over time",
-            actual_query_behavior="Rate calculation on gauge",
             confidence_score=1,
             reasoning="Critical error - applying rate() to a gauge metric",
         )
@@ -231,8 +226,8 @@ class TestPromQLValidator:
         # Verify: Result is semantic validation failure
         assert result.is_valid is False
         assert isinstance(result, SemanticValidationResult)
-        assert result.intent_match is False
-        assert "rate()" in result.explanation
+        assert result.confidence_score == 1
+        assert "gauge" in result.reasoning.lower()
 
     def test_partial_semantic_match(
         self,
@@ -259,11 +254,6 @@ class TestPromQLValidator:
         mock_syntax_validator.validate.return_value = SyntaxValidationResult.success()
         mock_schema_validator.validate.return_value = SchemaValidationResult.success()
         mock_semantics_validator.validate.return_value = SemanticValidationResult(
-            intent_match=False,
-            partial_match=True,  # Partial match
-            explanation="Query matches metric and some filters, but missing method filter",
-            original_intent_summary="Rate with status and method filters",
-            actual_query_behavior="Rate with only status filter",
             confidence_score=3,
             reasoning="Missing endpoint filter makes the query broader than intended, but it still measures the core metric",
         )
@@ -271,8 +261,7 @@ class TestPromQLValidator:
         # Execute
         result = validator.validate(namespace, query, intent=intent)
 
-        # Verify: Result shows partial match
-        assert result.is_valid is True  # Partial match counts as valid
+        # Verify: Result shows medium confidence (score 3 > threshold 2, so valid)
+        assert result.is_valid is True  # Score 3 is above threshold 2
         assert isinstance(result, SemanticValidationResult)
-        assert result.intent_match is False
-        assert result.partial_match is True
+        assert result.confidence_score == 3

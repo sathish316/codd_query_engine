@@ -125,11 +125,9 @@ class PromQLQueryExplainerAgent:
             result = self._execute_validation(validation_prompt, threshold)
 
             logger.info(
-                f"Semantic validation complete - Score: {result.confidence_score}, Match: {result.intent_match}, Partial: {result.partial_match}, Valid: {result.is_valid}",
+                f"Semantic validation complete - Score: {result.confidence_score}, Valid: {result.is_valid}",
                 extra={
                     "confidence_score": result.confidence_score,
-                    "intent_match": result.intent_match,
-                    "partial_match": result.partial_match,
                     "is_valid": result.is_valid,
                     "metric": original_intent.metric,
                     "threshold": threshold,
@@ -231,11 +229,6 @@ Provide your analysis in the structured format."""
 
             # Create a new result with the threshold applied to compute is_valid
             validated_result = SemanticValidationResult(
-                intent_match=llm_output.intent_match,
-                partial_match=llm_output.partial_match,
-                explanation=llm_output.explanation,
-                original_intent_summary=llm_output.original_intent_summary,
-                actual_query_behavior=llm_output.actual_query_behavior,
                 confidence_score=llm_output.confidence_score,
                 reasoning=llm_output.reasoning,
                 threshold=threshold,

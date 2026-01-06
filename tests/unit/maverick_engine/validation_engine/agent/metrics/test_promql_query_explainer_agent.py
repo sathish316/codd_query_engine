@@ -46,11 +46,6 @@ def mock_agent():
 
     # Default successful validation result
     result = SemanticValidationResult(
-        intent_match=True,
-        partial_match=False,
-        explanation="Query correctly uses rate() on a counter metric",
-        original_intent_summary="Calculate per-second rate of HTTP 500 errors over 5m",
-        actual_query_behavior="Calculates per-second rate of http_requests_total with status=500 over 5 minutes",
         confidence_score=5,
         reasoning="Perfect alignment - correct metric type handling, exact filters, correct time window, and appropriate aggregation function.",
     )
@@ -100,20 +95,14 @@ class TestValidateSemanticMatch:
 
         # Assert
         assert isinstance(result, SemanticValidationResult)
-        assert result.intent_match is True
-        assert result.partial_match is False
-        assert "rate()" in result.explanation
+        assert result.confidence_score == 5
+        assert result.is_valid is True
         mock_agent.run_sync.assert_called_once()
 
     def test_validate_semantic_match_with_mismatch(self, explainer_agent, mock_agent):
         """Test semantic validation when query doesn't match intent."""
         # Arrange - mock a mismatch result
         mismatch_result = SemanticValidationResult(
-            intent_match=False,
-            partial_match=False,
-            explanation="Query uses rate() on a gauge metric, which is incorrect",
-            original_intent_summary="Calculate average memory usage over 5m",
-            actual_query_behavior="Calculates rate of change for memory_usage_bytes gauge",
             confidence_score=1,
             reasoning="Critical error - applying rate() to a gauge metric. Rate is for counters that always increase, not gauges with fluctuating values.",
         )
@@ -133,21 +122,16 @@ class TestValidateSemanticMatch:
         result = explainer_agent.validate_semantic_match(intent, query)
 
         # Assert
-        assert result.intent_match is False
-        assert result.partial_match is False
-        assert "gauge" in result.explanation.lower()
+        assert result.confidence_score == 1
+        assert result.is_valid is False
+        assert "gauge" in result.reasoning.lower()
 
     def test_validate_semantic_match_with_partial_match(
         self, explainer_agent, mock_agent
     ):
-        """Test semantic validation when query partially matches intent."""
-        # Arrange - mock a partial match result
+        """Test semantic validation when query has high confidence but isn't perfect."""
+        # Arrange - mock a high confidence result
         partial_result = SemanticValidationResult(
-            intent_match=False,
-            partial_match=True,
-            explanation="Query uses 99th percentile instead of 95th, but structure is correct",
-            original_intent_summary="Calculate 95th percentile latency for /users endpoint",
-            actual_query_behavior="Calculates 99th percentile latency for /users endpoint",
             confidence_score=4,
             reasoning="Uses 99th percentile instead of 95th, but the query structure is correct and will provide useful latency data. The difference is minor and doesn't compromise the monitoring goal.",
         )
@@ -170,9 +154,9 @@ class TestValidateSemanticMatch:
         result = explainer_agent.validate_semantic_match(intent, query)
 
         # Assert
-        assert result.intent_match is False
-        assert result.partial_match is True
-        assert "99th" in result.explanation or "0.99" in result.explanation
+        assert result.confidence_score == 4
+        assert result.is_valid is True  # Score 4 is above threshold 2
+        assert "99th" in result.reasoning or "0.99" in result.reasoning
 
     def test_validate_semantic_match_llm_failure_raises_error(
         self, explainer_agent, mock_agent
