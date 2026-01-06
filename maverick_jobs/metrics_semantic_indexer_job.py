@@ -69,8 +69,7 @@ class MetricsSemanticIndexerJob:
         chromadb_client: chromadb.ClientAPI,
         config_manager: ConfigManager,
         instructions_manager: InstructionsManager,
-        prometheus_config: Optional[PrometheusConfig] = None,
-        promql_base_url: Optional[str] = None,
+        prometheus_config: PrometheusConfig,
         batch_size: int = 10,
     ):
         """
@@ -81,20 +80,10 @@ class MetricsSemanticIndexerJob:
             chromadb_client: ChromaDB client for semantic store
             config_manager: Configuration manager for LLM agent
             instructions_manager: Instructions manager for LLM agent
-            prometheus_config: PrometheusConfig object (preferred)
-            promql_base_url: (Deprecated) Base URL for Prometheus server
+            prometheus_config: PrometheusConfig object with connection settings
             batch_size: Number of metrics to process in each batch
         """
-        # Support both new config-based initialization and legacy parameter-based initialization
-        if prometheus_config is not None:
-            self.prometheus_config = prometheus_config
-        elif promql_base_url is not None:
-            # Legacy support: create config from base_url
-            self.prometheus_config = PrometheusConfig(base_url=promql_base_url)
-        else:
-            # Use default config
-            self.prometheus_config = PrometheusConfig()
-
+        self.prometheus_config = prometheus_config
         self.batch_size = batch_size
 
         # Initialize clients and stores
