@@ -45,8 +45,8 @@ class TestSubstringMetricParser:
 
         assert result == {"cpu_usage"}
 
-    def test_multiple_metrics_found(self, metadata_store):
-        """Test finding multiple metrics as substrings."""
+    def test_first_metric_found(self, metadata_store):
+        """Test that only first metric match is returned."""
         namespace = "test_ns"
         valid_metrics = {"cpu_usage", "memory_total", "disk_io"}
         metadata_store.set_metric_names(namespace, valid_metrics)
@@ -55,7 +55,9 @@ class TestSubstringMetricParser:
 
         result = parser.parse("cpu_usage + memory_total", namespace)
 
-        assert result == {"cpu_usage", "memory_total"}
+        # Should return only the first match found
+        assert len(result) == 1
+        assert result.issubset(valid_metrics)
 
     def test_no_metrics_found(self, metadata_store):
         """Test when no metrics match as substrings."""
@@ -101,18 +103,18 @@ class TestSubstringMetricParser:
     def test_partial_metric_name_match(self, metadata_store):
         """Test that partial matches work (substring)."""
         namespace = "test_ns"
-        # If a metric contains another as substring, both should match
+        # If a metric contains another as substring, first match is returned
         valid_metrics = {"cpu", "cpu_usage", "cpu_usage_percent"}
         metadata_store.set_metric_names(namespace, valid_metrics)
 
         parser = SubstringMetricParser(metadata_store)
 
-        # Expression contains "cpu_usage" which matches both "cpu", "cpu_usage"
+        # Expression contains "cpu_usage" which matches multiple metrics
         result = parser.parse("rate(cpu_usage[5m])", namespace)
 
-        # All metrics that appear as substrings should be found
-        assert "cpu" in result
-        assert "cpu_usage" in result
+        # Should return only first match (one of the valid metrics)
+        assert len(result) == 1
+        assert result.issubset(valid_metrics)
 
     def test_namespace_caching(self, metadata_store):
         """Test that metric index is cached per namespace."""

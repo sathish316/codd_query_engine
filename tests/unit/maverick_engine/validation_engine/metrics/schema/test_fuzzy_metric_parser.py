@@ -45,8 +45,8 @@ class TestFuzzyMetricParser:
 
         assert result == {"cpu_usage"}
 
-    def test_multiple_exact_matches(self, metadata_store):
-        """Test finding multiple metrics with exact substring matches."""
+    def test_first_match_returned(self, metadata_store):
+        """Test that only first match is returned."""
         namespace = "test_ns"
         valid_metrics = {"cpu_usage", "memory_total", "disk_io"}
         metadata_store.set_metric_names(namespace, valid_metrics)
@@ -55,7 +55,9 @@ class TestFuzzyMetricParser:
 
         result = parser.parse("cpu_usage + memory_total", namespace)
 
-        assert result == {"cpu_usage", "memory_total"}
+        # Should return only the first match found
+        assert len(result) == 1
+        assert result.issubset(valid_metrics)
 
     def test_fuzzy_match_with_typo(self, metadata_store):
         """Test fuzzy matching finds metrics despite typos."""

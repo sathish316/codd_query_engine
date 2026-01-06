@@ -88,15 +88,14 @@ class SubstringMetricParser(MetricExpressionParser):
             logger.warning(f"No valid metrics found for namespace: {namespace}")
             return set()
 
-        # Find metrics that appear as substrings in the expression
-        found_metrics = set()
+        # Find first metric that appears as substring in the expression
         for metric in valid_metrics:
             if metric in metric_expression:
-                found_metrics.add(metric)
+                logger.info(
+                    f"Found metric using substring matching: {metric}",
+                    extra={"metric": metric, "namespace": namespace}
+                )
+                return {metric}
 
-        logger.info(
-            f"Found {len(found_metrics)} metrics using substring matching",
-            extra={"metric_count": len(found_metrics), "namespace": namespace}
-        )
-
-        return found_metrics
+        # No matches found
+        return set()

@@ -96,18 +96,14 @@ class FuzzyMetricParser(MetricExpressionParser):
             logger.warning(f"No valid metrics found for namespace: {namespace}")
             return set()
 
-        # Find metrics that appear as substrings first (fast path)
-        found_metrics = set()
+        # Find first metric that appears as substring (fast path)
         for metric in metric_index:
             if metric in metric_expression:
-                found_metrics.add(metric)
-
-        if found_metrics:
-            logger.info(
-                f"Found {len(found_metrics)} metrics using substring matching",
-                extra={"metric_count": len(found_metrics), "namespace": namespace}
-            )
-            return found_metrics
+                logger.info(
+                    f"Found metric using substring matching: {metric}",
+                    extra={"metric": metric, "namespace": namespace}
+                )
+                return {metric}
 
         # If no exact substring matches, use fuzzy matching on the entire expression
         matches = process.extract(
@@ -121,14 +117,11 @@ class FuzzyMetricParser(MetricExpressionParser):
         # Check if any fuzzy match has a substring match in the original expression
         for match_name, score, _ in matches:
             if match_name in metric_expression:
-                found_metrics.add(match_name)
-                logger.debug(
-                    f"Fuzzy match found: {match_name} (score: {score:.1f})"
+                logger.info(
+                    f"Found metric using fuzzy matching: {match_name} (score: {score:.1f})",
+                    extra={"metric": match_name, "score": score, "namespace": namespace}
                 )
+                return {match_name}
 
-        logger.info(
-            f"Found {len(found_metrics)} metrics using fuzzy matching",
-            extra={"metric_count": len(found_metrics), "namespace": namespace}
-        )
-
-        return found_metrics
+        # No matches found
+        return set()
