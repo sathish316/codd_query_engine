@@ -32,10 +32,12 @@ class MockMetricNameParser:
         self._raise_error = raise_error
         self.parse_called = False
         self.last_expression = None
+        self.last_namespace = None
 
-    def parse(self, metric_expression: str) -> set[str]:
+    def parse(self, metric_expression: str, namespace: str = "") -> set[str]:
         self.parse_called = True
         self.last_expression = metric_expression
+        self.last_namespace = namespace
         if self._raise_error:
             raise self._raise_error
         return self._return_value
