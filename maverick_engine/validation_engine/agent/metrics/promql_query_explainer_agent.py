@@ -73,7 +73,10 @@ class PromQLQueryExplainerAgent:
         return self.agent
 
     def validate_semantic_match(
-        self, original_intent: MetricsQueryIntent, generated_query: str
+        self,
+        original_intent: MetricsQueryIntent,
+        generated_query: str,
+        threshold: int = 2,
     ) -> SemanticValidationResult:
         """
         Validate whether a generated PromQL query matches the original intent.
@@ -86,6 +89,7 @@ class PromQLQueryExplainerAgent:
         Args:
             original_intent: The original metrics query intent
             generated_query: The generated PromQL query string
+            threshold: Confidence score threshold (default: 2). Queries with score <= threshold will be marked invalid.
 
         Returns:
             SemanticValidationResult with match status, explanation, and confidence
@@ -118,14 +122,15 @@ class PromQLQueryExplainerAgent:
 
         # Execute LLM validation
         try:
-            result = self._execute_validation(validation_prompt)
+            result = self._execute_validation(validation_prompt, threshold)
 
             logger.info(
-                f"Semantic validation complete - Match: {result.intent_match}, Partial: {result.partial_match}",
+                f"Semantic validation complete - Score: {result.confidence_score}, Valid: {result.is_valid}",
                 extra={
-                    "intent_match": result.intent_match,
-                    "partial_match": result.partial_match,
+                    "confidence_score": result.confidence_score,
+                    "is_valid": result.is_valid,
                     "metric": original_intent.metric,
+                    "threshold": threshold,
                 },
             )
 
@@ -201,12 +206,15 @@ Provide your analysis in the structured format."""
 
         return prompt
 
-    def _execute_validation(self, prompt: str) -> SemanticValidationResult:
+    def _execute_validation(
+        self, prompt: str, threshold: int
+    ) -> SemanticValidationResult:
         """
         Execute the validation using the LLM agent.
 
         Args:
             prompt: The formatted validation prompt
+            threshold: Confidence score threshold for determining validity
 
         Returns:
             SemanticValidationResult from the LLM
@@ -217,7 +225,16 @@ Provide your analysis in the structured format."""
         try:
             agent = self._get_agent()
             result = agent.run_sync(prompt)
-            return result.output
+            llm_output = result.output
+
+            # Create a new result with the threshold applied to compute is_valid
+            validated_result = SemanticValidationResult(
+                confidence_score=llm_output.confidence_score,
+                reasoning=llm_output.reasoning,
+                threshold=threshold,
+            )
+
+            return validated_result
         except Exception as e:
             raise SemanticValidationError(
                 f"LLM validation execution failed: {e}"

@@ -25,6 +25,9 @@ mcp_config:
           enabled: true
         semantics:
           enabled: false
+          # Confidence threshold for semantic validation (1-5 scale)
+          # Queries with confidence_score <= threshold will be marked invalid and regenerated
+          confidence_threshold: 2
   logs:
     logql:
       validator:
