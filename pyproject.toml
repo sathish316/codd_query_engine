@@ -12,6 +12,7 @@ dependencies = [
     "openai>=2.14.0",
     "pydantic>=2.12.5",
     "pydantic-ai>=1.39.0",
+    "pydantic-ai-slim[logfire]>=1.39.0",
     "redis>=7.1.0",
 ]
 
@@ -30,7 +31,7 @@ dev = [
 maverick-dal = { workspace = true }
 maverick-engine = { workspace = true }
 maverick-service = { workspace = true }
-opus-agent-base = { path = "../opus_agents/opus_agent_base/dist/opus_agent_base-0.1.0-py3-none-any.whl" }
+opus-agent-base = { path = "../opus_agents/dist/opus_agent_base-0.1.0-py3-none-any.whl" }
 
 [tool.uv.workspace]
 members = [

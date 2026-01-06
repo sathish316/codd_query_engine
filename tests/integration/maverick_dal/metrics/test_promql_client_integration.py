@@ -7,6 +7,7 @@ import pytest
 from datetime import datetime, timedelta
 
 from maverick_dal.metrics.promql_client import PromQLClient
+from maverick_lib.config import PrometheusConfig
 
 
 @pytest.mark.integration
@@ -22,7 +23,8 @@ class TestPromQLClientIntegration:
     def skip_if_no_prometheus(self, prometheus_url):
         """Skip test if Prometheus is not available."""
         try:
-            with PromQLClient(prometheus_url, timeout=5.0) as client:
+            config = PrometheusConfig(base_url=prometheus_url, timeout=5)
+            with PromQLClient(config) as client:
                 if not client.health_check():
                     pytest.skip("Prometheus is not healthy")
         except Exception:
@@ -40,7 +42,8 @@ class TestPromQLClientIntegration:
         4. Query execution (instant query)
         5. Proper cleanup via context manager
         """
-        with PromQLClient(prometheus_url, timeout=30.0) as client:
+        config = PrometheusConfig(base_url=prometheus_url, timeout=30)
+        with PromQLClient(config) as client:
             # Step 1: Verify Prometheus is healthy
             assert client.health_check() is True, "Prometheus health check failed"
             assert client.ready_check() is True, "Prometheus ready check failed"

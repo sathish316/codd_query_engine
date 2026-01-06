@@ -10,6 +10,8 @@ from typing import Any, Optional
 from datetime import datetime
 import httpx
 
+from maverick_lib.config import PrometheusConfig
+
 
 class PromQLClient:
     """
@@ -18,29 +20,25 @@ class PromQLClient:
     Provides methods for metadata retrieval and query execution.
 
     Args:
-        base_url: Prometheus server URL (e.g., "http://localhost:9090")
-        timeout: Request timeout in seconds
-        headers: Optional custom headers for authentication
+        config: PrometheusConfig object with connection settings
     """
 
-    def __init__(
-        self,
-        base_url: str,
-        timeout: float = 30.0,
-        headers: Optional[dict[str, str]] = None,
-    ):
+    def __init__(self, config: PrometheusConfig):
         """
         Initialize PromQL client.
 
         Args:
-            base_url: Prometheus server URL
-            timeout: Request timeout in seconds
-            headers: Optional custom headers
+            config: PrometheusConfig object with connection settings
         """
-        self.base_url = base_url.rstrip("/")
-        self.timeout = timeout
-        self.headers = headers or {}
-        self.client = httpx.Client(timeout=timeout, headers=self.headers)
+        self.base_url = config.base_url.rstrip("/")
+        self.timeout = config.timeout
+
+        # Build headers from auth_token if present
+        self.headers = {}
+        if config.auth_token:
+            self.headers["Authorization"] = f"Bearer {config.auth_token}"
+
+        self.client = httpx.Client(timeout=self.timeout, headers=self.headers)
 
     def __enter__(self):
         """Context manager entry."""

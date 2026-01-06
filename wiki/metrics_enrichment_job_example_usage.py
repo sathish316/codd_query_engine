@@ -11,6 +11,7 @@ import chromadb
 import redis
 
 from maverick_jobs.metrics_semantic_indexer_job import MetricsSemanticIndexerJob
+from maverick_lib.config import PrometheusConfig
 
 from opus_agent_base.config.config_manager import ConfigManager
 from opus_agent_base.prompt.instructions_manager import InstructionsManager
@@ -73,14 +74,17 @@ def main():
     config_manager = ConfigManager()
     instructions_manager = InstructionsManager()
 
+    # Create Prometheus config
+    prometheus_config = PrometheusConfig(base_url=promql_url)
+
     # Create indexer job
     logger.info("Creating semantic indexer job...")
     indexer = MetricsSemanticIndexerJob(
-        promql_base_url=promql_url,
         redis_client=redis_client,
         chromadb_client=chromadb_client,
         config_manager=config_manager,
         instructions_manager=instructions_manager,
+        prometheus_config=prometheus_config,
         batch_size=batch_size,
     )
 

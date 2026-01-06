@@ -22,6 +22,7 @@ from opus_agent_base.agent.agent_builder import AgentBuilder
 from opus_agent_base.config.config_manager import ConfigManager
 from opus_agent_base.prompt.instructions_manager import InstructionsManager
 from pydantic import BaseModel, Field
+from maverick_engine.utils.file_utils import expand_path
 
 logger = logging.getLogger(__name__)
 
@@ -72,7 +73,7 @@ class SplunkSPLQueryGeneratorAgent:
             .add_model_manager()
             .instruction(
                 "spl_query_generator_agent_instruction",
-                "maverick_engine/prompts/agent/logs/SPLUNK_SPL_QUERY_GENERATOR_AGENT_INSTRUCTIONS.md",
+                expand_path("$HOME/.maverick/prompts/agent/logs/SPLUNK_SPL_QUERY_GENERATOR_AGENT_INSTRUCTIONS.md"),
             )
             .set_output_type(SplunkSPLQueryResponse)
             .custom_tool(SplunkSPLValidatorTool(self.log_query_validator))

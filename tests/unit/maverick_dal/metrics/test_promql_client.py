@@ -7,6 +7,7 @@ from datetime import datetime
 from unittest.mock import Mock, patch
 
 from maverick_dal.metrics.promql_client import PromQLClient
+from maverick_lib.config import PrometheusConfig
 
 
 @pytest.fixture
@@ -21,7 +22,8 @@ def mock_httpx_client():
 @pytest.fixture
 def promql_client(mock_httpx_client):
     """Create PromQL client with mocked HTTP client."""
-    return PromQLClient("http://localhost:9090")
+    config = PrometheusConfig(base_url="http://localhost:9090", timeout=30)
+    return PromQLClient(config)
 
 
 class TestPromQLClient:
@@ -29,22 +31,28 @@ class TestPromQLClient:
 
     def test_init_with_defaults(self):
         """Test initialization with default parameters."""
-        client = PromQLClient("http://localhost:9090")
+        config = PrometheusConfig(base_url="http://localhost:9090", timeout=30)
+        client = PromQLClient(config)
         assert client.base_url == "http://localhost:9090"
-        assert client.timeout == 30.0
+        assert client.timeout == 30
         assert client.headers == {}
 
     def test_init_with_custom_params(self):
         """Test initialization with custom parameters."""
-        headers = {"Authorization": "Bearer token123"}
-        client = PromQLClient("http://prometheus:9090", timeout=60.0, headers=headers)
+        config = PrometheusConfig(
+            base_url="http://prometheus:9090",
+            timeout=60,
+            auth_token="token123"
+        )
+        client = PromQLClient(config)
         assert client.base_url == "http://prometheus:9090"
-        assert client.timeout == 60.0
-        assert client.headers == headers
+        assert client.timeout == 60
+        assert client.headers == {"Authorization": "Bearer token123"}
 
     def test_context_manager(self, mock_httpx_client):
         """Test context manager protocol."""
-        with PromQLClient("http://localhost:9090") as client:
+        config = PrometheusConfig(base_url="http://localhost:9090", timeout=30)
+        with PromQLClient(config) as client:
             assert client is not None
         mock_httpx_client.close.assert_called_once()
 
