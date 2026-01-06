@@ -11,7 +11,7 @@ from mcp.server.fastmcp import FastMCP
 mcp = FastMCP("Maverick Observability Server")
 
 # Maverick service base URL (configurable via environment variable)
-MAVERICK_SERVICE_URL = os.getenv("MAVERICK_SERVICE_URL", "http://localhost:8000")
+MAVERICK_SERVICE_URL = os.getenv("MAVERICK_SERVICE_URL", "http://localhost:2840")
 
 
 def _make_request(

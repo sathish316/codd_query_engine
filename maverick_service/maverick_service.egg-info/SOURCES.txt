@@ -8,5 +8,3 @@ maverick_service.egg-info/dependency_links.txt
 maverick_service.egg-info/entry_points.txt
 maverick_service.egg-info/requires.txt
 maverick_service.egg-info/top_level.txt
-tests/test_hello_controller.py
-tests/test_integration.py
