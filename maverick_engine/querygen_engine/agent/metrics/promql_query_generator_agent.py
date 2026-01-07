@@ -12,7 +12,7 @@ from maverick_engine.querygen_engine.metrics.structured_outputs import (
     PromQLQueryResponse,
     QueryGenerationResult,
     QueryGenerationError,
-    QueryGenerationContext,
+    QueryGenerationInput,
 )
 from maverick_engine.querygen_engine.metrics.preprocessor.metrics_querygen_preprocessor import (
     MetricsQuerygenPreprocessor,
@@ -133,15 +133,15 @@ class PromQLQueryGeneratorAgent:
                 "mcp_config.metrics.promql.generation.max_attempts", 5
             )
 
-            # Create generation context with attempt tracking
-            generation_context = QueryGenerationContext(
-                intent=preprocessed_intent,
+            # Create generation input with validation history tracking
+            gen_input = QueryGenerationInput(
                 namespace=namespace,
+                intent=preprocessed_intent,
                 max_attempts=max_attempts,
             )
 
             logger.info(
-                f"Generation context created with max_attempts={max_attempts}",
+                f"Generation input created with max_attempts={max_attempts}",
                 extra={"max_attempts": max_attempts},
             )
 
@@ -153,30 +153,22 @@ class PromQLQueryGeneratorAgent:
             # Execute LLM query generation with ReAct pattern
             logger.info("Executing agent with ReAct pattern")
 
-            result = await self.agent.run(generation_prompt, deps=generation_context)
+            result = await self.agent.run(generation_prompt, deps=gen_input)
 
             logger.info(
                 "Query generation completed",
                 extra={
                     "metric": preprocessed_intent.metric,
                     "query": result.output.query,
-                    "total_attempts": len(generation_context.attempts),
+                    "total_attempts": gen_input.get_attempt_count(),
                 },
             )
 
-            # Determine if generation was successful
-            # Success = last attempt was valid OR we have a query (even if max attempts reached)
-            last_attempt_valid = (
-                generation_context.attempts
-                and generation_context.attempts[-1].validation_result
-                and generation_context.attempts[-1].validation_result.get("is_valid", False)
-            )
-
+            # Success if we have a query (validation errors are tracked in gen_input)
             return QueryGenerationResult(
                 query=result.output.query,
-                success=last_attempt_valid or len(generation_context.attempts) > 0,
-                attempts=generation_context.attempts,
-                total_attempts=len(generation_context.attempts),
+                success=True,
+                total_attempts=gen_input.get_attempt_count(),
             )
 
         except Exception as e:
@@ -236,6 +228,6 @@ class PromQLQueryGeneratorAgent:
 - Suggested Aggregations: {agg_suggestions_str}
 - Namespace: {namespace}
 
-Generate the best PromQL query that matches this intent. Use the suggested aggregations as guidance based on the metric type. After generating the query, validate it using the `validate_promql_query` tool (pass namespace and intent parameters). If validation fails, adjust the query based on the feedback."""
+Generate the best PromQL query that matches this intent. Use the suggested aggregations as guidance based on the metric type. After generating the query, validate it using the `validate_promql_query` tool by passing your generated query. If validation fails, adjust the query based on the feedback."""
 
         return prompt
