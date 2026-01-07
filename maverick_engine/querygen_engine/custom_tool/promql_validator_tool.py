@@ -40,48 +40,48 @@ class PromQLValidatorTool(CustomTool):
             Returns:
                 str: Human-readable validation result message
             """
-            gen_input = ctx.deps
-            current_attempt = gen_input.get_attempt_count() + 1
+            querygen_input = ctx.deps
+            current_attempt = querygen_input.get_attempt_count() + 1
 
             logger.info(
-                f"Validating PromQL query (attempt {current_attempt}/{gen_input.max_attempts}): {query}",
+                f"Validating PromQL query (attempt {current_attempt}/{querygen_input.max_attempts}): {query}",
                 extra={
                     "query": query,
                     "attempt": current_attempt,
-                    "max_attempts": gen_input.max_attempts,
+                    "max_attempts": querygen_input.max_attempts,
                 },
             )
 
             # Check if max attempts reached
-            if gen_input.has_reached_max_attempts():
+            if querygen_input.has_reached_max_attempts():
                 error_msg = (
-                    f"**MAX ATTEMPTS REACHED ({gen_input.max_attempts})**\n\n"
-                    f"Unable to generate a valid query after {gen_input.max_attempts} attempts.\n\n"
-                    f"{gen_input.get_validation_history()}"
+                    f"**MAX ATTEMPTS REACHED ({querygen_input.max_attempts})**\n\n"
+                    f"Unable to generate a valid query after {querygen_input.max_attempts} attempts.\n\n"
+                    f"{querygen_input.get_validation_history()}"
                 )
                 logger.warning(error_msg)
                 return error_msg
 
             # Perform validation
             result = self.promql_validator.validate(
-                gen_input.namespace, query, gen_input.intent
+                querygen_input.namespace, query, querygen_input.intent
             )
 
             # Check for validation error (Go-style if err != nil)
             if result.error is not None:
-                error_msg = self._format_error_message(result, current_attempt, gen_input)
-                gen_input.add_validation_result(error_msg)
+                error_msg = self._format_error_message(result, current_attempt, querygen_input)
+                querygen_input.add_validation_result(error_msg)
                 return error_msg
 
             # Success
             return f"**ALL VALIDATIONS PASSED**\n\n✓ Query is valid: {query}"
 
         def _format_error_message(
-            self, result, current_attempt: int, gen_input: QueryGenerationInput
+            self, result, current_attempt: int, querygen_input: QueryGenerationInput
         ) -> str:
             """Format validation error message."""
             parts = [
-                f"**VALIDATION FAILED** (Attempt {current_attempt}/{gen_input.max_attempts})",
+                f"**VALIDATION FAILED** (Attempt {current_attempt}/{querygen_input.max_attempts})",
                 f"Error: {result.error}",
             ]
 
@@ -96,9 +96,9 @@ class PromQLValidatorTool(CustomTool):
 
             # Add validation history if we have previous attempts
             if current_attempt > 1:
-                parts.append(gen_input.get_validation_history())
+                parts.append(querygen_input.get_validation_history())
 
-            remaining = gen_input.max_attempts - current_attempt
+            remaining = querygen_input.max_attempts - current_attempt
             parts.append(f"\nPlease fix the error. {remaining} attempts remaining.")
 
             return "\n".join(parts)

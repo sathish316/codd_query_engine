@@ -134,7 +134,7 @@ class PromQLQueryGeneratorAgent:
             )
 
             # Create generation input with validation history tracking
-            gen_input = QueryGenerationInput(
+            querygen_input = QueryGenerationInput(
                 namespace=namespace,
                 intent=preprocessed_intent,
                 max_attempts=max_attempts,
@@ -153,22 +153,22 @@ class PromQLQueryGeneratorAgent:
             # Execute LLM query generation with ReAct pattern
             logger.info("Executing agent with ReAct pattern")
 
-            result = await self.agent.run(generation_prompt, deps=gen_input)
+            result = await self.agent.run(generation_prompt, deps=querygen_input)
 
             logger.info(
                 "Query generation completed",
                 extra={
                     "metric": preprocessed_intent.metric,
                     "query": result.output.query,
-                    "total_attempts": gen_input.get_attempt_count(),
+                    "total_attempts": querygen_input.get_attempt_count(),
                 },
             )
 
-            # Success if we have a query (validation errors are tracked in gen_input)
+            # Success if we have a query (validation errors are tracked in querygen_input)
             return QueryGenerationResult(
                 query=result.output.query,
                 success=True,
-                total_attempts=gen_input.get_attempt_count(),
+                total_attempts=querygen_input.get_attempt_count(),
             )
 
         except Exception as e:
