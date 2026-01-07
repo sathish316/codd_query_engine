@@ -6,7 +6,10 @@ validates syntax, schema, and semantics in sequence.
 """
 
 import logging
-from maverick_engine.validation_engine.metrics.validation_result import ValidationResult
+from maverick_engine.validation_engine.metrics.validation_result import (
+    ValidationResult,
+    ValidationResultList,
+)
 from maverick_engine.validation_engine.metrics.syntax.metrics_syntax_validator import (
     MetricsSyntaxValidator,
 )
@@ -25,11 +28,11 @@ from opus_agent_base.prompt.instructions_manager import InstructionsManager
 logger = logging.getLogger(__name__)
 
 
-class PromQLValidator(Validator[ValidationResult]):
+class PromQLValidator(Validator[ValidationResultList]):
     """
     Complete validation pipeline for PromQL queries.
 
-    This pipeline chains together three validators in sequence:
+    Runs all enabled validation stages and returns aggregated results:
     1. Syntax validation - validates PromQL grammar correctness
     2. Schema validation - validates that metrics exist in the namespace
     3. Semantics validation - validates that query matches original intent
@@ -62,9 +65,12 @@ class PromQLValidator(Validator[ValidationResult]):
 
     def validate(
         self, namespace: str, query: str, intent: MetricsQueryIntent = None, **kwargs
-    ) -> ValidationResult:
+    ) -> ValidationResultList:
         """
         Validate a PromQL query through the complete pipeline.
+
+        Runs all enabled validation stages and collects all errors.
+        Returns ValidationResultList with same interface as ValidationResult.
 
         Args:
             namespace: Namespace for schema validation (required if schema validation enabled)
@@ -73,40 +79,42 @@ class PromQLValidator(Validator[ValidationResult]):
             **kwargs: Additional keyword arguments
 
         Returns:
-            ValidationResult: The result from the last validation stage that ran
+            ValidationResultList: Aggregated results from all validation stages
         """
         # Read validation configuration
         syntax_enabled = self._config_manager.get_setting("mcp_config.metrics.promql.validation.syntax.enabled", True)
         schema_enabled = self._config_manager.get_setting("mcp_config.metrics.promql.validation.schema.enabled", True)
         semantics_enabled = self._config_manager.get_setting("mcp_config.metrics.promql.validation.semantics.enabled", True)
 
+        results = []
+
         # Stage 1: Syntax validation
         if syntax_enabled and self._syntax_validator:
-            result = self._syntax_validator.validate(query)
-            if not result.is_valid:
-                logger.warning(f"Syntax validation failed: {result.error}")
-                return result
+            syntax_result = self._syntax_validator.validate(query)
+            results.append(syntax_result)
+            if not syntax_result.is_valid:
+                logger.warning(f"Syntax validation failed: {syntax_result.error}")
         else:
             logger.info("Syntax validation skipped (disabled in config)")
-            result = ValidationResult(is_valid=True, error=None)
 
         # Stage 2: Schema validation
         if schema_enabled and self._schema_validator:
-            result = self._schema_validator.validate(namespace, query)
-            if not result.is_valid:
-                logger.warning(f"Schema validation failed: {result.error}")
-                return result
+            schema_result = self._schema_validator.validate(namespace, query)
+            results.append(schema_result)
+            if not schema_result.is_valid:
+                logger.warning(f"Schema validation failed: {schema_result.error}")
         else:
             logger.info("Schema validation skipped (disabled in config)")
 
         # Stage 3: Semantics validation (if intent provided and validator available)
         if semantics_enabled and intent and self._semantics_validator:
-            result = self._semantics_validator.validate(intent, query)
-            if not result.is_valid:
+            semantics_result = self._semantics_validator.validate(intent, query)
+            results.append(semantics_result)
+            if not semantics_result.is_valid:
                 logger.warning("Semantic validation failed")
-                return result
         else:
             if not semantics_enabled:
                 logger.info("Semantics validation skipped (disabled in config)")
 
-        return result
+        # Return aggregated results (if no validators ran, return empty list which is valid)
+        return ValidationResultList(results=results if results else [ValidationResult(is_valid=True)])

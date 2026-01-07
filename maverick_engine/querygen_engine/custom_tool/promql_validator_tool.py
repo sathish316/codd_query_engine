@@ -3,8 +3,6 @@ from opus_agent_base.tools.custom_tool import CustomTool
 from maverick_engine.validation_engine.metrics.promql_validator import (
     PromQLValidator,
 )
-from maverick_engine.validation_engine.metrics.schema.structured_outputs import SchemaValidationResult
-from maverick_engine.validation_engine.metrics.semantics.structured_outputs import SemanticValidationResult
 from maverick_engine.querygen_engine.metrics.structured_outputs import QueryGenerationInput
 from pydantic_ai import RunContext
 
@@ -79,22 +77,18 @@ class PromQLValidatorTool(CustomTool):
         def _format_error_message(
             self, result, current_attempt: int, querygen_input: QueryGenerationInput
         ) -> str:
-            """Format validation error message."""
+            """
+            Format validation error message.
+
+            ValidationResultList.error already formats all errors with stage names,
+            so we just need to add attempt context.
+            """
             parts = [
                 f"**VALIDATION FAILED** (Attempt {current_attempt}/{querygen_input.max_attempts})",
-                f"Error: {result.error}",
+                "",
+                result.error,  # Already formatted with stage-specific errors
+                "",
+                f"Please fix the errors above. {querygen_input.max_attempts - current_attempt} attempts remaining.",
             ]
-
-            # Add schema-specific details
-            if isinstance(result, SchemaValidationResult) and result.invalid_metrics:
-                parts.append(f"Invalid metrics: {', '.join(result.invalid_metrics)}")
-
-            # Add semantic-specific details
-            if isinstance(result, SemanticValidationResult):
-                parts.append(f"Confidence: {result.confidence_score}/5")
-                parts.append(f"Reasoning: {result.reasoning}")
-
-            remaining = querygen_input.max_attempts - current_attempt
-            parts.append(f"\nPlease fix the error. {remaining} attempts remaining.")
 
             return "\n".join(parts)
