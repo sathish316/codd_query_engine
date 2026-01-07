@@ -39,11 +39,13 @@ class ValidationResultList(BaseModel):
         results: List of individual validation results
     """
 
-    results: List[ValidationResult]
+    results: List[ValidationResult] = []
 
     @property
     def is_valid(self) -> bool:
         """Check if all validation results are valid."""
+        if not self.results:
+            return True
         return all(result.is_valid for result in self.results)
 
     @property
