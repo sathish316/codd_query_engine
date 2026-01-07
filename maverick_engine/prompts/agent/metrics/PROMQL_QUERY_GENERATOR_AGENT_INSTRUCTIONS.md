@@ -10,7 +10,7 @@ Generate accurate PromQL queries by carefully analyzing the user intent and appl
 4. **Validate** your query using the `validate_promql_query` tool to catch any errors
 5. **Refine** if needed based on validation feedback
 
-**Note**: Hints for filters can be found in the intent description. You can use the tools `get_label_names` and `get_label_values` to discover available labels and values for a metric.
+**Note**: Hints for filters can be found in the intent description. You can use the tools `get_label_names` and `get_label_values` to discover available labels and label values.
 
 # PromQL Query Generation Guidelines
 
