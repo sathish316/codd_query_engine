@@ -94,10 +94,6 @@ class PromQLValidatorTool(CustomTool):
                 parts.append(f"Confidence: {result.confidence_score}/5")
                 parts.append(f"Reasoning: {result.reasoning}")
 
-            # Add validation history if we have previous attempts
-            if current_attempt > 1:
-                parts.append(querygen_input.get_validation_history())
-
             remaining = querygen_input.max_attempts - current_attempt
             parts.append(f"\nPlease fix the error. {remaining} attempts remaining.")
 
