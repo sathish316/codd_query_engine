@@ -6,6 +6,8 @@ from pydantic import BaseModel, Field
 from dataclasses import dataclass
 from typing import Optional, List
 
+from maverick_engine.querygen_engine.metrics.structured_inputs import MetricsQueryIntent
+
 
 class QueryGenerationInput(BaseModel):
     """
@@ -16,7 +18,7 @@ class QueryGenerationInput(BaseModel):
     """
 
     namespace: str
-    intent: "MetricsQueryIntent"
+    intent: MetricsQueryIntent
     validation_results: List[str] = Field(default_factory=list)
     max_attempts: int = 5
 
