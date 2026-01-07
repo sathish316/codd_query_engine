@@ -3,9 +3,9 @@ Unit tests for PromQLValidator.
 
 Tests cover:
 - Pipeline orchestration (syntax -> schema -> semantics)
-- Early exit on validation failures at each stage
+- All validation stages run and errors are collected
 - Optional semantic validation (with/without intent)
-- Proper result propagation from each validator
+- Proper result aggregation from all validators
 - Edge cases (None validators, empty queries, etc.)
 
 All tests use mocks to avoid external dependencies.
@@ -15,6 +15,10 @@ from unittest.mock import Mock
 import pytest
 
 from maverick_engine.validation_engine.metrics.promql_validator import PromQLValidator
+from maverick_engine.validation_engine.metrics.validation_result import (
+    ValidationResult,
+    ValidationResultList,
+)
 from maverick_engine.validation_engine.metrics.syntax.structured_outputs import (
     SyntaxValidationResult,
 )
@@ -38,7 +42,7 @@ class TestPromQLValidator:
         """Create a mock config manager."""
         mock_config = Mock()
         # Configure to return True for all validation stages by default
-        mock_config.get.return_value = True
+        mock_config.get_setting.return_value = True
         return mock_config
 
     @pytest.fixture
@@ -106,12 +110,12 @@ class TestPromQLValidator:
         mock_schema_validator.validate.assert_called_once_with(namespace, query)
         mock_semantics_validator.validate.assert_called_once_with(intent, query)
 
-        # Verify: Final result is from semantic validation
+        # Verify: Returns simple ValidationResult for success
         assert result.is_valid is True
-        assert isinstance(result, SemanticValidationResult)
-        assert result.confidence_score == 5
+        assert isinstance(result, ValidationResult)
+        assert result.error is None
 
-    def test_syntax_validation_failure_stops_pipeline(
+    def test_syntax_validation_failure(
         self,
         validator,
         mock_syntax_validator,
@@ -119,34 +123,34 @@ class TestPromQLValidator:
         mock_semantics_validator,
     ):
         """
-        Test that pipeline stops at syntax validation failure.
+        Test that syntax validation failure is collected.
 
-        Scenario: Malformed query - schema and semantic validation should not run.
+        Scenario: Malformed query - all validators run but errors are collected.
         """
-        # Setup: Syntax validator returns failure
+        # Setup: Syntax validator returns failure, others return success
         namespace = "test:namespace"
         query = "rate(http_requests_total[5m"  # Missing closing paren
 
         mock_syntax_validator.validate.return_value = SyntaxValidationResult.failure(
             "Invalid PromQL syntax at line 1, column 30", line=1, column=30
         )
+        mock_schema_validator.validate.return_value = SchemaValidationResult.success()
 
         # Execute
         result = validator.validate(namespace, query)
 
-        # Verify: Only syntax validator was called
+        # Verify: All enabled validators were called
         mock_syntax_validator.validate.assert_called_once_with(query)
-        mock_schema_validator.validate.assert_not_called()
-        mock_semantics_validator.validate.assert_not_called()
+        mock_schema_validator.validate.assert_called_once_with(namespace, query)
 
-        # Verify: Result is syntax validation failure
+        # Verify: Result is ValidationResultList with syntax error
         assert result.is_valid is False
-        assert isinstance(result, SyntaxValidationResult)
+        assert isinstance(result, ValidationResultList)
         assert "syntax" in result.error.lower()
-        assert result.line == 1
-        assert result.column == 30
+        assert len(result.results) == 1
+        assert isinstance(result.results[0], SyntaxValidationResult)
 
-    def test_schema_validation_failure_stops_pipeline(
+    def test_schema_validation_failure(
         self,
         validator,
         mock_syntax_validator,
@@ -154,11 +158,11 @@ class TestPromQLValidator:
         mock_semantics_validator,
     ):
         """
-        Test that pipeline stops at schema validation failure.
+        Test that schema validation failure is collected.
 
-        Scenario: Valid syntax but invalid metric - semantic validation should not run.
+        Scenario: Valid syntax but invalid metric - all validators run.
         """
-        # Setup: Syntax passes, schema fails
+        # Setup: Syntax passes, schema fails, semantics passes
         namespace = "test:namespace"
         query = "rate(nonexistent_metric[5m])"
         intent = MetricsQueryIntent(
@@ -169,20 +173,22 @@ class TestPromQLValidator:
         mock_schema_validator.validate.return_value = SchemaValidationResult.failure(
             ["nonexistent_metric"], namespace
         )
+        mock_semantics_validator.validate.return_value = SemanticValidationResult.success()
 
         # Execute
         result = validator.validate(namespace, query, intent=intent)
 
-        # Verify: Syntax and schema validators called, but not semantics
+        # Verify: All validators were called
         mock_syntax_validator.validate.assert_called_once_with(query)
         mock_schema_validator.validate.assert_called_once_with(namespace, query)
-        mock_semantics_validator.validate.assert_not_called()
+        mock_semantics_validator.validate.assert_called_once_with(intent, query)
 
-        # Verify: Result is schema validation failure
+        # Verify: Result is ValidationResultList with schema error
         assert result.is_valid is False
-        assert isinstance(result, SchemaValidationResult)
-        assert "nonexistent_metric" in result.invalid_metrics
-        assert namespace in result.error
+        assert isinstance(result, ValidationResultList)
+        assert "nonexistent_metric" in result.error or "schema" in result.error.lower()
+        assert len(result.results) == 1
+        assert isinstance(result.results[0], SchemaValidationResult)
 
     def test_semantic_validation_failure(
         self,
@@ -192,7 +198,7 @@ class TestPromQLValidator:
         mock_semantics_validator,
     ):
         """
-        Test that semantic validation failure is properly returned.
+        Test that semantic validation failure is collected.
 
         Scenario: Valid syntax and schema, but query doesn't match intent.
         """
@@ -223,11 +229,12 @@ class TestPromQLValidator:
         mock_schema_validator.validate.assert_called_once_with(namespace, query)
         mock_semantics_validator.validate.assert_called_once_with(intent, query)
 
-        # Verify: Result is semantic validation failure
+        # Verify: Result is ValidationResultList with semantic error
         assert result.is_valid is False
-        assert isinstance(result, SemanticValidationResult)
-        assert result.confidence_score == 1
-        assert "gauge" in result.reasoning.lower()
+        assert isinstance(result, ValidationResultList)
+        assert len(result.results) == 1
+        assert isinstance(result.results[0], SemanticValidationResult)
+        assert result.results[0].confidence_score == 1
 
     def test_partial_semantic_match(
         self,
@@ -241,7 +248,7 @@ class TestPromQLValidator:
 
         Scenario: Query partially matches intent (is_valid should be True for partial match).
         """
-        # Setup: All validators pass, semantic returns partial match
+        # Setup: All validators pass, semantic returns partial match (score 3 > threshold 2)
         namespace = "test:namespace"
         query = 'rate(http_requests_total{status="500"}[5m])'
         intent = MetricsQueryIntent(
@@ -261,7 +268,65 @@ class TestPromQLValidator:
         # Execute
         result = validator.validate(namespace, query, intent=intent)
 
-        # Verify: Result shows medium confidence (score 3 > threshold 2, so valid)
-        assert result.is_valid is True  # Score 3 is above threshold 2
-        assert isinstance(result, SemanticValidationResult)
-        assert result.confidence_score == 3
+        # Verify: All validators were called
+        mock_syntax_validator.validate.assert_called_once_with(query)
+        mock_schema_validator.validate.assert_called_once_with(namespace, query)
+        mock_semantics_validator.validate.assert_called_once_with(intent, query)
+
+        # Verify: Returns simple ValidationResult for success (score 3 > threshold 2)
+        assert result.is_valid is True
+        assert isinstance(result, ValidationResult)
+        assert result.error is None
+
+    def test_multiple_validation_errors_collected(
+        self,
+        validator,
+        mock_syntax_validator,
+        mock_schema_validator,
+        mock_semantics_validator,
+    ):
+        """
+        Test that multiple validation errors are collected together.
+
+        Scenario: Multiple validators fail - all errors should be aggregated.
+        """
+        # Setup: Syntax and schema both fail
+        namespace = "test:namespace"
+        query = "rate(invalid_metric[5m"  # Bad syntax AND bad metric
+        intent = MetricsQueryIntent(
+            metric="invalid_metric", metric_type="counter", window="5m"
+        )
+
+        mock_syntax_validator.validate.return_value = SyntaxValidationResult.failure(
+            "Invalid PromQL syntax at line 1, column 26", line=1, column=26
+        )
+        mock_schema_validator.validate.return_value = SchemaValidationResult.failure(
+            ["invalid_metric"], namespace
+        )
+        mock_semantics_validator.validate.return_value = SemanticValidationResult(
+            confidence_score=1, reasoning="Query does not match intent"
+        )
+
+        # Execute
+        result = validator.validate(namespace, query, intent=intent)
+
+        # Verify: All validators were called
+        mock_syntax_validator.validate.assert_called_once_with(query)
+        mock_schema_validator.validate.assert_called_once_with(namespace, query)
+        mock_semantics_validator.validate.assert_called_once_with(intent, query)
+
+        # Verify: Result contains all three errors
+        assert result.is_valid is False
+        assert isinstance(result, ValidationResultList)
+        assert len(result.results) == 3
+
+        # Check that all error types are present
+        result_types = [type(r).__name__ for r in result.results]
+        assert "SyntaxValidationResult" in result_types
+        assert "SchemaValidationResult" in result_types
+        assert "SemanticValidationResult" in result_types
+
+        # Verify formatted error contains all stages
+        assert "syntax" in result.error.lower()
+        assert "schema" in result.error.lower()
+        assert "semantic" in result.error.lower()
