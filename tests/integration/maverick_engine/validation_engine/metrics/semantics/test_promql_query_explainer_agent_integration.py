@@ -32,7 +32,6 @@ class TestPromQLQueryExplainerAgentIntegration:
             config_manager=config_manager, instructions_manager=instructions_manager
         )
 
-    @pytest.mark.skip(reason="Skipping semantics validation tests")
     def test_semantic_validation_happy_path_counter_with_rate(
         self, query_explainer_agent
     ):
@@ -82,7 +81,6 @@ class TestPromQLQueryExplainerAgentIntegration:
         assert result.original_intent_summary is not None
         assert result.actual_query_behavior is not None
 
-    @pytest.mark.skip(reason="Skipping semantics validation tests")
     def test_semantic_validation_intent_mismatch(self, query_explainer_agent):
         """
         Integration test for semantic validation when intent does NOT match the generated query.

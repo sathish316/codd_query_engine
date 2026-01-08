@@ -52,7 +52,7 @@ class PromQLQueryRequest(BaseModel):
 class MetricsQueryResponse(BaseModel):
     """Response model for metrics query generation."""
 
-    query: str
+    query: Optional[str]
     success: bool
     error: Optional[str] = None
 
