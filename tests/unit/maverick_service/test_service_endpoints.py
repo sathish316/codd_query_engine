@@ -1,6 +1,6 @@
 """Unit tests for Maverick Service REST API endpoints with mocked dependencies."""
 
-from unittest.mock import patch, AsyncMock
+from unittest.mock import patch, AsyncMock, MagicMock
 import pytest
 from fastapi.testclient import TestClient
 
@@ -18,9 +18,9 @@ client = TestClient(app)
 class TestServiceMetricsEndpoints:
     """Unit tests for metrics endpoints with mocked query generation."""
 
-    @patch("maverick_lib.client.metrics_promql_client.MetricsPromQLClient.construct_promql_query")
+    @patch("maverick_service.api.controllers.metrics_controller.get_client")
     @pytest.mark.asyncio
-    async def test_generate_promql_query_endpoint_success(self, mock_construct):
+    async def test_generate_promql_query_endpoint_success(self, mock_get_client):
         """
         Test PromQL generation endpoint with successful mocked query generation.
 
@@ -28,11 +28,15 @@ class TestServiceMetricsEndpoints:
         and returns the expected response structure.
         """
         # Arrange: Mock successful query generation
-        mock_construct.return_value = QueryGenerationResult(
-            success=True,
-            query='rate(http_requests_total{service="payments",status="500"}[5m])',
-            error=None,
+        mock_client = MagicMock()
+        mock_client.metrics.construct_promql_query = AsyncMock(
+            return_value=QueryGenerationResult(
+                success=True,
+                query='rate(http_requests_total{service="payments",status="500"}[5m])',
+                error=None,
+            )
         )
+        mock_get_client.return_value = mock_client
 
         request_data = {
             "description": "API error rate for payment service",
@@ -53,9 +57,9 @@ class TestServiceMetricsEndpoints:
         assert data["error"] is None
         assert "http_requests_total" in data["query"]
 
-    @patch("maverick_lib.client.metrics_promql_client.MetricsPromQLClient.construct_promql_query")
+    @patch("maverick_service.api.controllers.metrics_controller.get_client")
     @pytest.mark.asyncio
-    async def test_generate_promql_query_endpoint_failure(self, mock_construct):
+    async def test_generate_promql_query_endpoint_failure(self, mock_get_client):
         """
         Test PromQL generation endpoint with failed mocked query generation.
 
@@ -63,11 +67,15 @@ class TestServiceMetricsEndpoints:
         and returns appropriate error information.
         """
         # Arrange: Mock failed query generation
-        mock_construct.return_value = QueryGenerationResult(
-            success=False,
-            query=None,
-            error="Invalid metric name",
+        mock_client = MagicMock()
+        mock_client.metrics.construct_promql_query = AsyncMock(
+            return_value=QueryGenerationResult(
+                success=False,
+                query=None,
+                error="Invalid metric name",
+            )
         )
+        mock_get_client.return_value = mock_client
 
         request_data = {
             "description": "Test query",
@@ -86,23 +94,13 @@ class TestServiceMetricsEndpoints:
         assert data["query"] is None
         assert data["error"] == "Invalid metric name"
 
-    def test_promql_generate_missing_required_fields(self):
-        """Test PromQL endpoint validation with missing required fields."""
-        request_data = {
-            "description": "Test query"
-            # Missing namespace
-        }
-
-        response = client.post("/api/metrics/promql/generate", json=request_data)
-        assert response.status_code == 422
-
 
 class TestServiceLogsEndpoints:
     """Unit tests for logs endpoints with mocked query generation."""
 
-    @patch("maverick_lib.client.logs_logql_client.LogsLogQLClient.construct_logql_query")
+    @patch("maverick_service.api.controllers.logs_controller.get_client")
     @pytest.mark.asyncio
-    async def test_generate_logql_query_endpoint_success(self, mock_construct):
+    async def test_generate_logql_query_endpoint_success(self, mock_get_client):
         """
         Test LogQL generation endpoint with successful mocked query generation.
 
@@ -110,11 +108,15 @@ class TestServiceLogsEndpoints:
         and returns the expected response structure.
         """
         # Arrange: Mock successful query generation
-        mock_construct.return_value = LogQueryGenerationResult(
-            success=True,
-            query='{service="payments"} |= "error" or "timeout"',
-            error=None,
+        mock_client = MagicMock()
+        mock_client.logs.logql.construct_logql_query = AsyncMock(
+            return_value=LogQueryGenerationResult(
+                success=True,
+                query='{service="payments"} |= "error" or "timeout"',
+                error=None,
+            )
         )
+        mock_get_client.return_value = mock_client
 
         request_data = {
             "description": "Find error logs in payment service",
@@ -139,20 +141,24 @@ class TestServiceLogsEndpoints:
         assert data["error"] is None
         assert "payments" in data["query"]
 
-    @patch("maverick_lib.client.logs_logql_client.LogsLogQLClient.construct_logql_query")
+    @patch("maverick_service.api.controllers.logs_controller.get_client")
     @pytest.mark.asyncio
-    async def test_generate_logql_query_endpoint_failure(self, mock_construct):
+    async def test_generate_logql_query_endpoint_failure(self, mock_get_client):
         """
         Test LogQL generation endpoint with failed mocked query generation.
 
         Validates that the endpoint correctly handles query generation failures.
         """
         # Arrange: Mock failed query generation
-        mock_construct.return_value = LogQueryGenerationResult(
-            success=False,
-            query=None,
-            error="Invalid log pattern syntax",
+        mock_client = MagicMock()
+        mock_client.logs.logql.construct_logql_query = AsyncMock(
+            return_value=LogQueryGenerationResult(
+                success=False,
+                query=None,
+                error="Invalid log pattern syntax",
+            )
         )
+        mock_get_client.return_value = mock_client
 
         request_data = {
             "description": "Test query",
@@ -171,20 +177,9 @@ class TestServiceLogsEndpoints:
         assert data["query"] is None
         assert data["error"] == "Invalid log pattern syntax"
 
-    def test_logql_generate_missing_service(self):
-        """Test LogQL endpoint validation with missing service field."""
-        request_data = {
-            "description": "Test query",
-            "patterns": [{"pattern": "error"}],
-            # Missing service
-        }
-
-        response = client.post("/api/logs/logql/generate", json=request_data)
-        assert response.status_code == 422
-
-    @patch("maverick_lib.client.logs_splunk_client.LogsSplunkClient.construct_spl_query")
+    @patch("maverick_service.api.controllers.logs_controller.get_client")
     @pytest.mark.asyncio
-    async def test_generate_splunk_query_endpoint_success(self, mock_construct):
+    async def test_generate_splunk_query_endpoint_success(self, mock_get_client):
         """
         Test Splunk SPL generation endpoint with successful mocked query generation.
 
@@ -192,11 +187,15 @@ class TestServiceLogsEndpoints:
         and returns the expected response structure.
         """
         # Arrange: Mock successful query generation
-        mock_construct.return_value = LogQueryGenerationResult(
-            success=True,
-            query='search service="api-gateway" (timeout OR "connection refused") | head 100',
-            error=None,
+        mock_client = MagicMock()
+        mock_client.logs.splunk.construct_spl_query = AsyncMock(
+            return_value=LogQueryGenerationResult(
+                success=True,
+                query='search service="api-gateway" (timeout OR "connection refused") | head 100',
+                error=None,
+            )
         )
+        mock_get_client.return_value = mock_client
 
         request_data = {
             "description": "Search for timeout errors",
@@ -221,20 +220,24 @@ class TestServiceLogsEndpoints:
         assert data["error"] is None
         assert "api-gateway" in data["query"]
 
-    @patch("maverick_lib.client.logs_splunk_client.LogsSplunkClient.construct_spl_query")
+    @patch("maverick_service.api.controllers.logs_controller.get_client")
     @pytest.mark.asyncio
-    async def test_generate_splunk_query_endpoint_failure(self, mock_construct):
+    async def test_generate_splunk_query_endpoint_failure(self, mock_get_client):
         """
         Test Splunk SPL generation endpoint with failed mocked query generation.
 
         Validates that the endpoint correctly handles query generation failures.
         """
         # Arrange: Mock failed query generation
-        mock_construct.return_value = LogQueryGenerationResult(
-            success=False,
-            query=None,
-            error="Splunk syntax validation failed",
+        mock_client = MagicMock()
+        mock_client.logs.splunk.construct_spl_query = AsyncMock(
+            return_value=LogQueryGenerationResult(
+                success=False,
+                query=None,
+                error="Splunk syntax validation failed",
+            )
         )
+        mock_get_client.return_value = mock_client
 
         request_data = {
             "description": "Test query",
@@ -252,14 +255,3 @@ class TestServiceLogsEndpoints:
         assert data["success"] is False
         assert data["query"] is None
         assert data["error"] == "Splunk syntax validation failed"
-
-    def test_splunk_generate_missing_patterns(self):
-        """Test Splunk endpoint validation with missing patterns field."""
-        request_data = {
-            "description": "Test query",
-            "service": "test-service",
-            # Missing patterns
-        }
-
-        response = client.post("/api/logs/splunk/generate", json=request_data)
-        assert response.status_code == 422

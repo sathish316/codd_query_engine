@@ -36,3 +36,47 @@ class TestMaverickServiceMetricsIntegration:
             result = data["results"][0]
             assert "metric_name" in result
             assert "similarity_score" in result
+
+
+@pytest.mark.integration
+class TestMaverickServiceEndpointValidation:
+    """Test request validation for all endpoints."""
+
+    def test_metrics_search_missing_query(self):
+        """Test metrics search with missing query field."""
+        request_data = {"limit": 5}
+
+        response = client.post("/api/metrics/search", json=request_data)
+        assert response.status_code == 422
+
+    def test_promql_generate_missing_required_fields(self):
+        """Test PromQL generation with missing required fields."""
+        request_data = {
+            "description": "Test query"
+            # Missing namespace
+        }
+
+        response = client.post("/api/metrics/promql/generate", json=request_data)
+        assert response.status_code == 422
+
+    def test_logql_generate_missing_service(self):
+        """Test LogQL generation with missing service field."""
+        request_data = {
+            "description": "Test query",
+            "patterns": [{"pattern": "error"}],
+            # Missing service
+        }
+
+        response = client.post("/api/logs/logql/generate", json=request_data)
+        assert response.status_code == 422
+
+    def test_splunk_generate_missing_patterns(self):
+        """Test Splunk generation with missing patterns field."""
+        request_data = {
+            "description": "Test query",
+            "service": "test-service",
+            # Missing patterns
+        }
+
+        response = client.post("/api/logs/splunk/generate", json=request_data)
+        assert response.status_code == 422
