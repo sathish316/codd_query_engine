@@ -1,50 +1,38 @@
 - [ ] PromQL
     - [X] MCP
-    - [ ] Direct client
-    - [ ] Semantic preprocess
-    - [ ] Semantic query
-    - [ ] Syntax
-    - [ ] Schema
-    - [ ] Query gen
-    - [ ] Query validation
-    - [ ] Doc
-    - [ ] Demo
+    - [X] Semantic preprocess
+    - [X] Semantic query
+    - [X] Syntax
+    - [X] Schema
+    - [X] Query gen
+    - [X] Query validation
     - [ ] NL2SQL Evalsuite
 - [ ] Loki LogQL
     - [X] MCP
-    - [ ] Direct client
     - [ ] Semantic preprocess
     - [ ] Semantic query
-    - [ ] Syntax
+    - [X] Syntax
     - [ ] Schema
-    - [ ] Query gen
-    - [ ] Query validation
-    - [ ] Doc
-    - [ ] Demo
+    - [X] Query gen
+    - [X] Query validation
     - [ ] NL2SQL Evalsuite
 - [ ] Splunk SPL
     - [X] MCP
-    - [ ] Direct client
     - [ ] Semantic preprocess
     - [ ] Semantic query
-    - [ ] Syntax
+    - [X] Syntax
     - [ ] Schema
-    - [ ] Query gen
-    - [ ] Query validation
-    - [ ] Doc
-    - [ ] Demo
+    - [X] Query gen
+    - [X] Query validation
     - [ ] NL2SQL Evalsuite
 - [ ] Splunk SFX
     - [ ] MCP
-    - [ ] Direct client
     - [ ] Semantic preprocess
     - [ ] Semantic query
     - [ ] Syntax
     - [ ] Schema
     - [ ] Query gen
     - [ ] Query validation
-    - [ ] Doc
-    - [ ] Demo
     - [ ] NL2SQL Evalsuite
 - [ ] OpenTSDB
 - [ ] Mysql
@@ -56,8 +44,6 @@
     - [ ] Schema
     - [ ] Query gen
     - [ ] Query validation
-    - [ ] Doc
-    - [ ] Demo
     - [ ] NL2SQL Evalsuite
 - [ ] PostgreSQL
     - [X] MCP
@@ -68,8 +54,6 @@
     - [ ] Schema
     - [ ] Query gen
     - [ ] Query validation
-    - [ ] Doc
-    - [ ] Demo
     - [ ] NL2SQL Evalsuite
 - [ ] Redis
     - [X] MCP
@@ -80,8 +64,6 @@
     - [ ] Schema
     - [ ] Query gen
     - [ ] Query validation
-    - [ ] Doc
-    - [ ] Demo
     - [ ] NL2SQL Evalsuite
 - [ ] Neo4j
     - [X] MCP
@@ -92,21 +74,13 @@
     - [ ] Schema
     - [ ] Query gen
     - [ ] Query validation
-    - [ ] Doc
-    - [ ] Demo
     - [ ] NL2SQL Evalsuite
 - [ ] Service
-    - [ ] Maverick REST APIs
-    - [ ] Maverick MCP server
+    - [X] Maverick REST APIs
+    - [X] Maverick MCP server
     - [ ] Maverick Skills
 - [X] Sandbox service
     - [X] Beer service
     - [X] Train ticket services
 - [ ] Workflows
-    - [ ] Cursor rules
-    - [ ] Claude subagents
-    - [ ] Antigravity workflows
-    - [ ] Codex skills
-    - [ ] RovoDev subagents
-    - [ ] Opus agent workflows
-    - [ ] Pied-Piper subagents
+    - [ ] Claude AgentSkills
