@@ -86,7 +86,7 @@ def test_search_metrics_with_mocked_store(mock_config):
 
 
 @pytest.mark.asyncio
-async def test_promql_generation_with_mocked_validator(mock_config):
+async def test_promql_generation_with_mocked_generator(mock_config):
     """
     Test PromQL query generation with mocked validator.
 

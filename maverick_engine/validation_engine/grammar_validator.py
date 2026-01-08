@@ -7,7 +7,7 @@ from pathlib import Path
 
 from lark import Lark
 from lark.exceptions import LarkError, UnexpectedInput
-from pydantic import BaseModel
+from maverick_engine.validation_engine.metrics.validation_result import ValidationResult
 
 logger = logging.getLogger(__name__)
 
@@ -15,11 +15,9 @@ logger = logging.getLogger(__name__)
 GRAMMAR_BASE_PATH = Path(__file__).parent.parent / "grammar"
 
 
-class SyntaxValidationResult(BaseModel):
+class SyntaxValidationResult(ValidationResult):
     """Result of syntax validation for any query language."""
 
-    is_valid: bool
-    error: str | None = None
     line: int | None = None
     column: int | None = None
     context: str | None = None

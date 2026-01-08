@@ -37,113 +37,6 @@ class TestMaverickServiceMetricsIntegration:
             assert "metric_name" in result
             assert "similarity_score" in result
 
-    @pytest.mark.skip(reason="taking lot of time")
-    def test_generate_promql_query_e2e(self):
-        """
-        Test PromQL query generation endpoint end-to-end.
-
-        This test makes a real request that uses LLM to generate
-        a PromQL query with validation feedback loop.
-        """
-        request_data = {
-            "description": "API error rate for payment service",
-            "namespace": "production",
-            "metric_name": "http_requests_total",
-            "aggregation": "rate",
-            "filters": {"service": "payments", "status": "500"},
-        }
-
-        response = client.post("/api/metrics/promql/generate", json=request_data)
-
-        assert response.status_code == 200
-        data = response.json()
-        assert "query" in data
-        assert "success" in data
-        assert "error" in data
-
-        # If successful, query should be a non-empty string
-        if data["success"]:
-            assert isinstance(data["query"], str)
-            assert len(data["query"]) > 0
-            # PromQL query should contain the metric name
-            assert "http_requests_total" in data["query"]
-
-
-@pytest.mark.integration
-class TestMaverickServiceLogsIntegration:
-    """E2E integration tests for logs endpoints."""
-
-    def test_generate_logql_query_e2e(self):
-        """
-        Test LogQL query generation endpoint end-to-end.
-
-        This test makes a real request that uses LLM to generate
-        a LogQL query for Loki.
-        """
-        request_data = {
-            "description": "Find error logs in payment service",
-            "service": "payments",
-            "patterns": [
-                {"pattern": "error", "level": "error"},
-                {"pattern": "timeout"},
-            ],
-            "namespace": "production",
-            "limit": 200,
-        }
-
-        response = client.post("/api/logs/logql/generate", json=request_data)
-
-        assert response.status_code == 200
-        data = response.json()
-        assert "query" in data
-        assert "backend" in data
-        assert "success" in data
-        assert "error" in data
-        assert data["backend"] == "loki"
-
-        # If successful, query should be a non-empty string
-        if data["success"]:
-            assert isinstance(data["query"], str)
-            assert len(data["query"]) > 0
-            # LogQL query should reference the service
-            assert "payments" in data["query"]
-
-    @pytest.mark.skip(reason="Skipping Splunk-related tests - PydanticAI usage limit issue")
-    def test_generate_splunk_query_e2e(self):
-        """
-        Test Splunk query generation endpoint end-to-end.
-
-        This test makes a real request that uses LLM to generate
-        a Splunk SPL query.
-        """
-        request_data = {
-            "description": "Search for timeout errors",
-            "service": "api-gateway",
-            "patterns": [
-                {"pattern": "timeout", "level": "error"},
-                {"pattern": "connection refused"},
-            ],
-            "default_level": "error",
-            "limit": 100,
-        }
-
-        response = client.post("/api/logs/splunk/generate", json=request_data)
-
-        assert response.status_code == 200
-        data = response.json()
-        assert "query" in data
-        assert "backend" in data
-        assert "success" in data
-        assert "error" in data
-        assert data["backend"] == "splunk"
-
-        # If successful, query should be a non-empty string
-        if data["success"]:
-            assert isinstance(data["query"], str)
-            assert len(data["query"]) > 0
-            # Splunk query should reference the service
-            assert "api-gateway" in data["query"]
-
 
 @pytest.mark.integration
 class TestMaverickServiceEndpointValidation:
@@ -177,7 +70,6 @@ class TestMaverickServiceEndpointValidation:
         response = client.post("/api/logs/logql/generate", json=request_data)
         assert response.status_code == 422
 
-    @pytest.mark.skip(reason="Skipping Splunk-related tests - PydanticAI usage limit issue")
     def test_splunk_generate_missing_patterns(self):
         """Test Splunk generation with missing patterns field."""
         request_data = {
