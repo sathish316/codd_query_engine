@@ -1,0 +1,218 @@
+// Neo4j Cypher grammar for syntax validation
+// Covers common Cypher query patterns including MATCH, WHERE, RETURN, CREATE, etc.
+
+?start: query
+
+query: reading_clause+ return_clause?
+     | updating_clause+ return_clause?
+     | return_clause
+
+// Reading clauses
+reading_clause: match_clause
+              | optional_match_clause
+              | with_clause
+              | unwind_clause
+
+match_clause: MATCH pattern where_clause?
+optional_match_clause: OPTIONAL MATCH pattern where_clause?
+with_clause: WITH projection_items order_clause? skip_clause? limit_clause? where_clause?
+unwind_clause: UNWIND expression AS variable
+
+// Updating clauses
+updating_clause: create_clause
+               | merge_clause
+               | delete_clause
+               | set_clause
+               | remove_clause
+
+create_clause: CREATE pattern
+merge_clause: MERGE pattern_element
+delete_clause: (DELETE | DETACH DELETE) expression_list
+set_clause: SET set_item ("," set_item)*
+remove_clause: REMOVE remove_item ("," remove_item)*
+
+set_item: variable "=" expression
+        | variable property_access "=" expression
+        | variable node_labels
+
+remove_item: variable property_access
+           | variable node_labels
+
+// Pattern matching
+pattern: pattern_element ("," pattern_element)*
+pattern_element: node_pattern (relationship_pattern node_pattern)*
+              | "(" pattern ")"
+
+node_pattern: "(" [variable] [node_labels] [property_map] ")"
+
+node_labels: label+
+label: ":" LABEL_NAME
+
+relationship_pattern: left_arrow_head? dash relationship_detail? dash right_arrow_head?
+relationship_detail: "[" [variable] [relationship_types] [property_map] [range_literal] "]"
+
+relationship_types: relationship_type+
+relationship_type: ":" TYPE_NAME
+
+left_arrow_head: "<"
+right_arrow_head: ">"
+dash: "-"
+
+range_literal: "*" [INTEGER] [".." [INTEGER]]
+
+property_map: "{" [property_key_value ("," property_key_value)*] "}"
+property_key_value: property_key ":" expression
+
+property_key: IDENTIFIER
+
+// WHERE clause
+where_clause: WHERE expression
+
+// RETURN clause
+return_clause: RETURN [DISTINCT] projection_items order_clause? skip_clause? limit_clause?
+
+projection_items: projection_item ("," projection_item)*
+                | "*"
+
+projection_item: expression [AS variable]
+
+order_clause: ORDER BY order_item ("," order_item)*
+order_item: expression [ASC | DESC]
+
+skip_clause: SKIP expression
+limit_clause: LIMIT expression
+
+// Expressions
+?expression: or_expression
+
+?or_expression: xor_expression (OR xor_expression)*
+?xor_expression: and_expression (XOR and_expression)*
+?and_expression: not_expression (AND not_expression)*
+?not_expression: NOT not_expression
+               | comparison_expression
+
+?comparison_expression: add_expression (comparison_op add_expression)*
+
+comparison_op: "=" | "<>" | "!=" | "<" | ">" | "<=" | ">="
+             | IS NULL
+             | IS NOT NULL
+             | IN
+             | STARTS WITH
+             | ENDS WITH
+             | CONTAINS
+
+?add_expression: mul_expression (add_op mul_expression)*
+add_op: "+" | "-"
+
+?mul_expression: pow_expression (mul_op pow_expression)*
+mul_op: "*" | "/" | "%"
+
+?pow_expression: unary_expression ("^" unary_expression)?
+
+?unary_expression: primary_expression
+                 | "+" unary_expression
+                 | "-" unary_expression
+
+?primary_expression: literal
+                   | parameter
+                   | variable
+                   | function_call
+                   | property_access
+                   | list_comprehension
+                   | "(" expression ")"
+                   | case_expression
+
+property_access: atom ("." IDENTIFIER)+
+?atom: variable | function_call | "(" expression ")"
+
+variable: IDENTIFIER
+
+parameter: "$" IDENTIFIER
+
+// Function calls
+function_call: IDENTIFIER "(" [DISTINCT] [function_args] ")"
+
+function_args: expression ("," expression)*
+
+// Case expression
+case_expression: CASE [expression] (WHEN expression THEN expression)+ [ELSE expression] END
+
+// List comprehension
+list_comprehension: "[" variable IN expression [WHERE expression] ["|" expression] "]"
+
+// Literals
+?literal: number_literal
+        | string_literal
+        | boolean_literal
+        | null_literal
+        | list_literal
+        | map_literal
+
+number_literal: NUMBER
+string_literal: STRING
+boolean_literal: TRUE | FALSE
+null_literal: NULL
+list_literal: "[" [expression ("," expression)*] "]"
+map_literal: "{" [map_key_value ("," map_key_value)*] "}"
+map_key_value: IDENTIFIER ":" expression
+
+expression_list: expression ("," expression)*
+
+// Keywords
+MATCH: "MATCH"i
+OPTIONAL: "OPTIONAL"i
+WHERE: "WHERE"i
+RETURN: "RETURN"i
+DISTINCT: "DISTINCT"i
+ORDER: "ORDER"i
+BY: "BY"i
+ASC: "ASC"i
+DESC: "DESC"i
+SKIP: "SKIP"i
+LIMIT: "LIMIT"i
+CREATE: "CREATE"i
+MERGE: "MERGE"i
+DELETE: "DELETE"i
+DETACH: "DETACH"i
+SET: "SET"i
+REMOVE: "REMOVE"i
+WITH: "WITH"i
+UNWIND: "UNWIND"i
+AS: "AS"i
+OR: "OR"i
+XOR: "XOR"i
+AND: "AND"i
+NOT: "NOT"i
+IN: "IN"i
+IS: "IS"i
+NULL: "NULL"i
+TRUE: "TRUE"i | "true"i
+FALSE: "FALSE"i | "false"i
+CASE: "CASE"i
+WHEN: "WHEN"i
+THEN: "THEN"i
+ELSE: "ELSE"i
+END: "END"i
+STARTS: "STARTS"i
+ENDS: "ENDS"i
+CONTAINS: "CONTAINS"i
+
+// Identifiers
+IDENTIFIER: /[a-zA-Z_][a-zA-Z0-9_]*/
+LABEL_NAME: /[a-zA-Z_][a-zA-Z0-9_]*/
+TYPE_NAME: /[a-zA-Z_][a-zA-Z0-9_]*/
+
+// Numbers
+NUMBER: /[+-]?([0-9]+(\.[0-9]*)?|\.[0-9]+)([eE][+-]?[0-9]+)?/
+INTEGER: /[0-9]+/
+
+// Strings (support both single and double quotes like Cypher)
+STRING: SINGLE_QUOTED_STRING | DOUBLE_QUOTED_STRING
+SINGLE_QUOTED_STRING: /'(?:[^'\\]|\\.)*'/
+DOUBLE_QUOTED_STRING: /"(?:[^"\\]|\\.)*"/
+
+// Whitespace and comments
+%import common.WS
+%ignore WS
+%ignore /\/\/[^\n]*/  // Single-line comments
+%ignore /\/\*(.|\n)*?\*\//  // Multi-line comments
