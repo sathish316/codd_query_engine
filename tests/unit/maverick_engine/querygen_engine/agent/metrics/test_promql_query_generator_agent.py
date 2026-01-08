@@ -33,6 +33,8 @@ def mock_config_manager():
     """Create a mock ConfigManager."""
     mock = Mock()
     mock.models_config = []
+    # Mock get_setting to return default max_attempts
+    mock.get_setting = Mock(side_effect=lambda key, default: default)
     return mock
 
 

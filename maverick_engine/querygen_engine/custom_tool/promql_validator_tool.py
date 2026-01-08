@@ -3,8 +3,7 @@ from opus_agent_base.tools.custom_tool import CustomTool
 from maverick_engine.validation_engine.metrics.promql_validator import (
     PromQLValidator,
 )
-from maverick_engine.querygen_engine.metrics.structured_inputs import MetricsQueryIntent
-from maverick_engine.validation_engine.metrics.validation_result import ValidationResult
+from maverick_engine.querygen_engine.metrics.structured_outputs import QueryGenerationInput
 from pydantic_ai import RunContext
 
 logger = logging.getLogger(__name__)
@@ -12,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 class PromQLValidatorTool(CustomTool):
     """
-    Tool for validating PromQL queries.
+    Tool for validating PromQL queries with validation history tracking.
     """
 
     def __init__(self, promql_validator: PromQLValidator):
@@ -26,27 +25,70 @@ class PromQLValidatorTool(CustomTool):
 
         @agent.tool
         def validate_promql_query(
-            ctx: RunContext[ValidationResult],
-            namespace: str,
+            ctx: RunContext[QueryGenerationInput],
             query: str,
-            intent: MetricsQueryIntent = None,
-            **kwargs,
-        ) -> ValidationResult:
+        ) -> str:
             """
-            Validate a PromQL query.
+            Validate a PromQL query and track validation history.
 
             Args:
-                namespace: The namespace to validate metrics against
+                ctx: The run context containing QueryGenerationInput
                 query: The query string to validate
-                intent: The original query intent for semantic validation (optional)
-                **kwargs: Additional keyword arguments required for validation
 
             Returns:
-                ValidationResult: A ValidationResult (or subclass) indicating success or failure
+                str: Human-readable validation result message
             """
-            logger.info(f"Validating PromQL query: {query}")
-            validation_result = self.promql_validator.validate(
-                namespace, query, intent, **kwargs
+            querygen_input = ctx.deps
+            current_attempt = querygen_input.get_attempt_count() + 1
+
+            logger.info(
+                f"Validating PromQL query (attempt {current_attempt}/{querygen_input.max_attempts}): {query}",
+                extra={
+                    "query": query,
+                    "attempt": current_attempt,
+                    "max_attempts": querygen_input.max_attempts,
+                },
             )
-            logger.info(f"Validation result: {validation_result}")
-            return validation_result
+
+            # Check if max attempts reached
+            if querygen_input.has_reached_max_attempts():
+                error_msg = (
+                    f"**MAX ATTEMPTS REACHED ({querygen_input.max_attempts})**\n\n"
+                    f"Unable to generate a valid query after {querygen_input.max_attempts} attempts.\n\n"
+                    f"{querygen_input.get_validation_history()}"
+                )
+                logger.warning(error_msg)
+                return error_msg
+
+            # Perform validation
+            result = self.promql_validator.validate(
+                querygen_input.namespace, query, querygen_input.intent
+            )
+
+            # Check for validation error (Go-style if err != nil)
+            if result.error is not None:
+                error_msg = self._format_error_message(result, current_attempt, querygen_input)
+                querygen_input.add_validation_result(error_msg)
+                return error_msg
+
+            # Success
+            return f"**ALL VALIDATIONS PASSED**\n\n✓ Query is valid: {query}"
+
+        def _format_error_message(
+            self, result, current_attempt: int, querygen_input: QueryGenerationInput
+        ) -> str:
+            """
+            Format validation error message.
+
+            ValidationResultList.error already formats all errors with stage names,
+            so we just need to add attempt context.
+            """
+            parts = [
+                f"**VALIDATION FAILED** (Attempt {current_attempt}/{querygen_input.max_attempts})",
+                "",
+                result.error,  # Already formatted with stage-specific errors
+                "",
+                f"Please fix the errors above. {querygen_input.max_attempts - current_attempt} attempts remaining.",
+            ]
+
+            return "\n".join(parts)
