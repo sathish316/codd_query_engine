@@ -27,7 +27,6 @@ from opus_agent_base.prompt.instructions_manager import InstructionsManager
 
 
 @pytest.mark.integration
-@pytest.mark.integration_querygen_evals
 class TestLogQLQueryGeneratorAgentIntegration:
     """Integration tests for LogQL query generator with ReAct pattern and validation tool."""
 

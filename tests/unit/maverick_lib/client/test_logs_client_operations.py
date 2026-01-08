@@ -20,8 +20,20 @@ def mock_config():
     )
 
 
+@pytest.fixture(autouse=True)
+def mock_chromadb_connection():
+    """Prevent real ChromaDB connections during MaverickClient initialization."""
+    with patch(
+        "maverick_lib.client.metrics_promql_client.PromQLModule.get_semantic_store"
+    ) as mock_get_store:
+        mock_store = Mock()
+        mock_store.search_metadata.return_value = []
+        mock_get_store.return_value = mock_store
+        yield
+
+
 @pytest.mark.asyncio
-async def test_logql_generation_with_mocked_validator(mock_config):
+async def test_logql_generation_with_mocked_query_generator(mock_config):
     """
     Test LogQL query generation with mocked validator.
 
@@ -77,7 +89,7 @@ async def test_logql_generation_with_mocked_validator(mock_config):
 
 
 @pytest.mark.asyncio
-async def test_splunk_spl_generation_with_mocked_validator(mock_config):
+async def test_splunk_spl_generation_with_mocked_generator(mock_config):
     """
     Test Splunk SPL query generation with mocked validator.
 
@@ -86,7 +98,7 @@ async def test_splunk_spl_generation_with_mocked_validator(mock_config):
     """
     # Arrange: Create client with mocked Splunk query generator
     with patch(
-        "maverick_lib.client.provider.splunk_module.SplunkModule.get_splunk_query_generator"
+        "maverick_lib.client.provider.splunk_module.SplunkModule.get_spl_query_generator"
     ) as mock_get_generator:
         mock_generator = Mock()
         mock_generator.generate_query = AsyncMock(
