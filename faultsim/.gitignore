@@ -1,0 +1,13 @@
+# Binaries
+faultsim
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Go test files
+*.test
+*.out
+
+# Dependency directories
+vendor/

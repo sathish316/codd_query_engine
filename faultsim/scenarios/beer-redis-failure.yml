@@ -1,0 +1,55 @@
+service_name: beer-service
+service_path: sandbox/beer-service-sandbox
+scenario_name: beer-redis-unavailable
+scenario_description: Simulates Redis unavailability for the beer service and investigates root cause
+
+steps:
+  - name: Setup Beer Service
+    description: Start beer service with Docker Compose and wait for it to be healthy
+    type: setup_service
+    params:
+      script_path: scripts/setup-beer-service.sh
+      timeout: 300
+
+  - name: Generate Steady State Traffic
+    description: Generate baseline HTTP traffic to beer service endpoints
+    type: steady_traffic
+    params:
+      script_path: scripts/generate-traffic.sh
+      script_args:
+        - "http://localhost:5001"
+        - "10"  # requests per second
+
+  - name: Inject Redis Failure
+    description: Stop Redis container to simulate cache unavailability
+    type: fault_stimulation
+    params:
+      script_path: scripts/stop-redis.sh
+      delay: 30  # wait 30 seconds after traffic starts
+
+  - name: Investigate Root Cause
+    description: Use Claude to investigate the root cause using Prometheus and Loki
+    type: investigation
+    params:
+      timeout: 600
+      prompt: |
+        Investigate the root cause of issues in the beer-service.
+
+        The service is running at http://localhost:5001
+        Prometheus is at http://localhost:9090
+        Loki is at http://localhost:3100
+
+        Analyze metrics and logs from the last 10 minutes to determine:
+        1. What component is failing?
+        2. What is the root cause?
+        3. What evidence supports your conclusion?
+
+        Be specific about which metrics or log patterns indicate the problem.
+        Focus on Redis-related issues if present.
+
+  - name: User Feedback
+    description: Ask user to confirm if predicted root cause matches the simulated fault
+    type: user_feedback
+    params:
+      expected_fault: Redis unavailability / connection failure
+      question: Does the investigation correctly identify Redis as the root cause?
