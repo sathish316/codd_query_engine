@@ -55,7 +55,7 @@ class SplunkQueryRequest(BaseModel):
 class LogsQueryResponse(BaseModel):
     """Response model for logs query generation."""
 
-    query: str
+    query: Optional[str]
     backend: str
     success: bool
     error: Optional[str] = None
