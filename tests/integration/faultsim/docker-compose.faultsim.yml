@@ -1,0 +1,94 @@
+version: '3.8'
+
+services:
+  # Beer Service - References sandbox/beer-service-sandbox submodule
+  # Note: Ensure submodule is initialized: git submodule update --init --recursive
+  beer-service:
+    build:
+      context: ../../../sandbox/beer-service-sandbox
+      dockerfile: Dockerfile
+    container_name: faultsim_beer_service
+    ports:
+      - "5001:5001"
+    environment:
+      - REDIS_HOST=redis-cache
+      - REDIS_PORT=6379
+      - PROMETHEUS_PORT=8001
+      - LOKI_URL=http://loki:3100
+    depends_on:
+      - redis-cache
+      - prometheus
+      - loki
+    networks:
+      - faultsim-network
+    restart: unless-stopped
+
+  # Redis Cache for Beer Service
+  redis-cache:
+    image: redis:7-alpine
+    container_name: faultsim_redis
+    ports:
+      - "6379:6379"
+    networks:
+      - faultsim-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  # Prometheus for metrics
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: faultsim_prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus-data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+    networks:
+      - faultsim-network
+    restart: unless-stopped
+
+  # Loki for logs
+  loki:
+    image: grafana/loki:latest
+    container_name: faultsim_loki
+    ports:
+      - "3100:3100"
+    volumes:
+      - ./loki/loki-config.yml:/etc/loki/local-config.yaml
+      - loki-data:/loki
+    command: -config.file=/etc/loki/local-config.yaml
+    networks:
+      - faultsim-network
+    restart: unless-stopped
+
+  # Promtail for log collection
+  promtail:
+    image: grafana/promtail:latest
+    container_name: faultsim_promtail
+    volumes:
+      - ./promtail/promtail-config.yml:/etc/promtail/config.yml
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: -config.file=/etc/promtail/config.yml
+    depends_on:
+      - loki
+    networks:
+      - faultsim-network
+    restart: unless-stopped
+
+networks:
+  faultsim-network:
+    driver: bridge
+
+volumes:
+  prometheus-data:
+  loki-data:
