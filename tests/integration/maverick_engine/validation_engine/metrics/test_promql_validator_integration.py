@@ -21,6 +21,12 @@ from maverick_engine.validation_engine.metrics.promql_validator import PromQLVal
 from maverick_engine.validation_engine.metrics.schema.metrics_schema_validator import (
     MetricsSchemaValidator,
 )
+from maverick_engine.validation_engine.metrics.schema.substring_metric_parser import (
+    SubstringMetricParser,
+)
+from maverick_engine.validation_engine.metrics.schema.fuzzy_metric_parser import (
+    FuzzyMetricParser,
+)
 from maverick_engine.validation_engine.metrics.syntax.promql_syntax_validator import (
     PromQLSyntaxValidator,
 )
@@ -76,6 +82,33 @@ class TestPromQLValidatorPipelineIntegration:
         return MetricsSchemaValidator(metadata_store, metric_extractor_agent)
 
     @pytest.fixture
+    def schema_validator_substring(self, metadata_store):
+        """Create schema validator with substring strategy."""
+        parser = SubstringMetricParser(metadata_store)
+        return MetricsSchemaValidator(metadata_store, parser)
+
+    @pytest.fixture
+    def schema_validator_fuzzy(self, metadata_store, config_manager):
+        """Create schema validator with fuzzy strategy."""
+        top_k = config_manager.get_setting(
+            "mcp_config.metrics.promql.validation.schema.fuzzy.top_k", 10
+        )
+        min_similarity_score = config_manager.get_setting(
+            "mcp_config.metrics.promql.validation.schema.fuzzy.min_similarity_score", 60
+        )
+        parser = FuzzyMetricParser(
+            metadata_store,
+            top_k=top_k,
+            min_similarity_score=min_similarity_score,
+        )
+        return MetricsSchemaValidator(metadata_store, parser)
+
+    @pytest.fixture
+    def schema_validator_llm(self, metadata_store, metric_extractor_agent):
+        """Create schema validator with LLM strategy."""
+        return MetricsSchemaValidator(metadata_store, metric_extractor_agent)
+
+    @pytest.fixture
     def semantic_validator(self, config_manager, instructions_manager):
         """Create semantic validator (PromQL semantics validator)."""
         return PromQLSemanticsValidator(
@@ -92,6 +125,45 @@ class TestPromQLValidatorPipelineIntegration:
             instructions_manager=instructions_manager,
             syntax_validator=syntax_validator,
             schema_validator=schema_validator,
+            semantics_validator=semantic_validator,
+        )
+
+    @pytest.fixture
+    def promql_validator_substring(
+        self, config_manager, instructions_manager, syntax_validator, schema_validator_substring, semantic_validator
+    ):
+        """Create PromQL validator pipeline with substring strategy."""
+        return PromQLValidator(
+            config_manager=config_manager,
+            instructions_manager=instructions_manager,
+            syntax_validator=syntax_validator,
+            schema_validator=schema_validator_substring,
+            semantics_validator=semantic_validator,
+        )
+
+    @pytest.fixture
+    def promql_validator_fuzzy(
+        self, config_manager, instructions_manager, syntax_validator, schema_validator_fuzzy, semantic_validator
+    ):
+        """Create PromQL validator pipeline with fuzzy strategy."""
+        return PromQLValidator(
+            config_manager=config_manager,
+            instructions_manager=instructions_manager,
+            syntax_validator=syntax_validator,
+            schema_validator=schema_validator_fuzzy,
+            semantics_validator=semantic_validator,
+        )
+
+    @pytest.fixture
+    def promql_validator_llm(
+        self, config_manager, instructions_manager, syntax_validator, schema_validator_llm, semantic_validator
+    ):
+        """Create PromQL validator pipeline with LLM strategy."""
+        return PromQLValidator(
+            config_manager=config_manager,
+            instructions_manager=instructions_manager,
+            syntax_validator=syntax_validator,
+            schema_validator=schema_validator_llm,
             semantics_validator=semantic_validator,
         )
 
@@ -172,12 +244,72 @@ class TestPromQLValidatorPipelineIntegration:
             "Expected SyntaxValidationResult with error location"
         )
 
-    def test_validator_pipeline_schema_error(self, promql_validator: PromQLValidator, metadata_store: MetricsMetadataStore):
+    def test_validator_pipeline_schema_error_substring(self, promql_validator_substring: PromQLValidator, metadata_store: MetricsMetadataStore):
         """
-        Integration test for validator pipeline - SCHEMA VALIDATION ERROR.
+        Integration test for validator pipeline - SCHEMA VALIDATION ERROR (substring strategy).
 
         Tests that a query with valid syntax but invalid metric names fails
-        at the schema validation stage.
+        at the schema validation stage using substring matching strategy.
+
+        Scenario: Query references a metric that doesn't exist in the namespace.
+        Note: Substring parser can't extract unknown metrics, so it fails with "no metrics found"
+        """
+        # Setup: Valid syntax but metric doesn't exist
+        namespace = "test:monitoring"
+        query = 'rate(nonexistent_metric{status="500"}[5m])'
+
+        # Seed metadata store with different metrics (not the one in query)
+        metadata_store.set_metric_names(namespace, {"http_requests_total", "cpu_usage"})
+
+        # Execute validation - should fail at schema stage
+        result = promql_validator_substring.validate(namespace, query)
+        print("schema validation result (substring): ", result)
+
+        # Verify: Schema validation failed
+        # Note: Substring parser returns empty set for unknown metrics, causing "no metrics found" error
+        assert result.is_valid is False, (
+            "Expected schema validation to fail for non-existent metric"
+        )
+        assert result.error is not None and "schema" in result.error.lower()
+        print("schema validation error: ", result.error)
+        assert "no metrics found" in result.error.lower() or "parse error" in result.error.lower()
+
+    def test_validator_pipeline_schema_error_fuzzy(self, promql_validator_fuzzy: PromQLValidator, metadata_store: MetricsMetadataStore):
+        """
+        Integration test for validator pipeline - SCHEMA VALIDATION ERROR (fuzzy strategy).
+
+        Tests that a query with valid syntax but invalid metric names fails
+        at the schema validation stage using fuzzy matching strategy.
+
+        Scenario: Query references a metric that doesn't exist in the namespace.
+        Note: Fuzzy parser can't extract unknown metrics, so it fails with "no metrics found"
+        """
+        # Setup: Valid syntax but metric doesn't exist
+        namespace = "test:monitoring"
+        query = 'rate(nonexistent_metric{status="500"}[5m])'
+
+        # Seed metadata store with different metrics (not the one in query)
+        metadata_store.set_metric_names(namespace, {"http_requests_total", "cpu_usage"})
+
+        # Execute validation - should fail at schema stage
+        result = promql_validator_fuzzy.validate(namespace, query)
+        print("schema validation result (fuzzy): ", result)
+
+        # Verify: Schema validation failed
+        # Note: Fuzzy parser returns empty set for unknown metrics, causing "no metrics found" error
+        assert result.is_valid is False, (
+            "Expected schema validation to fail for non-existent metric"
+        )
+        assert result.error is not None and "schema" in result.error.lower()
+        print("schema validation error: ", result.error)
+        assert "no metrics found" in result.error.lower() or "parse error" in result.error.lower()
+
+    def test_validator_pipeline_schema_error_llm(self, promql_validator_llm: PromQLValidator, metadata_store: MetricsMetadataStore):
+        """
+        Integration test for validator pipeline - SCHEMA VALIDATION ERROR (LLM strategy).
+
+        Tests that a query with valid syntax but invalid metric names fails
+        at the schema validation stage using LLM-based extraction strategy.
 
         Scenario: Query references a metric that doesn't exist in the namespace
         """
@@ -189,8 +321,8 @@ class TestPromQLValidatorPipelineIntegration:
         metadata_store.set_metric_names(namespace, {"http_requests_total", "cpu_usage"})
 
         # Execute validation - should fail at schema stage
-        result = promql_validator.validate(namespace, query)
-        print("schema validation result: ", result)
+        result = promql_validator_llm.validate(namespace, query)
+        print("schema validation result (llm): ", result)
 
         # Verify: Schema validation failed
         assert result.is_valid is False, (
