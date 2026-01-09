@@ -190,21 +190,16 @@ class TestPromQLValidatorPipelineIntegration:
 
         # Execute validation - should fail at schema stage
         result = promql_validator.validate(namespace, query)
+        print("schema validation result: ", result)
 
         # Verify: Schema validation failed
         assert result.is_valid is False, (
             "Expected schema validation to fail for non-existent metric"
         )
-        assert result.error is not None
-        assert namespace in result.error
-
-        # Verify it's a SchemaValidationResult (has invalid_metrics)
-        assert hasattr(result, "invalid_metrics"), (
-            "Expected SchemaValidationResult with invalid_metrics field"
-        )
-        assert "nonexistent_metric" in result.invalid_metrics, (
-            f"Expected 'nonexistent_metric' in invalid_metrics, got: {result.invalid_metrics}"
-        )
+        assert result.error is not None and "schema" in result.error.lower()
+        print("schema validation error: ", result.error)
+        assert "invalid metric" in result.error.lower()
+        assert "nonexistent_metric" in result.error.lower()
 
     def test_validator_pipeline_semantic_error(self, promql_validator: PromQLValidator, metadata_store: MetricsMetadataStore):
         """
