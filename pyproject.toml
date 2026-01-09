@@ -46,6 +46,7 @@ members = [
 [tool.pytest.ini_options]
 markers = [
     "integration: marks tests as integration tests (deselect with '-m \"not integration\"')",
+    "integration_llm: marks tests as integration tests that involve LLM/agent calls (subset of integration)",
     "integration_querygen_evals: marks tests as property-based integration tests for query generation evaluations",
 ]
 addopts = "-m 'not integration'"
