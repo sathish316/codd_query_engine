@@ -17,6 +17,7 @@ from opus_agent_base.prompt.instructions_manager import InstructionsManager
 
 
 @pytest.mark.integration
+@pytest.mark.integration_llm
 class TestMetricsEnrichmentAgentIntegration:
     @pytest.fixture
     def metrics_enrichment_agent(self):

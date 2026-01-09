@@ -34,6 +34,7 @@ from opus_agent_base.prompt.instructions_manager import InstructionsManager
 
 
 @pytest.mark.integration
+@pytest.mark.integration_llm
 class TestPromQLValidatorPipelineIntegration:
     """Integration tests for the complete PromQL validation pipeline using PromQLValidator."""
 

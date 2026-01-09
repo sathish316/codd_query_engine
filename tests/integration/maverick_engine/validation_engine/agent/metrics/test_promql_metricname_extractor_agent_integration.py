@@ -13,6 +13,7 @@ from opus_agent_base.prompt.instructions_manager import InstructionsManager
 
 
 @pytest.mark.integration
+@pytest.mark.integration_llm
 class TestPromQLMetricNameExtractorAgentIntegration:
     @pytest.fixture
     def metrics_extractor_agent(self):

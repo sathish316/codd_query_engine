@@ -27,6 +27,7 @@ from opus_agent_base.prompt.instructions_manager import InstructionsManager
 
 
 @pytest.mark.integration
+@pytest.mark.integration_llm
 class TestSplunkSPLQueryGeneratorAgentIntegration:
     """Integration tests for Splunk SPL query generator with ReAct pattern and validation tool."""
 
