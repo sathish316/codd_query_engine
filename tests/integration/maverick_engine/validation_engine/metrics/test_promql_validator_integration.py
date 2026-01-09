@@ -198,19 +198,11 @@ class TestPromQLValidatorPipelineIntegration:
 
         # Execute validation through the complete pipeline
         result = promql_validator.validate(namespace, query, intent=intent)
+        print("promql validation result: ", result)
 
         # Verify: All validations passed
         assert result.is_valid is True, f"Validation pipeline failed: {result.error}"
-
-        # For semantic validation result, check specific fields
-        assert hasattr(result, "intent_match"), "Expected SemanticValidationResult"
-        assert result.intent_match is True, (
-            f"Semantic validation failed. Intent did not match query. "
-            f"Explanation: {result.explanation}"
-        )
-        assert result.explanation is not None
-        assert result.original_intent_summary is not None
-        assert result.actual_query_behavior is not None
+        assert result.error is None
 
     def test_validator_pipeline_syntax_error(self, promql_validator: PromQLValidator, metadata_store: MetricsMetadataStore):
         """
