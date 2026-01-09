@@ -84,3 +84,5 @@
     - [X] Train ticket services
 - [ ] Workflows
     - [ ] Claude AgentSkills
+- [ ] README
+    - [ ] Architecture

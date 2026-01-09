@@ -4,9 +4,29 @@ from maverick_engine.validation_engine.metrics.promql_validator import (
     PromQLValidator,
 )
 from maverick_engine.querygen_engine.metrics.structured_outputs import QueryGenerationInput
+from maverick_engine.validation_engine.metrics.validation_result import ValidationResultList
 from pydantic_ai import RunContext
 
 logger = logging.getLogger(__name__)
+
+def format_validation_error_message(
+    result: ValidationResultList, current_attempt: int, querygen_input: QueryGenerationInput
+) -> str:
+    """
+    Format validation error message.
+
+    ValidationResultList.error already formats all errors with stage names,
+    so we just need to add attempt context.
+    """
+    parts = [
+        f"**VALIDATION FAILED** (Attempt {current_attempt}/{querygen_input.max_attempts})",
+        "",
+        result.error,  # Already formatted with stage-specific errors
+        "",
+        f"Please fix the errors above. {querygen_input.max_attempts - current_attempt} attempts remaining.",
+    ]
+
+    return "\n".join(parts)
 
 
 class PromQLValidatorTool(CustomTool):
@@ -67,28 +87,9 @@ class PromQLValidatorTool(CustomTool):
 
             # Check for validation error (Go-style if err != nil)
             if result.error is not None:
-                error_msg = self._format_error_message(result, current_attempt, querygen_input)
+                error_msg = format_validation_error_message(result, current_attempt, querygen_input)
                 querygen_input.add_validation_result(error_msg)
                 return error_msg
 
             # Success
             return f"**ALL VALIDATIONS PASSED**\n\n✓ Query is valid: {query}"
-
-        def _format_error_message(
-            self, result, current_attempt: int, querygen_input: QueryGenerationInput
-        ) -> str:
-            """
-            Format validation error message.
-
-            ValidationResultList.error already formats all errors with stage names,
-            so we just need to add attempt context.
-            """
-            parts = [
-                f"**VALIDATION FAILED** (Attempt {current_attempt}/{querygen_input.max_attempts})",
-                "",
-                result.error,  # Already formatted with stage-specific errors
-                "",
-                f"Please fix the errors above. {querygen_input.max_attempts - current_attempt} attempts remaining.",
-            ]
-
-            return "\n".join(parts)

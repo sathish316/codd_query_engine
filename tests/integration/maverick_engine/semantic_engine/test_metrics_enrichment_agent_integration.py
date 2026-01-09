@@ -31,7 +31,7 @@ class TestMetricsEnrichmentAgentIntegration:
         )
 
     def test_enrich_http_request_duration_metric_happy_path(
-        self, metrics_enrichment_agent
+        self, metrics_enrichment_agent: MetricsEnrichmentAgent
     ):
         """
         Integration test for the happy path of metrics enrichment.

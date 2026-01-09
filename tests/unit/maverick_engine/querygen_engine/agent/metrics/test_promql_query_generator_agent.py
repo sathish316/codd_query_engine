@@ -96,7 +96,7 @@ class TestGenerateQuery:
     """Test query generation with ReAct pattern."""
 
     @pytest.mark.asyncio
-    async def test_generate_query_for_counter_metric(self, generator_agent):
+    async def test_generate_query_for_counter_metric(self, generator_agent: PromQLQueryGeneratorAgent):
         """Test query generation for a counter metric with rate aggregation."""
         # Arrange
         intent = MetricsQueryIntent(
