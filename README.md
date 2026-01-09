@@ -40,9 +40,9 @@ uv run pytest -v -s tests/unit/maverick_dal/metrics/test_metrics_metadata_store.
 Run integration tests
 ```
 uv run pytest -m integration -v tests/integration
-
-
 ```
+
+Note: Integration tests emit logs to Logfire with environment tags (integration, integration_querygen_evals). Set `LOGFIRE_TOKEN` environment variable to enable.
 
 Run NL2SQL Evals
 TODO

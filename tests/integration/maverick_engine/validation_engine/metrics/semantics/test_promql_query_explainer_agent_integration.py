@@ -34,7 +34,7 @@ class TestPromQLQueryExplainerAgentIntegration:
         )
 
     def test_semantic_validation_happy_path_counter_with_rate(
-        self, query_explainer_agent
+        self, query_explainer_agent: PromQLQueryExplainerAgent
     ):
         """
         Integration test for the happy path of query explainer agent and semantic validator.
@@ -43,10 +43,9 @@ class TestPromQLQueryExplainerAgentIntegration:
         straightforward scenario for semantic validation.
 
         Expected behavior:
-        - Intent match should be True (query matches user intent)
-        - Partial match should be False (full match, not partial)
-        - Confidence should be high (>0.8)
-        - Explanation should confirm correct usage of rate() on counter metric
+        - is_valid should be True (query matches user intent)
+        - Confidence score should be high (>2)
+        - Reasoning should confirm correct usage of rate() on counter metric
         """
         # Arrange: Create user intent for a counter metric with rate aggregation
         intent = MetricsQueryIntent(
@@ -68,21 +67,14 @@ class TestPromQLQueryExplainerAgentIntegration:
         print("semantic validation result: ", result)
         # Assert: Verify the validation result indicates a full match
         assert isinstance(result, SemanticValidationResult)
-        assert result.intent_match is True, (
-            f"Expected intent_match=True but got False. "
-            f"Explanation: {result.explanation}"
+        assert result.is_valid is True, (
+            f"Expected is_valid=True but got False. "
+            f"Reasoning: {result.reasoning}"
         )
-        # assert result.partial_match is False, (
-        #     "Expected partial_match=False for full match"
-        # )
-        # assert result.confidence > 0.8, (
-        #     f"Expected high confidence (>0.8) but got {result.confidence}"
-        # )
-        assert result.explanation is not None and len(result.explanation) > 0
-        assert result.original_intent_summary is not None
-        assert result.actual_query_behavior is not None
+        assert result.confidence_score > 2, f"Expected confidence score > 2 but got {result.confidence_score}"
+        assert result.reasoning is not None and len(result.reasoning) > 0
 
-    def test_semantic_validation_intent_mismatch(self, query_explainer_agent):
+    def test_semantic_validation_intent_mismatch(self, query_explainer_agent: PromQLQueryExplainerAgent):
         """
         Integration test for semantic validation when intent does NOT match the generated query.
 
@@ -90,10 +82,9 @@ class TestPromQLQueryExplainerAgentIntegration:
         but the generated query incorrectly uses rate() which is for counter metrics.
 
         Expected behavior:
-        - Intent match should be False (query doesn't match user intent)
-        - Partial match should be False (completely wrong aggregation)
-        - Confidence should still be reasonable (>0.7) showing the validator is certain
-        - Explanation should identify the mismatch
+        - is_valid should be False (query doesn't match user intent)
+        - Confidence score should be low (<=2)
+        - Reasoning should identify the mismatch
         """
         # Arrange: Create user intent for a gauge metric with avg_over_time aggregation
         intent = MetricsQueryIntent(
@@ -116,17 +107,9 @@ class TestPromQLQueryExplainerAgentIntegration:
         # Assert: Verify the validation result indicates a mismatch
         print("semantic validation result: ", result)
         assert isinstance(result, SemanticValidationResult)
-        assert result.intent_match is False, (
-            f"Expected intent_match=False for mismatched query but got True. "
-            f"Explanation: {result.explanation}"
+        assert result.is_valid is False, (
+            f"Expected is_valid=False for mismatched query but got True. "
+            f"Reasoning: {result.reasoning}"
         )
-        # assert result.partial_match is False, (
-        #     f"Expected partial_match=False for completely wrong aggregation. "
-        #     f"Explanation: {result.explanation}"
-        # )
-        # assert result.confidence > 0.7, (
-        #     f"Expected reasonable confidence (>0.7) but got {result.confidence}"
-        # )
-        assert result.explanation is not None and len(result.explanation) > 0
-        assert result.original_intent_summary is not None
-        assert result.actual_query_behavior is not None
+        assert result.confidence_score <= 2, f"Expected confidence score < 2 but got {result.confidence_score}"
+        assert result.reasoning is not None and len(result.reasoning) > 0

@@ -12,6 +12,7 @@ dependencies = [
     "uvicorn>=0.20.0",
     "pydantic>=2.0.0",
     "httpx>=0.24.0",
+    "pydantic-ai-slim[logfire]>=1.39.0",
 ]
 
 [project.scripts]
