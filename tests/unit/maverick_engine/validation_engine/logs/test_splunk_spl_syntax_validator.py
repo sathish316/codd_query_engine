@@ -78,6 +78,28 @@ def validator() -> SplunkSPLSyntaxValidator:
         "search   status=200   method=GET",
         # Common Splunk patterns
         "search status=500 | stats count",
+        # Logical operators with explicit AND/OR
+        'search "timeout" AND level="error"',
+        'search "timeout" OR level="error"',
+        'search status=500 AND method=GET',
+        'search status=500 OR status=502',
+        # Parentheses with logical operators
+        'search ("timeout" AND level="error")',
+        'search (status=500 AND method=GET)',
+        'search (status=500 OR status=502)',
+        # Nested parentheses with logical operators
+        'search service="api-gateway" (("timeout" AND level="error") OR ("connection refused" AND level="info"))',
+        'search ((status=500 AND method=GET) OR (status=502 AND method=POST))',
+        # Complex queries with mixed operators and parentheses
+        'search service="api-gateway" ( "timeout" level="error" ) OR ( "connection refused" level="info" ) | head 100',
+        'search service="api-gateway" ("timeout" AND level="error")',
+        'search host=server-01 (status=500 OR status=502) method=GET',
+        # Multiple levels of nesting
+        'search (((status=500)))',
+        'search ((status=500 OR status=502) AND (method=GET OR method=POST))',
+        # Mixed implicit and explicit AND
+        'search service="api" status=500 AND method=GET',
+        'search "error" "timeout" AND level="critical"',
     ],
 )
 def test_valid_splunk_queries(validator: SplunkSPLSyntaxValidator, query: str):

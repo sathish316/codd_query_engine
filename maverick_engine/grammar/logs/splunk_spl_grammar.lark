@@ -2,12 +2,16 @@
 
 ?start: search (PIPE stage)*
 
-search: SEARCH expr?
+search: SEARCH search_expr?
 
-?expr: term (LOGIC? term)*
-?term: field_expr
-     | phrase
-     | "(" expr ")"
+?search_expr: or_expr
+
+?or_expr: and_expr (OR and_expr)*
+?and_expr: search_term (AND? search_term)*
+
+?search_term: field_expr
+            | phrase
+            | "(" search_expr ")"
 
 field_expr: IDENT OP value
 value: phrase | IDENT
@@ -16,10 +20,11 @@ stage: IDENT (field_expr | value)*
 
 phrase: ESCAPED_STRING | WORD
 
-SEARCH: /[sS][eE][aA][rR][cC][hH]/
-LOGIC: /[aA][nN][dD]|[oO][rR]/
+SEARCH.2: /[sS][eE][aA][rR][cC][hH]/
+AND.2: /[aA][nN][dD]/
+OR.2: /[oO][rR]/
 OP: "=" | "!=" | ">" | "<" | ">=" | "<="
-IDENT: /[A-Za-z_][A-Za-z0-9_.-]*/
+IDENT.1: /[A-Za-z_][A-Za-z0-9_.-]*/
 WORD: /[A-Za-z0-9_.:-]+/
 PIPE: "|"
 
