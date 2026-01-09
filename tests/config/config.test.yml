@@ -27,7 +27,7 @@ mcp_config:
           # - llm: Uses LLM-based extraction (most accurate, slower, costs API calls)
           # - substring: Direct substring matching (fast, simple)
           # - fuzzy: Fuzzy matching (balanced accuracy and performance)
-          strategy: fuzzy
+          strategy: substring
           fuzzy:
             # Number of fuzzy matches to consider
             top_k: 10

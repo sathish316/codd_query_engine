@@ -95,7 +95,7 @@ class TestPromQLValidatorPipelineIntegration:
             semantics_validator=semantic_validator,
         )
 
-    def test_validator_pipeline_happy_path(self, promql_validator, metadata_store):
+    def test_validator_pipeline_happy_path(self, promql_validator: PromQLValidator, metadata_store: MetricsMetadataStore):
         """
         Integration test for the complete validator pipeline - HAPPY PATH.
 
@@ -140,7 +140,7 @@ class TestPromQLValidatorPipelineIntegration:
         assert result.original_intent_summary is not None
         assert result.actual_query_behavior is not None
 
-    def test_validator_pipeline_syntax_error(self, promql_validator, metadata_store):
+    def test_validator_pipeline_syntax_error(self, promql_validator: PromQLValidator, metadata_store: MetricsMetadataStore):
         """
         Integration test for validator pipeline - SYNTAX VALIDATION ERROR.
 
@@ -164,14 +164,15 @@ class TestPromQLValidatorPipelineIntegration:
             "Expected syntax validation to fail for malformed query"
         )
         assert result.error is not None
+        print("syntax validation error: ", result.error)
         assert "syntax" in result.error.lower() or "parser" in result.error.lower()
 
         # Verify it's a SyntaxValidationResult (has line/column info)
-        assert hasattr(result, "line") or hasattr(result, "column"), (
+        assert "line" in result.error.lower() and "column" in result.error.lower(), (
             "Expected SyntaxValidationResult with error location"
         )
 
-    def test_validator_pipeline_schema_error(self, promql_validator, metadata_store):
+    def test_validator_pipeline_schema_error(self, promql_validator: PromQLValidator, metadata_store: MetricsMetadataStore):
         """
         Integration test for validator pipeline - SCHEMA VALIDATION ERROR.
 
@@ -205,7 +206,7 @@ class TestPromQLValidatorPipelineIntegration:
             f"Expected 'nonexistent_metric' in invalid_metrics, got: {result.invalid_metrics}"
         )
 
-    def test_validator_pipeline_semantic_error(self, promql_validator, metadata_store):
+    def test_validator_pipeline_semantic_error(self, promql_validator: PromQLValidator, metadata_store: MetricsMetadataStore):
         """
         Integration test for validator pipeline - SEMANTIC VALIDATION ERROR.
 
