@@ -59,9 +59,28 @@ class ValidationResultList(BaseModel):
             if result.error:
                 # Determine validation stage from result type
                 stage = result.__class__.__name__.replace("ValidationResult", "")
-                error_parts.append(f"**{stage.upper()} ERROR:** {result.error}")
+                error_msg = f"**{stage.upper()} ERROR:** {result.error}"
+
+                # For syntax errors, add visual context if available
+                if hasattr(result, 'context') and result.context:
+                    error_msg += f"\n\n{result.context}"
+                elif hasattr(result, 'line') and hasattr(result, 'column') and result.line and result.column:
+                    # If no context but we have line/column, try to format it
+                    if hasattr(result, 'query') and result.query:
+                        error_msg += self._format_error_context(result.query, result.line, result.column)
+
+                error_parts.append(error_msg)
 
         return "\n\n".join(error_parts) if error_parts else None
+
+    def _format_error_context(self, query: str, line: int, column: int) -> str:
+        """Format error context with visual pointer to error location."""
+        lines = query.split('\n')
+        if 0 < line <= len(lines):
+            error_line = lines[line - 1]
+            pointer = ' ' * (column - 1) + '^'
+            return f"\n\n{error_line}\n{pointer}"
+        return ""
 
 
 class ValidationError(Exception):
