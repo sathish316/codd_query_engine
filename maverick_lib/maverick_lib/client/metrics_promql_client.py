@@ -124,3 +124,16 @@ class MetricsPromQLClient:
             True if metric exists in namespace, False otherwise
         """
         return self.metrics_metadata_store.is_valid_metric_name(namespace, metric_name)
+
+    def get_all_metrics(self, namespace: str) -> list[str]:
+        """
+        Get all metric names in a namespace.
+
+        Args:
+            namespace: Namespace identifier
+
+        Returns:
+            List of metric names in the namespace
+        """
+        metric_names = self.metrics_metadata_store.get_metric_names(namespace)
+        return sorted(list(metric_names))

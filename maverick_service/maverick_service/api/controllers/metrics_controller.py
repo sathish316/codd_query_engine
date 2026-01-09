@@ -72,6 +72,20 @@ class MetricExistsResponse(BaseModel):
     metric_name: str
 
 
+class NamespaceMetricsRequest(BaseModel):
+    """Request model for getting all metrics in a namespace."""
+
+    namespace: str
+
+
+class NamespaceMetricsResponse(BaseModel):
+    """Response model for namespace metrics."""
+
+    namespace: str
+    metrics: list[str]
+    count: int
+
+
 @router.post("/search", response_model=MetricsSearchResponse)
 async def search_metrics(request: MetricsSearchRequest):
     """
@@ -162,6 +176,33 @@ async def check_metric_exists(request: MetricExistsRequest):
         exists = client.metrics.metric_exists(request.namespace, request.metric_name)
         return MetricExistsResponse(
             exists=exists, namespace=request.namespace, metric_name=request.metric_name
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/all", response_model=NamespaceMetricsResponse)
+async def get_namespace_metrics(request: NamespaceMetricsRequest):
+    """
+    Get all metric names in a namespace.
+
+    Args:
+        request: Namespace identifier
+
+    Returns:
+        List of all metric names in the namespace
+
+    Example:
+        POST /api/metrics/namespace/metrics
+        Body: {
+          "namespace": "production"
+        }
+    """
+    try:
+        client = get_client()
+        metrics = client.metrics.get_all_metrics(request.namespace)
+        return NamespaceMetricsResponse(
+            namespace=request.namespace, metrics=metrics, count=len(metrics)
         )
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

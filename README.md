@@ -1,8 +1,8 @@
 # Overview
 
-Maverick is a Text2SQL or NL2SQL Engine that can be leveraged by AIAgents and Humans to query databases, observability, analytics systems.
+Maverick is a Text2SQL Engine that can be leveraged by AI Agents and Humans to query databases, observability systems like MySQL, Postgres, Prometheus, Loki, Splunk.
 
-# Design
+# Architecture
 
 TODO: Diagram
 

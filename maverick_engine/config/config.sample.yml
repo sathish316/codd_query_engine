@@ -48,7 +48,7 @@ mcp_config:
         schema:
           enabled: true
         semantics:
-          enabled: false
+          enabled: true
     splunk:
       validator:
         enabled: true
@@ -58,7 +58,7 @@ mcp_config:
         schema:
           enabled: true
         semantics:
-          enabled: false
+          enabled: true
 
 metrics:
   semantic_store:

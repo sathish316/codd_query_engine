@@ -73,7 +73,7 @@ class MetricsSchemaValidator:
         # Guard: no metrics found in expression
         if not metric_names:
             logger.warning("No metrics found in expression, validation failed")
-            return SchemaValidationResult.parse_error("No metrics found in expression")
+            return SchemaValidationResult.parse_error(f"No metrics found in expression (namespace: {namespace})")
 
         # Deduplicate and validate
         unique_metrics = set(metric_names)

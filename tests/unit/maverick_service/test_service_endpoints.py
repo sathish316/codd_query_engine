@@ -19,6 +19,65 @@ class TestServiceMetricsEndpoints:
     """Unit tests for metrics endpoints with mocked query generation."""
 
     @patch("maverick_service.api.controllers.metrics_controller.get_client")
+    def test_get_namespace_metrics_endpoint_success(self, mock_get_client):
+        """
+        Test namespace metrics endpoint with successful response.
+
+        Validates that the endpoint correctly retrieves all metrics in a namespace
+        and returns the expected response structure.
+        """
+        # Arrange: Mock successful metrics retrieval
+        mock_client = MagicMock()
+        mock_client.metrics.get_all_metrics = MagicMock(
+            return_value=[
+                "http_requests_total",
+                "http_request_duration_seconds",
+                "http_response_size_bytes",
+            ]
+        )
+        mock_get_client.return_value = mock_client
+
+        request_data = {"namespace": "production"}
+
+        # Act: Call the endpoint
+        response = client.post("/api/metrics/all", json=request_data)
+
+        # Assert: Verify response structure
+        assert response.status_code == 200
+        data = response.json()
+        assert data["namespace"] == "production"
+        assert data["count"] == 3
+        assert len(data["metrics"]) == 3
+        assert "http_requests_total" in data["metrics"]
+        assert "http_request_duration_seconds" in data["metrics"]
+        assert "http_response_size_bytes" in data["metrics"]
+
+    @patch("maverick_service.api.controllers.metrics_controller.get_client")
+    def test_get_all_metrics_endpoint_empty_namespace(self, mock_get_client):
+        """
+        Test namespace metrics endpoint with empty namespace.
+
+        Validates that the endpoint correctly handles empty namespaces
+        and returns an empty list.
+        """
+        # Arrange: Mock empty namespace
+        mock_client = MagicMock()
+        mock_client.metrics.get_all_metrics = MagicMock(return_value=[])
+        mock_get_client.return_value = mock_client
+
+        request_data = {"namespace": "empty_namespace"}
+
+        # Act: Call the endpoint
+        response = client.post("/api/metrics/all", json=request_data)
+
+        # Assert: Verify response structure
+        assert response.status_code == 200
+        data = response.json()
+        assert data["namespace"] == "empty_namespace"
+        assert data["count"] == 0
+        assert data["metrics"] == []
+
+    @patch("maverick_service.api.controllers.metrics_controller.get_client")
     @pytest.mark.asyncio
     async def test_generate_promql_query_endpoint_success(self, mock_get_client):
         """

@@ -78,3 +78,15 @@ class MetricsClient:
             True if metric exists in namespace, False otherwise
         """
         return self.promql.metric_exists(namespace, metric_name)
+
+    def get_all_metrics(self, namespace: str) -> list[str]:
+        """
+        Get all metric names in a namespace.
+
+        Args:
+            namespace: Namespace identifier
+
+        Returns:
+            List of metric names in the namespace
+        """
+        return self.promql.get_all_metrics(namespace)
