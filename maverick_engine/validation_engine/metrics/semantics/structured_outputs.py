@@ -32,6 +32,8 @@ class SemanticValidationResult(ValidationResult):
         # Default threshold is 2 (regenerate if score <= 2)
         threshold = data.pop("threshold", 2)
         data["is_valid"] = data.get("confidence_score", 1) > threshold
+        if not data["is_valid"]:
+            data["error"] = f"Semantic validation failed with confidence score {data['confidence_score']} and reasoning: {data['reasoning']}"
         super().__init__(**data)
 
     @classmethod

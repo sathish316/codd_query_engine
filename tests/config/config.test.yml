@@ -34,7 +34,7 @@ mcp_config:
             # Minimum similarity score (0-100) to consider a match
             min_similarity_score: 60
         semantics:
-          enabled: false
+          enabled: true
           confidence_threshold: 2
   logs:
     logql:
@@ -46,7 +46,7 @@ mcp_config:
         schema:
           enabled: true
         semantics:
-          enabled: false
+          enabled: true
     splunk:
       validator:
         enabled: true
@@ -56,7 +56,7 @@ mcp_config:
         schema:
           enabled: true
         semantics:
-          enabled: false
+          enabled: true
 
 # Redis Configuration
 redis:
