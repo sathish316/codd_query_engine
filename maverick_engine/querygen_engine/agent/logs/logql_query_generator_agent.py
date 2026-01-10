@@ -160,7 +160,6 @@ class LogQLQueryGeneratorAgent:
 - Log Patterns: {patterns_str}
 - Default Level: {intent.default_level}
 - Limit: {intent.limit}
-- Namespace: {intent.namespace or "None"}
 
 **IMPORTANT INSTRUCTIONS:**
 1. Generate a LogQL query that matches this intent

@@ -169,7 +169,6 @@ class SplunkSPLQueryGeneratorAgent:
 - Log Patterns: {patterns_str}
 - Default Level: {intent.default_level}
 - Limit: {intent.limit}
-- Namespace: {intent.namespace or "None"}
 
 **IMPORTANT INSTRUCTIONS:**
 1. Generate a Splunk SPL query that matches this intent
