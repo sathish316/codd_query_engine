@@ -32,7 +32,7 @@ def _make_request(
     """
     url = f"{MAVERICK_SERVICE_URL}{endpoint}"
 
-    with httpx.Client(timeout=30.0) as client:
+    with httpx.Client(timeout=120.0) as client:
         if method == "POST":
             response = client.post(url, json=json_data)
         elif method == "GET":
