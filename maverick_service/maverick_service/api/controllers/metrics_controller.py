@@ -50,6 +50,7 @@ class PromQLQueryRequest(BaseModel):
     aggregation: Optional[str] = None
     group_by: Optional[list[str]] = None
     filters: Optional[dict[str, str]] = None
+    window: Optional[str] = None
 
 
 class MetricsQueryResponse(BaseModel):
@@ -132,7 +133,8 @@ async def generate_promql_query(request: PromQLQueryRequest):
           "namespace": "production",
           "metric_name": "http_requests_total",
           "aggregation": "rate",
-          "filters": {"status": "500"}
+          "filters": {"status": "500"},
+          "window": "5m"
         }
     """
     try:
@@ -143,15 +145,17 @@ async def generate_promql_query(request: PromQLQueryRequest):
             metric_type=request.aggregation or "gauge",
             group_by=request.group_by or [],
             filters=request.filters or {},
+            window=request.window or "5m",
         )
 
         logger.info(
-            "Generating PromQL query for intent: metric=%s, description=%s, metric_type=%s, group_by=%s, filters=%s, namespace=%s",
+            "Generating PromQL query for intent: metric=%s, description=%s, metric_type=%s, group_by=%s, filters=%s, window=%s, namespace=%s",
             intent.metric,
             intent.intent_description,
             intent.metric_type,
             intent.group_by,
             intent.filters,
+            intent.window,
             request.namespace,
         )
 

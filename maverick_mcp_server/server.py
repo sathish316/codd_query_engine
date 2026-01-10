@@ -106,6 +106,7 @@ async def construct_promql_query(
             - aggregation: Function like "rate", "sum", "avg"
             - group_by: Labels to group by
             - filters: Label filters as key-value pairs
+            - window: Time range window (e.g., "1m", "5m", "1h"). Default: "5m". Range queries select a range of samples back from the current instant. It specifies how much time to go back for values that are fetched for each range vector.
 
     Returns:
         JSON with generated PromQL query and metadata.
@@ -116,10 +117,11 @@ async def construct_promql_query(
           "namespace": "production",
           "metric_name": "http_requests_total",
           "aggregation": "rate",
-          "filters": {"status": "500"}
+          "filters": {"status": "500"},
+          "window": "1m"
         }
         Output: {
-          "query": "rate(http_requests_total{status=\"500\"}[5m])",
+          "query": "rate(http_requests_total{status=\"500\"}[1m])",
           "success": true
         }
     """
