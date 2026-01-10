@@ -18,7 +18,13 @@ See the companion repo [Maverick AgentSkills Examples](https://github.com/sathis
 
 # MCP Tools
 
-TODO - Add table of MCP tools and their descriptions
+**Maverick Tools:**
+| Tool | Description |
+|------|-------------|
+| `search_relevant_metrics` | Semantic search to find metrics relevant to a problem or textual query description |
+| `construct_promql_query` | Generate valid PromQL query from metrics query intent |
+| `construct_logql_query` | Generate valid LogQL query for Loki from log query intent |
+| `construct_splunk_query` | Generate valid Splunk SPL query from log query intent |
 
 # Getting started with Maverick using MCP
 
