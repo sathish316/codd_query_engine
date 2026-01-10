@@ -16,6 +16,10 @@ Maverick Text2SQL Engine can be used for the following usecases:
 
 See the companion repo [Maverick AgentSkills Examples](https://github.com/sathish316/maverick_agentskills_examples) for more details.
 
+# MCP Tools
+
+TODO - Add table of MCP tools and their descriptions
+
 # Getting started with Maverick using MCP
 
 Add the following to your `mcp.json` file in Cursor or ClaudeCode or any AI app that supports MCP:

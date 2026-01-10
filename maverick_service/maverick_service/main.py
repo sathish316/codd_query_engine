@@ -1,7 +1,17 @@
 """Main FastAPI application for Maverick Service."""
 
+import logging
 import os
+import sys
+
 import logfire
+
+# Configure logging to stdout
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    handlers=[logging.StreamHandler(sys.stdout)],
+)
 
 # Avoid HuggingFace tokenizers fork warnings in uvicorn workers.
 os.environ.setdefault("TOKENIZERS_PARALLELISM", "false")
