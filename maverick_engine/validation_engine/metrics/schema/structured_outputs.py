@@ -69,5 +69,5 @@ class SchemaValidationResult(ValidationResult):
         metrics_str = ", ".join(f"'{m}'" for m in displayed)
 
         if count > max_display:
-            return f"Found {count} invalid metrics in namespace '{namespace}': {metrics_str}, and {count - max_display} more"
-        return f"Found {count} invalid metric(s) in namespace '{namespace}': {metrics_str}"
+            return f"Found {count} invalid metrics: {metrics_str}, and {count - max_display} more"
+        return f"Found {count} invalid metric(s): {metrics_str}"

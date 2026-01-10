@@ -85,6 +85,8 @@ class PromQLValidator(Validator[ValidationResult]):
             ValidationResult: Simple success object if all validations pass
             ValidationResultList: Aggregated error results if any validation fails
         """
+        logger.info(f"Validating Generated query : {query} (namespace: {namespace})")
+
         # Read validation configuration
         syntax_enabled = self._config_manager.get_setting("mcp_config.metrics.promql.validation.syntax.enabled", True)
         schema_enabled = self._config_manager.get_setting("mcp_config.metrics.promql.validation.schema.enabled", True)
