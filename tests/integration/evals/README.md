@@ -61,7 +61,7 @@ uv run pytest -m integration_querygen_evals "tests/integration/evals/test_promql
 uv run pytest -m integration_querygen_evals "tests/integration/evals/test_logql_querygen_evals_integration.py::TestLogQLQueryGenEvalsIntegration::test_logql_query_generation_scenarios[scenario_1_error_logs_single_pattern]" -s -v --log-cli-level=INFO
 
 # Run specific Splunk SPL scenario
-uv run pytest -m integration_querygen_evals "tests/integration/evals/test_spl_querygen_evals_integration.py::TestSPLQueryGenEvalsIntegration::test_spl_query_generation_scenarios[scenario_1_simple_error_search]" -s -v --log-cli-level=INFO
+uv run pytest -m integration_querygen_evals "tests/integration/evals/test_spl_querygen_evals_integration.py::TestSPLQueryGenEvalsIntegration::test_spl_query_generation_scenarios[scenario_1_error_logs_single_pattern]" -s -v --log-cli-level=INFO
 ```
 
 ### PromQL scenarios - Validated Properties

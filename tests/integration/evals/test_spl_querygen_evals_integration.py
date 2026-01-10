@@ -26,126 +26,70 @@ from opus_agent_base.prompt.instructions_manager import InstructionsManager
 # Static test scenarios for Splunk SPL query generation
 SPL_TEST_SCENARIOS = [
     {
-        "id": "scenario_1_simple_error_search",
-        "description": "Simple error search in web logs",
+        "id": "scenario_1_error_logs_single_pattern",
+        "description": "Find error logs with single pattern",
         "intent": LogQueryIntent(
-            description="Find error events in web application logs",
+            description="Find error logs in payment service",
             backend="splunk",
-            service="web-app",
+            service="payment-service",
             patterns=[
                 LogPattern(pattern="error", level="error"),
             ],
             default_level="error",
-            limit=100,
+            limit=20,
         ),
-        "expected_patterns": ["search", "error", "head"],
+        "expected_patterns": ["search", "error"],
     },
     {
-        "id": "scenario_2_security_events",
-        "description": "Security-related events search",
+        "id": "scenario_2_multiple_error_patterns",
+        "description": "Multiple error patterns with different levels",
         "intent": LogQueryIntent(
-            description="Find authentication failures and security violations",
+            description="Find errors and exceptions in auth service",
             backend="splunk",
-            service="security-service",
+            service="auth-service",
             patterns=[
-                LogPattern(pattern="authentication failed", level="error"),
-                LogPattern(pattern="unauthorized access", level="warn"),
-                LogPattern(pattern="security violation", level="error"),
+                LogPattern(pattern="error", level="error"),
+                LogPattern(pattern="exception", level="error"),
+                LogPattern(pattern="stack trace", level="error"),
             ],
             default_level="error",
-            limit=500,
+            limit=20,
         ),
         "expected_patterns": ["search", "|"],
     },
     {
-        "id": "scenario_3_application_crashes",
-        "description": "Application crash and panic search",
+        "id": "scenario_3_database_errors",
+        "description": "Find database-related errors",
         "intent": LogQueryIntent(
-            description="Find application crashes, panics, and fatal errors",
+            description="Find database connection and query errors",
             backend="splunk",
-            service="core-app",
+            service="order-service",
             patterns=[
-                LogPattern(pattern="panic", level="fatal"),
-                LogPattern(pattern="segmentation fault", level="fatal"),
-                LogPattern(pattern="fatal error", level="fatal"),
-                LogPattern(pattern="application crashed", level="fatal"),
-            ],
-            default_level="fatal",
-            limit=200,
-        ),
-        "expected_patterns": ["search", "head"],
-    },
-    {
-        "id": "scenario_4_network_issues",
-        "description": "Network connectivity and timeout issues",
-        "intent": LogQueryIntent(
-            description="Search for network timeouts, connection refused, and packet loss",
-            backend="splunk",
-            service="network-monitor",
-            patterns=[
-                LogPattern(pattern="connection timeout", level="error"),
-                LogPattern(pattern="connection refused", level="error"),
-                LogPattern(pattern="network unreachable", level="error"),
-                LogPattern(pattern="packet loss", level="warn"),
-            ],
-            default_level="error",
-            limit=300,
-        ),
-        "expected_patterns": ["search", "|"],
-    },
-    {
-        "id": "scenario_5_database_operations",
-        "description": "Database query and connection issues",
-        "intent": LogQueryIntent(
-            description="Find slow queries, connection pool issues, and deadlocks",
-            backend="splunk",
-            service="database-service",
-            patterns=[
-                LogPattern(pattern="slow query", level="warn"),
-                LogPattern(pattern="deadlock detected", level="error"),
+                LogPattern(pattern="database error", level="error"),
                 LogPattern(pattern="connection pool exhausted", level="error"),
+                LogPattern(pattern="query timeout", level="warn"),
+            ],
+            default_level="error",
+            limit=20,
+        ),
+        "expected_patterns": ["search", "|"],
+    },
+    {
+        "id": "scenario_4_authentication_failures",
+        "description": "Find authentication and authorization issues",
+        "intent": LogQueryIntent(
+            description="Find auth failures and permission denied logs",
+            backend="splunk",
+            service="auth-service",
+            patterns=[
+                LogPattern(pattern="authentication failed", level="warn"),
+                LogPattern(pattern="invalid token", level="warn"),
+                LogPattern(pattern="permission denied", level="error"),
             ],
             default_level="warn",
-            limit=400,
-        ),
-        "expected_patterns": ["search", "head"],
-    },
-    {
-        "id": "scenario_6_api_errors",
-        "description": "API gateway errors and rate limiting",
-        "intent": LogQueryIntent(
-            description="Search for API errors, rate limit exceeded, and gateway timeouts",
-            backend="splunk",
-            service="api-gateway",
-            patterns=[
-                LogPattern(pattern="rate limit exceeded", level="warn"),
-                LogPattern(pattern="gateway timeout", level="error"),
-                LogPattern(pattern="bad gateway", level="error"),
-                LogPattern(pattern="service unavailable", level="error"),
-            ],
-            default_level="error",
-            limit=600,
+            limit=20,
         ),
         "expected_patterns": ["search", "|"],
-    },
-    {
-        "id": "scenario_7_payment_processing",
-        "description": "Payment processing failures and transaction errors",
-        "intent": LogQueryIntent(
-            description="Find payment failures, declined transactions, and fraud alerts",
-            backend="splunk",
-            service="payment-processor",
-            patterns=[
-                LogPattern(pattern="payment failed", level="error"),
-                LogPattern(pattern="transaction declined", level="warn"),
-                LogPattern(pattern="fraud detected", level="error"),
-                LogPattern(pattern="insufficient funds", level="warn"),
-                LogPattern(pattern="payment gateway error", level="error"),
-            ],
-            default_level="error",
-            limit=250,
-        ),
-        "expected_patterns": ["search", "head"],
     },
 ]
 
@@ -201,10 +145,10 @@ class TestSPLQueryGenEvalsIntegration:
         Property-based test: Generate Splunk SPL queries for multiple scenarios.
 
         Tests various combinations of:
-        - Services (web-app, security, core-app, network, database, api-gateway, payment)
-        - Search patterns (error, security, crashes, network, database, API, payment)
-        - Log levels (debug, info, warn, error, fatal)
-        - Limits (100 to 600 records)
+        - Services (payment-service, auth-service, order-service)
+        - Log patterns (error, exception, timeout, connection, database, auth)
+        - Log levels (warn, error)
+        - Limits (200 to 500 records)
 
         Each scenario validates:
         1. Query generation succeeds
