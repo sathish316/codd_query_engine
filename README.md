@@ -1,15 +1,10 @@
 # Overview
 
-Maverick is a Text2SQL Engine that can be leveraged by AI Agents and Humans to query databases, observability systems like MySQL, Postgres, Prometheus, Loki, Splunk.
+Maverick is a Text2SQL Engine that can be used by AI Agents and Humans to query Databases (MySQL, Postgres, Neo4j etc) and Observability systems (Prometheus, Loki, Splunk etc)
 
 # Architecture
 
-TODO: Diagram
-
-* Maverick Service
-* Maverick DAL (Data access layer)
-* Maverick Engine
-* LLM Engine
+<img src="MaverickArchitecture.drawio.png" alt="Maverick Architecture" width="100%">
 
 # Installation
 
@@ -18,17 +13,19 @@ TODO: Diagram
 # Development
 
 ## Prerequisites
+
 1. Install Redis
 
 $ docker-compose up -d
 
-2. Install ChromaDB or Qdrant
+1. Install ChromaDB or Qdrant
 
 $ docker-compose up -d
 
 ## Build and Test
 
 Run unit tests
+
 ```
 uv run pytest -v
 
@@ -38,6 +35,7 @@ uv run pytest -v -s tests/unit/maverick_dal/metrics/test_metrics_metadata_store.
 ```
 
 Run integration tests
+
 ```
 uv run pytest -m integration -v tests/integration
 ```
@@ -50,3 +48,6 @@ TODO
 ## Add Query Engine
 
 # License
+
+MIT License - see the [LICENSE](LICENSE) file for details
+
