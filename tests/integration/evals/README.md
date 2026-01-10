@@ -55,7 +55,7 @@ uv run pytest tests/integration/evals/test_spl_querygen_evals_integration.py --c
 
 ```bash
 # Run specific PromQL scenario
-uv run pytest -m integration_querygen_evals "tests/integration/evals/test_promql_querygen_evals_integration.py::TestPromQLQueryGenEvalsIntegration::test_promql_query_generation_scenarios[scenario_1_error_logs_single_pattern]" -s -v --log-cli-level=INFO
+uv run pytest -m integration_querygen_evals "tests/integration/evals/test_promql_querygen_evals_integration.py::TestPromQLQueryGenEvalsIntegration::test_promql_query_generation_scenarios[scenario_1_counter_with_rate]" -s -v --log-cli-level=INFO
 
 # Run specific LogQL scenario
 uv run pytest -m integration_querygen_evals "tests/integration/evals/test_logql_querygen_evals_integration.py::TestLogQLQueryGenEvalsIntegration::test_logql_query_generation_scenarios[scenario_1_error_logs_single_pattern]" -s -v --log-cli-level=INFO

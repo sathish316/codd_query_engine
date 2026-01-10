@@ -97,7 +97,7 @@ LOGQL_TEST_SCENARIOS = [
     }
 ]
 
-#TODO: use LLM as judge with a completely different model to verify if generated query matches the intent
+#TODO: use LLM as judge or human feedback in addition to Regex to verify if generated query matches the intent
 @pytest.mark.integration_querygen_evals
 class TestLogQLQueryGenEvalsIntegration:
     """Property-based tests for LogQL query generation with static scenarios."""
