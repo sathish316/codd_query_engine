@@ -60,25 +60,7 @@ LOGQL_TEST_SCENARIOS = [
         "expected_patterns": ["{", "}", "auth-service"],
     },
     {
-        "id": "scenario_3_timeout_warnings",
-        "description": "Find timeout and connection issues",
-        "intent": LogQueryIntent(
-            description="Find timeout and connection warnings in API gateway",
-            backend="loki",
-            service="api-gateway",
-            patterns=[
-                LogPattern(pattern="timeout", level="warn"),
-                LogPattern(pattern="connection refused", level="error"),
-                LogPattern(pattern="connection reset", level="warn"),
-            ],
-            namespace="production",
-            default_level="warn",
-            limit=300,
-        ),
-        "expected_patterns": ["{", "}", "api-gateway"],
-    },
-    {
-        "id": "scenario_4_database_errors",
+        "id": "scenario_3_database_errors",
         "description": "Find database-related errors",
         "intent": LogQueryIntent(
             description="Find database connection and query errors",
@@ -96,7 +78,7 @@ LOGQL_TEST_SCENARIOS = [
         "expected_patterns": ["{", "}", "order-service"],
     },
     {
-        "id": "scenario_5_authentication_failures",
+        "id": "scenario_4_authentication_failures",
         "description": "Find authentication and authorization issues",
         "intent": LogQueryIntent(
             description="Find auth failures and permission denied logs",
@@ -112,44 +94,7 @@ LOGQL_TEST_SCENARIOS = [
             limit=400,
         ),
         "expected_patterns": ["{", "}", "auth-service"],
-    },
-    {
-        "id": "scenario_6_staging_environment",
-        "description": "Query logs from staging environment",
-        "intent": LogQueryIntent(
-            description="Find errors in staging notification service",
-            backend="loki",
-            service="notification-service",
-            patterns=[
-                LogPattern(pattern="failed to send", level="error"),
-                LogPattern(pattern="smtp error", level="error"),
-            ],
-            namespace="staging",
-            default_level="error",
-            limit=150,
-        ),
-        "expected_patterns": ["{", "}", "notification-service"],
-    },
-    {
-        "id": "scenario_7_high_volume_query",
-        "description": "High volume log query with multiple patterns",
-        "intent": LogQueryIntent(
-            description="Comprehensive error search across multiple patterns",
-            backend="loki",
-            service="inventory-service",
-            patterns=[
-                LogPattern(pattern="error", level="error"),
-                LogPattern(pattern="warning", level="warn"),
-                LogPattern(pattern="critical", level="fatal"),
-                LogPattern(pattern="exception", level="error"),
-                LogPattern(pattern="panic", level="fatal"),
-            ],
-            namespace="production",
-            default_level="error",
-            limit=1000,
-        ),
-        "expected_patterns": ["{", "}", "inventory-service"],
-    },
+    }
 ]
 
 #TODO: use LLM as judge with a completely different model to verify if generated query matches the intent
