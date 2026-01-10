@@ -35,6 +35,12 @@ from maverick_dal.metrics.metrics_metadata_store import MetricsMetadataStore
 from maverick_engine.utils.file_utils import expand_path
 from opus_agent_base.config.config_manager import ConfigManager
 from opus_agent_base.prompt.instructions_manager import InstructionsManager
+from maverick_engine.validation_engine.agent.metrics.promql_metricname_extractor_agent import (
+    PromQLMetricNameExtractorAgent,
+)
+from maverick_engine.validation_engine.metrics.schema.fuzzy_metric_parser import (
+    FuzzyMetricParser,
+)
 
 
 # Test namespace for evaluations
@@ -83,7 +89,6 @@ PROMQL_TEST_SCENARIOS = [
             metric_type="histogram",
             filters={"method": "GET", "status": "200"},
             window="5m",
-            group_by=["endpoint"],
             aggregation_suggestions=[
                 AggregationFunctionSuggestion(
                     function_name="histogram_quantile",
@@ -171,10 +176,22 @@ class TestPromQLQueryGenEvalsIntegration:
         return MetricsMetadataStore(redis_client)
 
     @pytest.fixture
-    def promql_schema_validator_with_substring_schema_strategy(self, metadata_store):
+    def promql_schema_validator_with_substring_strategy(self, metadata_store):
         """Initialize schema validator with substring strategy."""
         parser = SubstringMetricParser(metadata_store)
         return MetricsSchemaValidator(metadata_store, parser)
+
+    @pytest.fixture
+    def promql_schema_validator_with_fuzzy_strategy(self, metadata_store):
+        """Initialize schema validator with fuzzy strategy."""
+        parser = FuzzyMetricParser(metadata_store)
+        return MetricsSchemaValidator(metadata_store, parser)
+
+    @pytest.fixture
+    def promql_schema_validator_with_llm_strategy(self, metadata_store, config_manager, instructions_manager):
+        """Initialize schema validator with llm strategy."""
+        agent = PromQLMetricNameExtractorAgent(config_manager, instructions_manager)
+        return MetricsSchemaValidator(metadata_store, agent)
 
     @pytest.fixture
     def promql_semantics_validator(self, config_manager, instructions_manager):
@@ -189,7 +206,7 @@ class TestPromQLQueryGenEvalsIntegration:
         config_manager,
         instructions_manager,
         promql_syntax_validator,
-        promql_schema_validator,
+        promql_schema_validator_with_substring_strategy,
         promql_semantics_validator,
     ):
         """Initialize PromQL validator pipeline."""
@@ -197,7 +214,7 @@ class TestPromQLQueryGenEvalsIntegration:
             config_manager=config_manager,
             instructions_manager=instructions_manager,
             syntax_validator=promql_syntax_validator,
-            schema_validator=promql_schema_validator,
+            schema_validator=promql_schema_validator_with_substring_strategy,
             semantics_validator=promql_semantics_validator,
         )
 
