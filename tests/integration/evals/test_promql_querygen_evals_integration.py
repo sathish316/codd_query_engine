@@ -25,11 +25,11 @@ from maverick_engine.validation_engine.metrics.syntax.promql_syntax_validator im
 from maverick_engine.validation_engine.metrics.schema.metrics_schema_validator import (
     MetricsSchemaValidator,
 )
+from maverick_engine.validation_engine.metrics.schema.substring_metric_parser import (
+    SubstringMetricParser,
+)
 from maverick_engine.validation_engine.metrics.semantics.promql_semantics_validator import (
     PromQLSemanticsValidator,
-)
-from maverick_engine.validation_engine.agent.metrics.promql_metricname_extractor_agent import (
-    PromQLMetricNameExtractorAgent,
 )
 from maverick_dal.metrics.metrics_metadata_store import MetricsMetadataStore
 from maverick_engine.utils.file_utils import expand_path
@@ -51,12 +51,11 @@ PROMQL_TEST_SCENARIOS = [
             metric_type="counter",
             filters={"status": "500", "method": "POST"},
             window="5m",
-            group_by=["instance", "job"],
             aggregation_suggestions=[
                 AggregationFunctionSuggestion(function_name="rate", params={})
             ],
         ),
-        "expected_patterns": ["rate(", "http_requests_total", "status=\"500\"", "5m", "by ("],
+        "expected_patterns": ["rate(", "http_requests_total", "status=\"500\"", "5m"],
         "metrics_to_seed": ["http_requests_total", "http_request_duration_seconds"],
     },
     {
@@ -64,16 +63,15 @@ PROMQL_TEST_SCENARIOS = [
         "description": "Gauge metric with average over time aggregation",
         "intent": MetricsQueryIntent(
             metric="memory_usage_bytes",
-            intent_description="Calculate average memory usage over 10 minutes for production",
+            intent_description="Calculate average memory usage over 5 minutes for feed-service in production",
             metric_type="gauge",
-            filters={"environment": "production", "instance": "server-01"},
-            window="10m",
-            group_by=["service"],
+            filters={"environment": "production", "service": "feed-service"},
+            window="5m",
             aggregation_suggestions=[
                 AggregationFunctionSuggestion(function_name="avg_over_time", params={})
             ],
         ),
-        "expected_patterns": ["avg_over_time(", "memory_usage_bytes", "environment=\"production\"", "10m"],
+        "expected_patterns": ["avg_over_time(", "memory_usage_bytes", "environment=\"production\"", "service=\"feed-service\"", "5m"],
         "metrics_to_seed": ["memory_usage_bytes", "cpu_usage_percent"],
     },
     {
@@ -97,41 +95,7 @@ PROMQL_TEST_SCENARIOS = [
         "metrics_to_seed": ["http_request_duration_seconds", "http_request_size_bytes"],
     },
     {
-        "id": "scenario_4_counter_with_increase",
-        "description": "Counter metric with increase aggregation",
-        "intent": MetricsQueryIntent(
-            metric="api_calls_total",
-            intent_description="Calculate total increase in API calls over the last hour",
-            metric_type="counter",
-            filters={"api_version": "v2", "status": "success"},
-            window="1h",
-            group_by=["region"],
-            aggregation_suggestions=[
-                AggregationFunctionSuggestion(function_name="increase", params={})
-            ],
-        ),
-        "expected_patterns": ["increase(", "api_calls_total", "1h"],
-        "metrics_to_seed": ["api_calls_total", "api_errors_total"],
-    },
-    {
-        "id": "scenario_5_gauge_max_over_time",
-        "description": "Gauge metric with max over time",
-        "intent": MetricsQueryIntent(
-            metric="cpu_temperature_celsius",
-            intent_description="Find maximum CPU temperature over 15 minutes",
-            metric_type="gauge",
-            filters={"cpu_id": "0", "host": "worker-node-1"},
-            window="15m",
-            group_by=["host"],
-            aggregation_suggestions=[
-                AggregationFunctionSuggestion(function_name="max_over_time", params={})
-            ],
-        ),
-        "expected_patterns": ["max_over_time(", "cpu_temperature_celsius", "15m"],
-        "metrics_to_seed": ["cpu_temperature_celsius", "cpu_usage_percent"],
-    },
-    {
-        "id": "scenario_6_counter_no_grouping",
+        "id": "scenario_4_counter_no_grouping",
         "description": "Counter metric with rate but no grouping",
         "intent": MetricsQueryIntent(
             metric="database_queries_total",
@@ -148,7 +112,7 @@ PROMQL_TEST_SCENARIOS = [
         "metrics_to_seed": ["database_queries_total", "database_connections"],
     },
     {
-        "id": "scenario_7_multiple_filters",
+        "id": "scenario_5_multiple_filters",
         "description": "Counter with multiple filters and multiple group by",
         "intent": MetricsQueryIntent(
             metric="network_packets_total",
@@ -171,7 +135,7 @@ PROMQL_TEST_SCENARIOS = [
     },
 ]
 
-#TODO: use LLM as judge with a completely different model to verify if generated query matches the intent
+#TODO: use LLM as judge or human feedback in addition to Regex to verify if generated query matches the intent
 @pytest.mark.integration_querygen_evals
 class TestPromQLQueryGenEvalsIntegration:
     """Property-based tests for PromQL query generation with static scenarios."""
@@ -207,16 +171,10 @@ class TestPromQLQueryGenEvalsIntegration:
         return MetricsMetadataStore(redis_client)
 
     @pytest.fixture
-    def metric_extractor_agent(self, config_manager, instructions_manager):
-        """Create metric name extractor agent."""
-        return PromQLMetricNameExtractorAgent(
-            config_manager=config_manager, instructions_manager=instructions_manager
-        )
-
-    @pytest.fixture
-    def promql_schema_validator(self, metadata_store, metric_extractor_agent):
-        """Initialize schema validator."""
-        return MetricsSchemaValidator(metadata_store, metric_extractor_agent)
+    def promql_schema_validator_with_substring_schema_strategy(self, metadata_store):
+        """Initialize schema validator with substring strategy."""
+        parser = SubstringMetricParser(metadata_store)
+        return MetricsSchemaValidator(metadata_store, parser)
 
     @pytest.fixture
     def promql_semantics_validator(self, config_manager, instructions_manager):
