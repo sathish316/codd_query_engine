@@ -226,7 +226,6 @@ class PromQLQueryGeneratorAgent:
 - Time Window: {intent.window}
 - Group By: {group_by_str}
 - Suggested Aggregations: {agg_suggestions_str}
-- Namespace: {namespace}
 
 Generate the best PromQL query that matches this intent. Use the suggested aggregations as guidance based on the metric type. After generating the query, validate it using the `validate_promql_query` tool by passing your generated query. If validation fails, adjust the query based on the feedback."""
 
