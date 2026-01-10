@@ -1,8 +1,11 @@
 """Metrics controller for semantic search and PromQL query generation."""
 
+import logging
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from typing import Optional
+
+logger = logging.getLogger(__name__)
 
 from maverick_lib.client import MaverickClient
 from maverick_lib.config import MaverickConfig
@@ -142,14 +145,32 @@ async def generate_promql_query(request: PromQLQueryRequest):
             filters=request.filters or {},
         )
 
+        logger.info(
+            "Generating PromQL query for intent: metric=%s, description=%s, metric_type=%s, group_by=%s, filters=%s, namespace=%s",
+            intent.metric,
+            intent.intent_description,
+            intent.metric_type,
+            intent.group_by,
+            intent.filters,
+            request.namespace,
+        )
+
         # Generate query
         client = get_client()
         result = await client.metrics.construct_promql_query(intent, request.namespace)
+
+        logger.info(
+            "Generated PromQL query: query=%s, success=%s, error=%s",
+            result.query,
+            result.success,
+            result.error,
+        )
 
         return MetricsQueryResponse(
             query=result.query, success=result.success, error=result.error
         )
     except Exception as e:
+        logger.exception("Failed to generate PromQL query: %s", str(e))
         raise HTTPException(status_code=500, detail=str(e))
 
 
