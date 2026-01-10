@@ -173,8 +173,7 @@ PROMQL_TEST_SCENARIOS = [
 
 #TODO: use LLM as judge with a completely different model to verify if generated query matches the intent
 @pytest.mark.integration_querygen_evals
-@pytest.mark.skip
-class TestPromQLPropertyBased:
+class TestPromQLQueryGenEvalsIntegration:
     """Property-based tests for PromQL query generation with static scenarios."""
 
     @pytest.fixture

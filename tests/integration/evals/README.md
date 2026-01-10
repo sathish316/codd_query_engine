@@ -7,15 +7,15 @@ This can be used as Text2SQL Evalsuite for PromQL, LogQL, Splunk SPL.
 
 These tests validate query generation across multiple scenarios using a property-based testing approach. Each scenario tests a specific combination of parameters to ensure comprehensive coverage of query generation capabilities.
 
-
 ## Test Files
-- **`test_promql_property_based.py`**
-- **`test_logql_property_based.py`**
-- **`test_spl_property_based.py`**
+
+- `**test_promql_querygen_evals_integration.py**`
+- `**test_logql_querygen_evals_integration.py**`
+- `**test_spl_querygen_evals_integration.py**`
 
 ## Test Namespace
 
-All tests use the maverick namespace: **`test:text2sql_evals`**
+All tests use the maverick namespace: `**test:text2sql_evals**`
 
 ## Running the Tests
 
@@ -29,28 +29,29 @@ uv run pytest -m integration_querygen_evals -s -v --log-cli-level=INFO
 
 ```bash
 # PromQL only
-uv run pytest tests/integration/evals/test_promql_property_based.py -s -v
+uv run pytest tests/integration/evals/test_promql_querygen_evals_integration.py -s -v --log-cli-level=INFO
 
 # LogQL only
-uv run pytest tests/integration/evals/test_logql_property_based.py -s -v
+uv run pytest tests/integration/evals/test_logql_querygen_evals_integration.py -s -v --log-cli-level=INFO
 
 # Splunk SPL only
-uv run pytest tests/integration/evals/test_spl_property_based.py -s -v
+uv run pytest tests/integration/evals/test_spl_querygen_evals_integration.py -s -v --log-cli-level=INFO
 ```
 
 ### Run Specific Scenario
 
 ```bash
 # Run specific PromQL scenario
-uv run pytest tests/integration/evals/test_promql_property_based.py::TestPromQLPropertyBased::test_promql_query_generation_scenarios[scenario_1_counter_with_rate] -s -v
+uv run pytest tests/integration/evals/test_promql_querygen_evals_integration.py::TestPromQLQueryGenEvalsIntegration::test_promql_query_generation_scenarios[scenario_1_error_logs_single_pattern] -s -v --log-cli-level=INFO
 
 # Run specific LogQL scenario
-uv run pytest tests/integration/evals/test_logql_property_based.py::TestLogQLPropertyBased::test_logql_query_generation_scenarios[scenario_2_multiple_error_patterns] -s -v
+uv run pytest tests/integration/evals/test_logql_querygen_evals_integration.py::TestLogQLQueryGenEvalsIntegration::test_logql_query_generation_scenarios[scenario_2_multiple_error_patterns] -s -v --log-cli-level=INFO
 ```
 
 ### PromQL scenarios - Validated Properties
 
 Each PromQL scenario validates:
+
 - Query generation succeeds
 - Generated query contains expected patterns (rate, avg_over_time, etc.)
 - Query passes syntax validation
@@ -60,6 +61,7 @@ Each PromQL scenario validates:
 ### LogQL scenarios - Validated Properties
 
 Each LogQL scenario validates:
+
 - Query generation succeeds
 - Generated query contains expected patterns
 - Query has valid LogQL structure (label selectors with braces)
@@ -69,6 +71,7 @@ Each LogQL scenario validates:
 ### Splunk SPL scenarios - Validated Properties
 
 Each SPL scenario validates:
+
 - Query generation succeeds
 - Query starts with 'search' keyword
 - Query contains pipe commands
@@ -134,6 +137,7 @@ Example:
 ## Test Output
 
 Each test outputs:
+
 - Scenario ID and description
 - Intent being tested
 - Generated query
@@ -141,6 +145,7 @@ Each test outputs:
 - Expected patterns found
 
 Example output:
+
 ```
 ================================================================================
 Testing Scenario: scenario_1_counter_with_rate
@@ -151,3 +156,4 @@ Intent: Calculate rate of HTTP 500 errors per second over 5 minutes
   Generated query: rate(http_requests_total{status="500",method="POST"}[5m]) by (instance, job)
   All expected patterns found: ['rate(', 'http_requests_total', 'status="500"', '5m', 'by (']
 ```
+

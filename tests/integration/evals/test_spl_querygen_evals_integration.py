@@ -152,8 +152,7 @@ SPL_TEST_SCENARIOS = [
 
 #TODO: use LLM as judge with a completely different model to verify if generated query matches the intent
 @pytest.mark.integration_querygen_evals
-@pytest.mark.skip
-class TestSPLPropertyBased:
+class TestSPLQueryGenEvalsIntegration:
     """Property-based tests for Splunk SPL query generation with static scenarios."""
 
     @pytest.fixture
