@@ -34,7 +34,7 @@ mcp_config:
             # Minimum similarity score (0-100) to consider a match
             min_similarity_score: 60
         semantics:
-          enabled: false
+          enabled: true
           # Confidence threshold for semantic validation (1-5 scale)
           # Queries with confidence_score <= threshold will be marked invalid and regenerated
           confidence_threshold: 2
