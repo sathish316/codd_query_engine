@@ -28,7 +28,7 @@ def get_client(shared: bool = False) -> MaverickClient:
     global _config, _client
 
     if _config is None:
-        _config = MaverickConfig()
+        _config = MaverickConfig.from_config_file()
 
     if shared:
         if _client is None:
