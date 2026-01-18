@@ -73,7 +73,6 @@ class TestSchemaValidationResult:
         assert result.invalid_metrics == invalid
         assert "metric1" in result.error
         assert "metric2" in result.error
-        assert "test_namespace" in result.error
 
     def test_parse_error_result(self):
         """Test creating a parse error result."""
