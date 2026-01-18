@@ -85,6 +85,8 @@ class LogsSplunkClient:
         if cache_client:
             querygen_cache_key = cache_client.get_querygen_cache_key(namespace, "splunk", intent)
             logger.info("Processing Splunk query with querygen_cache_key=%s", querygen_cache_key)
+        else:
+            logger.info("No cache client found for Splunk query generator")
 
         # Check cache unless bypass is requested
         if cache_client and not bypass_cache:

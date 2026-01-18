@@ -120,7 +120,7 @@ async def generate_logql_query(
 
         # Generate query (cache bypass is handled internally by client)
         bypass_cache = x_cache_bypass and x_cache_bypass.lower() == "true"
-        client = get_client(True)
+        client = get_client(False)
         result = await client.logs.logql.construct_logql_query(intent, bypass_cache=bypass_cache)
 
         logger.info(
@@ -185,7 +185,7 @@ async def generate_splunk_query(
 
         # Generate query (cache bypass is handled internally by client)
         bypass_cache = x_cache_bypass and x_cache_bypass.lower() == "true"
-        client = get_client(True)
+        client = get_client(False)
         result = await client.logs.splunk.construct_spl_query(intent, bypass_cache=bypass_cache)
 
         logger.info(

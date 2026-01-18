@@ -177,7 +177,7 @@ async def generate_promql_query(
 
         # Generate query (cache bypass is handled internally by client)
         bypass_cache = x_cache_bypass and x_cache_bypass.lower() == "true"
-        client = get_client(True)
+        client = get_client(False)
         result = await client.metrics.construct_promql_query(
             intent, request.namespace, bypass_cache=bypass_cache
         )

@@ -89,6 +89,8 @@ class LogsLogQLClient:
         if cache_client:
             querygen_cache_key = cache_client.get_querygen_cache_key(namespace, "logql", intent)
             logger.info("Processing LogQL query with querygen_cache_key=%s", querygen_cache_key)
+        else:
+            logger.info("No cache client found for LogQL query generator")
 
         # Check cache unless bypass is requested
         if cache_client and not bypass_cache:
@@ -98,6 +100,7 @@ class LogsLogQLClient:
                 intent=intent,
             )
             if cached_query:
+                logger.info("Cache hit for querygen_cache_key=%s", querygen_cache_key)
                 return QueryGenerationResult(
                     query=cached_query,
                     success=True,
