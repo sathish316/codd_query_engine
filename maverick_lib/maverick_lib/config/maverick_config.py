@@ -10,6 +10,7 @@ from maverick_lib.config.loki_config import LokiConfig
 from maverick_lib.config.splunk_config import SplunkConfig
 from maverick_lib.config.prometheus_config import PrometheusConfig
 from maverick_lib.config.cache_config import QuerygenCacheConfig
+from maverick_lib.config.debug_config import DebugConfig
 from maverick_engine.utils.file_utils import expand_path
 
 DEFAULT_CONFIG_PATH = expand_path("$HOME/.maverick/config.yml")
@@ -25,6 +26,7 @@ class MaverickConfig(BaseModel):
     splunk: SplunkConfig = Field(default_factory=SplunkConfig)
     prometheus: PrometheusConfig = Field(default_factory=PrometheusConfig)
     querygen_cache: QuerygenCacheConfig = Field(default_factory=QuerygenCacheConfig)
+    debug: DebugConfig = Field(default_factory=DebugConfig)
 
     @classmethod
     def from_config_file(cls, config_path: str = DEFAULT_CONFIG_PATH) -> "MaverickConfig":
@@ -51,4 +53,5 @@ class MaverickConfig(BaseModel):
             querygen_cache=config_manager.get_setting_as_model(
                 "querygen_cache", QuerygenCacheConfig
             ),
+            debug=config_manager.get_setting_as_model("debug", DebugConfig),
         )

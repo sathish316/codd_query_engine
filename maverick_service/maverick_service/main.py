@@ -4,8 +4,6 @@ import logging
 import os
 import sys
 
-import logfire
-
 # Configure logging to stdout
 logging.basicConfig(
     level=logging.INFO,
@@ -17,14 +15,19 @@ logging.basicConfig(
 os.environ.setdefault("TOKENIZERS_PARALLELISM", "false")
 
 from fastapi import FastAPI
+from maverick_lib.config import MaverickConfig
 from maverick_service.api.controllers import (
     hello_controller,
     metrics_controller,
     logs_controller,
 )
 
-logfire.configure()
-logfire.instrument_pydantic_ai()
+# Conditionally enable logfire based on config
+_config = MaverickConfig.from_config_file()
+if _config.debug.logfire_enabled:
+    import logfire
+    logfire.configure()
+    logfire.instrument_pydantic_ai()
 
 # Create FastAPI app
 app = FastAPI(

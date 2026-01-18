@@ -96,4 +96,7 @@ splunk:
   auth_token: null
   index: null
 
+# Debug Configuration
+debug:
+  logfire_enabled: true
 # Environment Variables (set these in your shell)
