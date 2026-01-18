@@ -19,7 +19,7 @@ The Maverick MCP Server provides four powerful tools for observability:
 ### 1. Install Dependencies
 
 ```bash
-cd /path/to/maverickv2
+cd /path/to/maverick_query_engine
 uv sync
 ```
 
@@ -36,13 +36,13 @@ Add the Maverick MCP server to your Cursor MCP settings:
       "args": [
         "run",
         "--directory",
-        "/path/to/maverickv2",
+        "/path/to/maverick_query_engine",
         "python",
         "-m",
         "maverick_mcp_server.server"
       ],
       "env": {
-        "PYTHONPATH": "/path/to/maverickv2"
+        "PYTHONPATH": "/path/to/maverick_query_engine"
       }
     }
   }

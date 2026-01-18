@@ -243,7 +243,7 @@ For production use, schedule the job using:
 Example cron (daily at 2 AM):
 
 ```cron
-0 2 * * * cd /path/to/maverickv2 && python -m maverick_jobs.metrics_semantic_indexer_main --namespace "production:my-service"
+0 2 * * * cd /path/to/maverick_query_engine && python -m maverick_jobs.metrics_semantic_indexer_main --namespace "production:my-service"
 ```
 
 ## Performance Considerations
