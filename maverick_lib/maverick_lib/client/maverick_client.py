@@ -1,5 +1,7 @@
 """Main Maverick client composing all observability operations."""
 
+from typing import Optional
+
 from maverick_lib.config import MaverickConfig
 from maverick_lib.client.metrics_client import MetricsClient
 from maverick_lib.client.logs_client import LogsClient
@@ -27,7 +29,24 @@ class MaverickClient:
         self.config_manager = OpusModule.get_config_manager(config)
         self.instructions_manager = OpusModule.get_instructions_manager()
 
-        self.metrics = MetricsClient(
-            config, self.config_manager, self.instructions_manager
-        )
-        self.logs = LogsClient(config, self.config_manager, self.instructions_manager)
+        # Lazily initialized clients
+        self._metrics: Optional[MetricsClient] = None
+        self._logs: Optional[LogsClient] = None
+
+    @property
+    def metrics(self) -> MetricsClient:
+        """Lazily initialize and return the MetricsClient."""
+        if self._metrics is None:
+            self._metrics = MetricsClient(
+                self.config, self.config_manager, self.instructions_manager
+            )
+        return self._metrics
+
+    @property
+    def logs(self) -> LogsClient:
+        """Lazily initialize and return the LogsClient."""
+        if self._logs is None:
+            self._logs = LogsClient(
+                self.config, self.config_manager, self.instructions_manager
+            )
+        return self._logs

@@ -14,17 +14,28 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
-# Initialize Maverick client (singleton)
+# Global config and client
+_config: Optional[MaverickConfig] = None
 _client: Optional[MaverickClient] = None
 
 
-def get_client() -> MaverickClient:
-    """Get or create Maverick client."""
-    global _client
-    if _client is None:
-        config = MaverickConfig()
-        _client = MaverickClient(config)
-    return _client
+def get_client(shared: bool = False) -> MaverickClient:
+    """Get or create Maverick client.
+
+    Args:
+        shared: If True, use the global singleton client. If False, create a new client for every request.
+    """
+    global _config, _client
+
+    if _config is None:
+        _config = MaverickConfig()
+
+    if shared:
+        if _client is None:
+            _client = MaverickClient(_config)
+        return _client
+    else:
+        return MaverickClient(_config)
 
 
 class LogPatternRequest(BaseModel):
@@ -109,7 +120,7 @@ async def generate_logql_query(
 
         # Generate query (cache bypass is handled internally by client)
         bypass_cache = x_cache_bypass and x_cache_bypass.lower() == "true"
-        client = get_client()
+        client = get_client(True)
         result = await client.logs.logql.construct_logql_query(intent, bypass_cache=bypass_cache)
 
         logger.info(
@@ -174,7 +185,7 @@ async def generate_splunk_query(
 
         # Generate query (cache bypass is handled internally by client)
         bypass_cache = x_cache_bypass and x_cache_bypass.lower() == "true"
-        client = get_client()
+        client = get_client(True)
         result = await client.logs.splunk.construct_spl_query(intent, bypass_cache=bypass_cache)
 
         logger.info(

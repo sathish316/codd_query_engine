@@ -14,17 +14,28 @@ from maverick_engine.validation_engine.metrics.structured_outputs import SearchR
 
 router = APIRouter()
 
-# Initialize Maverick client (singleton)
+# Global config and client
+_config: Optional[MaverickConfig] = None
 _client: Optional[MaverickClient] = None
 
 
-def get_client() -> MaverickClient:
-    """Get or create Maverick client."""
-    global _client
-    if _client is None:
-        config = MaverickConfig()
-        _client = MaverickClient(config)
-    return _client
+def get_client(shared: bool = False) -> MaverickClient:
+    """Get or create Maverick client.
+
+    Args:
+        shared: If True, use the global singleton client. If False, create a new client for every request.
+    """
+    global _config, _client
+
+    if _config is None:
+        _config = MaverickConfig()
+
+    if shared:
+        if _client is None:
+            _client = MaverickClient(_config)
+        return _client
+    else:
+        return MaverickClient(_config)
 
 
 class MetricsSearchRequest(BaseModel):
@@ -106,7 +117,7 @@ async def search_metrics(request: MetricsSearchRequest):
         Body: {"query": "API high latency", "limit": 5}
     """
     try:
-        client = get_client()
+        client = get_client(True)
         results = client.metrics.search_relevant_metrics(
             request.query, limit=request.limit
         )
@@ -166,7 +177,7 @@ async def generate_promql_query(
 
         # Generate query (cache bypass is handled internally by client)
         bypass_cache = x_cache_bypass and x_cache_bypass.lower() == "true"
-        client = get_client()
+        client = get_client(True)
         result = await client.metrics.construct_promql_query(
             intent, request.namespace, bypass_cache=bypass_cache
         )
@@ -207,7 +218,7 @@ async def check_metric_exists(request: MetricExistsRequest):
         }
     """
     try:
-        client = get_client()
+        client = get_client(True)
         exists = client.metrics.metric_exists(request.namespace, request.metric_name)
         return MetricExistsResponse(
             exists=exists, namespace=request.namespace, metric_name=request.metric_name
@@ -234,7 +245,7 @@ async def get_namespace_metrics(request: NamespaceMetricsRequest):
         }
     """
     try:
-        client = get_client()
+        client = get_client(True)
         metrics = client.metrics.get_all_metrics(request.namespace)
         return NamespaceMetricsResponse(
             namespace=request.namespace, metrics=metrics, count=len(metrics)
