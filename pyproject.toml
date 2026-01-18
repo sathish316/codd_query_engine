@@ -49,6 +49,6 @@ markers = [
     "integration_llm: marks tests as integration tests that involve LLM/agent calls (subset of integration)",
     "integration_querygen_evals: marks tests as property-based integration tests for query generation evaluations",
 ]
-addopts = "-m 'not integration'"
+addopts = "-m 'not integration and not integration_querygen_evals'"
 testpaths = ["tests"]
 asyncio_mode = "auto"
