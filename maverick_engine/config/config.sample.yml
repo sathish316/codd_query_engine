@@ -94,6 +94,7 @@ prometheus:
 loki:
   base_url: "http://localhost:3100"
   timeout: 30
+  service_label: "service"
 
 # Splunk Configuration
 splunk:

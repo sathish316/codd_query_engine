@@ -156,6 +156,7 @@ class LogQLQueryGeneratorAgent:
 **Log Query Intent:**
 - Description: {intent.description}
 - Backend: {intent.backend}
+- Service Label: {intent.service_label or "service"}
 - Service: {intent.service or "None"}
 - Log Patterns: {patterns_str}
 - Default Level: {intent.default_level}

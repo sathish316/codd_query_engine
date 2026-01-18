@@ -8,3 +8,4 @@ class LokiConfig(BaseModel):
 
     base_url: str = "http://localhost:3100"
     timeout: int = 30
+    service_label: str = "service"

@@ -101,6 +101,10 @@ async def generate_logql_query(
         }
     """
     try:
+        # Get client (this also initializes _config)
+        bypass_cache = x_cache_bypass and x_cache_bypass.lower() == "true"
+        client = get_client(False)
+
         # Convert request patterns to LogPattern dataclass instances
         log_patterns = [
             LogPattern(pattern=p.pattern, level=p.level or "info")
@@ -112,15 +116,12 @@ async def generate_logql_query(
             description=request.description,
             backend="loki",
             service=request.service,
+            service_label=_config.loki.service_label,
             patterns=log_patterns,
             namespace=request.namespace,
             default_level=request.default_level or "error",
             limit=request.limit,
         )
-
-        # Generate query (cache bypass is handled internally by client)
-        bypass_cache = x_cache_bypass and x_cache_bypass.lower() == "true"
-        client = get_client(False)
         result = await client.logs.logql.construct_logql_query(intent, bypass_cache=bypass_cache)
 
         logger.info(
