@@ -4,6 +4,8 @@ Maverick is a Text2SQL Engine that can be used by AI Agents and Humans to query 
 
 # Architecture
 
+Maverick Text2SQL Engine Architecture is an extension of a previous Hackday Text2SQL project by the authors called [Maverick](https://github.com/sathish316/maverick) and other Text2SQL Engines in the industry like [Uber QueryGPT](https://www.uber.com/en-IN/blog/query-gpt/), [Flipkart PlatoAI](https://blog.flipkart.tech/plato-ai-revolutionising-flipkarts-data-interaction-with-natural-language-081644ac6b16) etc.
+
 <img src="MaverickArchitecture.drawio.png" alt="Maverick Architecture" width="100%">
 
 # Usecases
