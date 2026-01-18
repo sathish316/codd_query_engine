@@ -9,12 +9,12 @@ Maverick is a Text2SQL Engine that can be used by AI Agents and Humans to query 
 # Usecases
 
 Maverick Text2SQL Engine can be used for the following usecases:
-- Querying Metrics and troubleshooting Oncall/Production issues from Agentic applications
-- Querying Logs and troubleshooting Oncall/Production issues from Agentic applications
+- Querying Metrics and troubleshooting Oncall/Production issues from Coding Agents or Custom Agents
+- Querying Logs and troubleshooting Oncall/Production issues from Coding Agents or Custom Agents
 - Querying Relational databases in Natural language
 - Querying Graph databases in Natural language
 
-See the companion repo [Maverick AgentSkills Examples](https://github.com/sathish316/maverick_agentskills_examples) for more details.
+See the companion repo [Maverick AgentSkills Examples](https://github.com/sathish316/maverick_agentskills_examples) for more details on how to use Maverick as a Skill or MCP server.
 
 # MCP Tools
 
@@ -25,6 +25,25 @@ See the companion repo [Maverick AgentSkills Examples](https://github.com/sathis
 | `construct_promql_query` | Generate valid PromQL query from metrics query intent |
 | `construct_logql_query` | Generate valid LogQL query for Loki from log query intent |
 | `construct_splunk_query` | Generate valid Splunk SPL query from log query intent |
+
+# Getting started with Maverick using AgentSkills
+
+AgentSkills is a portable standard released by Anthropic for packaging AI Skills as a combination of Prompt, Resources, Scripts, MCP servers - https://agentskills.io/home. It is supported by Claude Code, Codex CLI, Cursor etc.
+
+To use Maverick as a Skill from Claude Code and other Coding agents, see the companion repo [Maverick AgentSkills Examples](https://github.com/sathish316/maverick_agentskills_examples) for examples:
+- [Using Maverick Skills for Metrics analysis](https://github.com/sathish316/maverick_agentskills_examples/blob/main/doc/USING_MAVERICK_SKILLS_FROM_CLAUDE_CODE_FOR_METRICS_AND_LOGS_ANALYSIS.md)
+- [Using Maverick Skills for Logs analysis](https://github.com/sathish316/maverick_agentskills_examples/blob/main/doc/USING_MAVERICK_SKILLS_FROM_CLAUDE_CODE_FOR_METRICS_AND_LOGS_ANALYSIS.md)
+- Using Maverick Skills for Database queries #TOLINK
+
+Demo video for LogAnalyzer skill - https://youtu.be/T9wKbCRUHMI
+
+<p align="center">
+  <a href="https://youtu.be/T9wKbCRUHMI">
+    <img src="https://img.youtube.com/vi/T9wKbCRUHMI/0.jpg" />
+  </a>
+</p>
+
+Demo video for MetricAnalyzer skill - TODO
 
 # Getting started with Maverick using MCP
 
@@ -52,18 +71,9 @@ Add the following to your `mcp.json` file in Cursor or ClaudeCode or any AI app 
 ```
 
 Once Maverick MCP server is added, see the following docs for examples:
-- Using Maverick MCP server for Metrics analysis #TOLINK
-- Using Maverick MCP server for Logs analysis #TOLINK
+- [Using Maverick MCP server for Metrics analysis](https://github.com/sathish316/maverick_agentskills_examples/blob/main/doc/USING_MAVERICK_MCP_FROM_CURSOR_FOR_METRICS_AND_LOGS_ANALYSIS.md)
+- [Using Maverick MCP server for Logs analysis](https://github.com/sathish316/maverick_agentskills_examples/blob/main/doc/USING_MAVERICK_MCP_FROM_CURSOR_FOR_METRICS_AND_LOGS_ANALYSIS.md)
 - Using Maverick MCP server for Database queries #TOLINK
-
-# Getting started with Maverick using AgentSkills
-
-AgentSkills is a standard released by Anthropic for packaging AI Skills as a combination of Prompt, Resources, Scripts - https://agentskills.io/home. It is supported by Claude Code, Codex CLI, Cursor etc.
-
-To use Maverick from AgentSkills, see the companion repo [Maverick AgentSkills Examples](https://github.com/sathish316/maverick_agentskills_examples) for examples:
-- Using Maverick Skills for Metrics analysis #TOLINK
-- Using Maverick Skills for Logs analysis #TOLINK
-- Using Maverick Skills for Database queries #TOLINK
 
 # Installation
 
@@ -142,11 +152,16 @@ Maverick MCP server uses a REST service for Query generation. Start the service 
 ```bash
 # Start service on default port 2840
 uv run uvicorn maverick_service.main:app --host 0.0.0.0 --port 2840 --reload
+
+# Optimize the service using uvloop
+uv run python -m compileall .
+uv pip install uvloop
+uv run uvicorn maverick_service.main:app --host 0.0.0.0 --port 2840 --loop uvloop
 ```
 
 Optionally, you can setup AI Observability using [Logfire](https://pydantic.dev/logfire) for the Service. This is essential for development and debugging Query generation.
 
-7. Follow the MCP or AgentSkills guides to use Maverick from your favourite AI tools - Cursor or ClaudeCode or Codex.
+7. Follow the MCP or AgentSkills guides to use Maverick from your favourite AI tools - ClaudeCode or Codex or Cursor.
 
 # Development
 
@@ -168,21 +183,33 @@ uv run pytest -v -s -m integration
 
 # run integration tests that make LLM calls
 uv run pytest -v -s -m integration_llm
+```
 
-# run eval suites
+# Evals
+
+Maverick query engine has a Text2SQL Eval suite to validate the quality of Intent to Query generation. To run evals:
+
+```bash
+# run all evals
+uv run pytest -m integration_querygen_evals -s -v
+
+# run eval suites for specific query languages
 uv run pytest -m integration_querygen_evals tests/integration/evals/test_promql_querygen_evals_integration.py -s -v
+
 uv run pytest -m integration_querygen_evals tests/integration/evals/test_logql_querygen_evals_integration.py -s -v
+
 uv run pytest -m integration_querygen_evals tests/integration/evals/test_spl_querygen_evals_integration.py -s -v
 ```
 
 See Evals README.md for more details on QueryGen evalsuite.
+
 # Contributing
 
 1. Fork and create a Pull request to contribute features or capabilities
 
 2. Github Issues and Discord Channel can be used for Maverick discussions - #TOLINK
 
-3. Companion repo [Maverick AgentSkills Examples](https://github.com/sathish316/maverick_agentskills_examples) can be used for applications of Maverick in other AI Applications/Agents for Database querying, Metrics/Logs analysis for AI driven Oncall assistance, Root-cause-analysis and more.
+3. Companion repo [Maverick AgentSkills Examples](https://github.com/sathish316/maverick_agentskills_examples) can be used for applications of Maverick for Database querying, Metrics/Logs analysis for AI driven Oncall Troubleshooting and more.
 
 # License
 
