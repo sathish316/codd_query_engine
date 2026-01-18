@@ -5,5 +5,13 @@ from maverick_lib.client.provider.logs_module import LogsModule
 from maverick_lib.client.provider.logql_module import LogQLModule
 from maverick_lib.client.provider.splunk_module import SplunkModule
 from maverick_lib.client.provider.opus_module import OpusModule
+from maverick_lib.client.provider.cache_module import CacheModule
 
-__all__ = ["PromQLModule", "LogsModule", "LogQLModule", "SplunkModule", "OpusModule"]
+__all__ = [
+    "PromQLModule",
+    "LogsModule",
+    "LogQLModule",
+    "SplunkModule",
+    "OpusModule",
+    "CacheModule",
+]

@@ -1,7 +1,7 @@
 """Metrics controller for semantic search and PromQL query generation."""
 
 import logging
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Header, HTTPException
 from pydantic import BaseModel
 from typing import Optional
 
@@ -116,18 +116,23 @@ async def search_metrics(request: MetricsSearchRequest):
 
 
 @router.post("/promql/generate", response_model=MetricsQueryResponse)
-async def generate_promql_query(request: PromQLQueryRequest):
+async def generate_promql_query(
+    request: PromQLQueryRequest,
+    x_cache_bypass: Optional[str] = Header(None, alias="X-Cache-Bypass"),
+):
     """
     Generate a PromQL query from metrics query intent.
 
     Args:
         request: PromQL query intent with description, namespace, etc.
+        x_cache_bypass: Header to bypass cache (set to "true" to skip cache lookup)
 
     Returns:
         Generated PromQL query
 
     Example:
         POST /api/metrics/promql/generate
+        Headers: X-Cache-Bypass: true (optional, to bypass cache)
         Body: {
           "description": "API error rate",
           "namespace": "production",
@@ -159,9 +164,12 @@ async def generate_promql_query(request: PromQLQueryRequest):
             request.namespace,
         )
 
-        # Generate query
+        # Generate query (cache bypass is handled internally by client)
+        bypass_cache = x_cache_bypass and x_cache_bypass.lower() == "true"
         client = get_client()
-        result = await client.metrics.construct_promql_query(intent, request.namespace)
+        result = await client.metrics.construct_promql_query(
+            intent, request.namespace, bypass_cache=bypass_cache
+        )
 
         logger.info(
             "Generated PromQL query: query=%s, success=%s, error=%s",
@@ -171,7 +179,9 @@ async def generate_promql_query(request: PromQLQueryRequest):
         )
 
         return MetricsQueryResponse(
-            query=result.query, success=result.success, error=result.error
+            query=result.query,
+            success=result.success,
+            error=result.error,
         )
     except Exception as e:
         logger.exception("Failed to generate PromQL query: %s", str(e))

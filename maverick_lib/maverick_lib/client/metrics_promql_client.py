@@ -1,5 +1,8 @@
 """Lean client for metrics operations - semantic search and PromQL query generation."""
 
+import logging
+from typing import Optional
+
 from maverick_engine.querygen_engine.metrics.structured_inputs import MetricsQueryIntent
 
 from maverick_lib.config import MaverickConfig
@@ -10,6 +13,10 @@ from opus_agent_base.config.config_manager import ConfigManager
 from opus_agent_base.prompt.instructions_manager import InstructionsManager
 from maverick_engine.validation_engine.metrics.structured_outputs import SearchResult
 from maverick_lib.client.provider.promql_module import PromQLModule
+from maverick_lib.client.provider.cache_module import CacheModule
+from maverick_dal.cache import QuerygenCacheClient
+
+logger = logging.getLogger(__name__)
 
 
 class MetricsPromQLClient:
@@ -56,6 +63,11 @@ class MetricsPromQLClient:
             )
         return self._promql_query_generator
 
+    @property
+    def querygen_cache_client(self) -> Optional[QuerygenCacheClient]:
+        """Get the cache client if caching is enabled."""
+        return CacheModule.get_querygen_cache_client(self.config)
+
     def search_relevant_metrics(self, query: str, limit: int = 5) -> list[SearchResult]:
         """
         Search for metrics relevant to a query using semantic search.
@@ -96,7 +108,7 @@ class MetricsPromQLClient:
         return search_results
 
     async def construct_promql_query(
-        self, intent: MetricsQueryIntent, namespace: str = ""
+        self, intent: MetricsQueryIntent, namespace: str = "", bypass_cache: bool = False
     ) -> QueryGenerationResult:
         """
         Generate a valid PromQL query from metrics query intent.
@@ -104,11 +116,44 @@ class MetricsPromQLClient:
         Args:
             intent: MetricsQueryIntent with query requirements
             namespace: Optional namespace for schema validation
+            bypass_cache: If True, skip cache lookup and force regeneration
 
         Returns:
             QueryGenerationResult with final query and metadata
         """
+        cache_client = self.querygen_cache_client
+
+        # Log intent key for traceability
+        if cache_client:
+            querygen_cache_key = cache_client.get_querygen_cache_key(namespace, "promql", intent)
+            logger.info("Processing PromQL query with querygen_cache_key=%s", querygen_cache_key)
+
+        # Check cache unless bypass is requested
+        if cache_client and not bypass_cache:
+            cached_query = cache_client.get_cached_query(
+                namespace=namespace,
+                query_type="promql",
+                intent=intent,
+            )
+            if cached_query:
+                return QueryGenerationResult(
+                    query=cached_query,
+                    success=True,
+                    error=None,
+                    total_attempts=0,
+                )
+
+        # Generate query
         result = await self.promql_query_generator.generate_query(namespace, intent)
+
+        # Cache successful results
+        if cache_client and result.success and result.query:
+            cache_client.cache_query(
+                namespace=namespace,
+                query_type="promql",
+                intent=intent,
+                query=result.query,
+            )
 
         return result
 

@@ -6,6 +6,7 @@ from maverick_lib.config.redis_config import RedisConfig
 from maverick_lib.config.loki_config import LokiConfig
 from maverick_lib.config.splunk_config import SplunkConfig
 from maverick_lib.config.prometheus_config import PrometheusConfig
+from maverick_lib.config.cache_config import QuerygenCacheConfig
 from maverick_engine.utils.file_utils import expand_path
 
 
@@ -18,3 +19,4 @@ class MaverickConfig(BaseModel):
     loki: LokiConfig = Field(default_factory=LokiConfig)
     splunk: SplunkConfig = Field(default_factory=SplunkConfig)
     prometheus: PrometheusConfig = Field(default_factory=PrometheusConfig)
+    querygen_cache: QuerygenCacheConfig = Field(default_factory=QuerygenCacheConfig)

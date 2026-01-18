@@ -64,6 +64,12 @@ metrics:
   semantic_store:
     namespace: "default:beer-service"
 
+# Query Generation Cache Configuration
+querygen_cache:
+  enabled: true
+  store: "redis"
+  ttl_in_seconds: 600
+
 # Redis Configuration
 redis:
   host: "localhost"

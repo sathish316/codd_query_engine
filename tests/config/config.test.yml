@@ -58,6 +58,12 @@ mcp_config:
         semantics:
           enabled: true
 
+# Query Generation Cache Configuration
+querygen_cache:
+  enabled: false
+  store: "redis"
+  ttl_in_seconds: 600
+
 # Redis Configuration
 redis:
   host: "localhost"

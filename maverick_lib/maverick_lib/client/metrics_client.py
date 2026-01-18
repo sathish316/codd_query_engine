@@ -52,7 +52,7 @@ class MetricsClient:
         return self.promql.search_relevant_metrics(query, limit)
 
     async def construct_promql_query(
-        self, intent: MetricsQueryIntent, namespace: str = ""
+        self, intent: MetricsQueryIntent, namespace: str = "", bypass_cache: bool = False
     ) -> QueryGenerationResult:
         """
         Generate a valid PromQL query from metrics query intent.
@@ -60,11 +60,12 @@ class MetricsClient:
         Args:
             intent: MetricsQueryIntent with query requirements
             namespace: Optional namespace for schema validation
+            bypass_cache: If True, skip cache lookup and force regeneration
 
         Returns:
             QueryGenerationResult with final query and metadata
         """
-        return await self.promql.construct_promql_query(intent, namespace)
+        return await self.promql.construct_promql_query(intent, namespace, bypass_cache)
 
     def metric_exists(self, namespace: str, metric_name: str) -> bool:
         """

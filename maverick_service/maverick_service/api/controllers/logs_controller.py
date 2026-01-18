@@ -1,6 +1,7 @@
 """Logs controller for LogQL and Splunk query generation."""
 
-from fastapi import APIRouter, HTTPException
+import logging
+from fastapi import APIRouter, Header, HTTPException
 from pydantic import BaseModel
 from typing import Optional
 
@@ -8,6 +9,8 @@ from maverick_lib.client import MaverickClient
 from maverick_lib.config import MaverickConfig
 from maverick_engine.querygen_engine.logs.structured_inputs import LogQueryIntent
 from maverick_engine.logs.log_patterns import LogPattern
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -62,18 +65,23 @@ class LogsQueryResponse(BaseModel):
 
 
 @router.post("/logql/generate", response_model=LogsQueryResponse)
-async def generate_logql_query(request: LogQLQueryRequest):
+async def generate_logql_query(
+    request: LogQLQueryRequest,
+    x_cache_bypass: Optional[str] = Header(None, alias="X-Cache-Bypass"),
+):
     """
     Generate a LogQL query for Loki.
 
     Args:
         request: LogQL query intent with description, service, patterns
+        x_cache_bypass: Header to bypass cache (set to "true" to skip cache lookup)
 
     Returns:
         Generated LogQL query
 
     Example:
         POST /api/logs/logql/generate
+        Headers: X-Cache-Bypass: true (optional, to bypass cache)
         Body: {
           "description": "Find error logs",
           "service": "payments",
@@ -99,9 +107,17 @@ async def generate_logql_query(request: LogQLQueryRequest):
             limit=request.limit,
         )
 
-        # Generate query
+        # Generate query (cache bypass is handled internally by client)
+        bypass_cache = x_cache_bypass and x_cache_bypass.lower() == "true"
         client = get_client()
-        result = await client.logs.logql.construct_logql_query(intent)
+        result = await client.logs.logql.construct_logql_query(intent, bypass_cache=bypass_cache)
+
+        logger.info(
+            "Generated LogQL query: query=%s, success=%s, error=%s",
+            result.query,
+            result.success,
+            result.error,
+        )
 
         return LogsQueryResponse(
             query=result.query,
@@ -110,22 +126,28 @@ async def generate_logql_query(request: LogQLQueryRequest):
             error=result.error,
         )
     except Exception as e:
+        logger.exception("Failed to generate LogQL query: %s", str(e))
         raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.post("/splunk/generate", response_model=LogsQueryResponse)
-async def generate_splunk_query(request: SplunkQueryRequest):
+async def generate_splunk_query(
+    request: SplunkQueryRequest,
+    x_cache_bypass: Optional[str] = Header(None, alias="X-Cache-Bypass"),
+):
     """
     Generate a Splunk SPL query.
 
     Args:
         request: Splunk query intent with description, service, patterns
+        x_cache_bypass: Header to bypass cache (set to "true" to skip cache lookup)
 
     Returns:
         Generated Splunk SPL query
 
     Example:
         POST /api/logs/splunk/generate
+        Headers: X-Cache-Bypass: true (optional, to bypass cache)
         Body: {
           "description": "Search for timeouts",
           "service": "api-gateway",
@@ -150,9 +172,17 @@ async def generate_splunk_query(request: SplunkQueryRequest):
             limit=request.limit,
         )
 
-        # Generate query
+        # Generate query (cache bypass is handled internally by client)
+        bypass_cache = x_cache_bypass and x_cache_bypass.lower() == "true"
         client = get_client()
-        result = await client.logs.splunk.construct_spl_query(intent)
+        result = await client.logs.splunk.construct_spl_query(intent, bypass_cache=bypass_cache)
+
+        logger.info(
+            "Generated Splunk query: query=%s, success=%s, error=%s",
+            result.query,
+            result.success,
+            result.error,
+        )
 
         return LogsQueryResponse(
             query=result.query,
@@ -161,4 +191,5 @@ async def generate_splunk_query(request: SplunkQueryRequest):
             error=result.error,
         )
     except Exception as e:
+        logger.exception("Failed to generate Splunk query: %s", str(e))
         raise HTTPException(status_code=500, detail=str(e))
