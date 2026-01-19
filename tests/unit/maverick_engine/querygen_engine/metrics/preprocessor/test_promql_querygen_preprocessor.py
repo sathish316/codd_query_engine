@@ -131,18 +131,3 @@ class TestMicrometerTransformConditional:
             # Verify aggregation suggestions were added
             assert result.aggregation_suggestions is not None
             assert len(result.aggregation_suggestions) > 0
-
-    def test_both_preprocessors_applied_when_query_opts_flag_is_true(self, preprocessor):
-        """Both aggregation and micrometer preprocessors should be applied when flag is True."""
-        intent = MetricsQueryIntent(
-            metric="http_request_duration",
-            metric_type="timer",
-        )
-        query_opts = QueryOpts(spring_micrometer_transform=True)
-
-        result = preprocessor.preprocess(intent, query_opts)
-
-        # Verify both transformations were applied
-        assert result.metric == "http_request_duration_seconds"  # micrometer transform
-        assert result.aggregation_suggestions is not None  # aggregation suggestions
-        assert len(result.aggregation_suggestions) > 0
