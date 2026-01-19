@@ -12,7 +12,7 @@ class MockMetricsQueryIntent:
     """Mock metrics query intent for testing."""
     metric: str
     intent_description: str
-    metric_type: str = "gauge"
+    meter_type: str = "gauge"
     window: str = "5m"
 
 

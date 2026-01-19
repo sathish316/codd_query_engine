@@ -1,14 +1,16 @@
-# Overview
+# Maverick Text2SQL Engine
+
+## Overview
 
 Maverick is a Text2SQL Engine that can be used by AI Agents and Humans to query Databases (MySQL, Postgres, Neo4j etc) and Observability systems (Prometheus, Loki, Splunk etc)
 
-# Architecture
+## Architecture
 
 Maverick Text2SQL Engine Architecture is an extension of a previous Hackday Text2SQL project by the authors called [Maverick](https://github.com/sathish316/maverick) and other Text2SQL Engines in the industry like [Uber QueryGPT](https://www.uber.com/en-IN/blog/query-gpt/), [Flipkart PlatoAI](https://blog.flipkart.tech/plato-ai-revolutionising-flipkarts-data-interaction-with-natural-language-081644ac6b16) etc.
 
 <img src="MaverickArchitecture.drawio.png" alt="Maverick Architecture" width="100%">
 
-# Usecases
+## Usecases
 
 Maverick Text2SQL Engine can be used for the following usecases:
 - Querying Metrics and troubleshooting Oncall/Production issues from Coding Agents or Custom Agents
@@ -18,7 +20,7 @@ Maverick Text2SQL Engine can be used for the following usecases:
 
 See the companion repo [Maverick AgentSkills Examples](https://github.com/sathish316/maverick_agentskills_examples) for more details on how to use Maverick as a Skill or MCP server.
 
-# MCP Tools
+## MCP Tools
 
 **Maverick Tools:**
 | Tool | Description |
@@ -28,7 +30,7 @@ See the companion repo [Maverick AgentSkills Examples](https://github.com/sathis
 | `construct_logql_query` | Generate valid LogQL query for Loki from log query intent |
 | `construct_splunk_query` | Generate valid Splunk SPL query from log query intent |
 
-# Getting started with Maverick using AgentSkills
+## Getting started with Maverick using AgentSkills
 
 AgentSkills is a portable standard released by Anthropic for packaging AI Skills as a combination of Prompt, Resources, Scripts, MCP servers - https://agentskills.io/home. It is supported by Claude Code, Codex CLI, Cursor etc.
 
@@ -37,7 +39,7 @@ To use Maverick as a Skill from Claude Code and other Coding agents, see the com
 - [Using Maverick Skills for Logs analysis](https://github.com/sathish316/maverick_agentskills_examples/blob/main/doc/USING_MAVERICK_SKILLS_FROM_CLAUDE_CODE_FOR_METRICS_AND_LOGS_ANALYSIS.md)
 - Using Maverick Skills for Database queries #TOLINK
 
-Demo video for LogAnalyzer skill - https://youtu.be/T9wKbCRUHMI
+LogAnalyzer skill demo - https://youtu.be/T9wKbCRUHMI
 
 <p align="center">
   <a href="https://youtu.be/T9wKbCRUHMI">
@@ -45,9 +47,15 @@ Demo video for LogAnalyzer skill - https://youtu.be/T9wKbCRUHMI
   </a>
 </p>
 
-Demo video for MetricAnalyzer skill - TODO
+MetricAnalyzer skill demo - https://youtu.be/U9SqFeNSITk
 
-# Getting started with Maverick using MCP
+<p align="center">
+  <a href="https://youtu.be/U9SqFeNSITk">
+    <img src="https://img.youtube.com/vi/U9SqFeNSITk/0.jpg" />
+  </a>
+</p>
+
+## Getting started with Maverick using MCP
 
 Add the following to your `mcp.json` file in Cursor or ClaudeCode or any AI app that supports MCP:
 
@@ -77,7 +85,7 @@ Once Maverick MCP server is added, see the following docs for examples:
 - [Using Maverick MCP server for Logs analysis](https://github.com/sathish316/maverick_agentskills_examples/blob/main/doc/USING_MAVERICK_MCP_FROM_CURSOR_FOR_METRICS_AND_LOGS_ANALYSIS.md)
 - Using Maverick MCP server for Database queries #TOLINK
 
-# Installation
+## Installation
 
 1. Prerequisites
 
@@ -165,7 +173,7 @@ Optionally, you can setup AI Observability using [Logfire](https://pydantic.dev/
 
 7. Follow the MCP or AgentSkills guides to use Maverick from your favourite AI tools - ClaudeCode or Codex or Cursor.
 
-# Development
+## Development
 
 Maverick Query engine is built using Python, uv, FastAPI, FastMCP, PydanticAI.
 
@@ -187,7 +195,7 @@ uv run pytest -v -s -m integration
 uv run pytest -v -s -m integration_llm
 ```
 
-# Evals
+## Evals
 
 Maverick query engine has a Text2SQL Eval suite to validate the quality of Intent to Query generation. To run evals:
 
@@ -205,7 +213,7 @@ uv run pytest -m integration_querygen_evals tests/integration/evals/test_spl_que
 
 See Evals README.md for more details on QueryGen evalsuite.
 
-# Contributing
+## Contributing
 
 1. Fork and create a Pull request to contribute features or capabilities
 
@@ -213,7 +221,7 @@ See Evals README.md for more details on QueryGen evalsuite.
 
 3. Companion repo [Maverick AgentSkills Examples](https://github.com/sathish316/maverick_agentskills_examples) can be used for applications of Maverick for Database querying, Metrics/Logs analysis for AI driven Oncall Troubleshooting and more.
 
-# License
+## License
 
 MIT License - see the [LICENSE](LICENSE) file for details
 

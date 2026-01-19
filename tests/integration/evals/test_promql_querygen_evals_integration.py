@@ -54,7 +54,7 @@ PROMQL_TEST_SCENARIOS = [
         "intent": MetricsQueryIntent(
             metric="http_requests_total",
             intent_description="Calculate rate of HTTP 500 errors per second over 5 minutes",
-            metric_type="counter",
+            meter_type="counter",
             filters={"status": "500", "method": "POST"},
             window="5m",
             aggregation_suggestions=[
@@ -70,7 +70,7 @@ PROMQL_TEST_SCENARIOS = [
         "intent": MetricsQueryIntent(
             metric="memory_usage_bytes",
             intent_description="Calculate average memory usage over 5 minutes for feed-service in production",
-            metric_type="gauge",
+            meter_type="gauge",
             filters={"environment": "production", "service": "feed-service"},
             window="5m",
             aggregation_suggestions=[
@@ -86,7 +86,7 @@ PROMQL_TEST_SCENARIOS = [
         "intent": MetricsQueryIntent(
             metric="http_request_duration_seconds",
             intent_description="Calculate 95th percentile of HTTP request duration",
-            metric_type="histogram",
+            meter_type="histogram",
             filters={"method": "GET", "status": "200"},
             window="5m",
             aggregation_suggestions=[
@@ -105,7 +105,7 @@ PROMQL_TEST_SCENARIOS = [
         "intent": MetricsQueryIntent(
             metric="database_queries_total",
             intent_description="Calculate overall query rate across all databases",
-            metric_type="counter",
+            meter_type="counter",
             filters={"query_type": "SELECT"},
             window="5m",
             group_by=[],
@@ -122,7 +122,7 @@ PROMQL_TEST_SCENARIOS = [
         "intent": MetricsQueryIntent(
             metric="network_packets_total",
             intent_description="Calculate packet rate filtered by protocol and direction",
-            metric_type="counter",
+            meter_type="counter",
             filters={
                 "protocol": "tcp",
                 "direction": "inbound",

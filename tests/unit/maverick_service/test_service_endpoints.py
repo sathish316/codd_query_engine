@@ -77,15 +77,19 @@ class TestServiceMetricsEndpoints:
         assert data["count"] == 0
         assert data["metrics"] == []
 
+    @patch("maverick_service.api.controllers.metrics_controller._config")
     @patch("maverick_service.api.controllers.metrics_controller.get_client")
     @pytest.mark.asyncio
-    async def test_generate_promql_query_endpoint_success(self, mock_get_client):
+    async def test_generate_promql_query_endpoint_success(self, mock_get_client, mock_config):
         """
         Test PromQL generation endpoint with successful mocked query generation.
 
         Validates that the endpoint correctly handles successful query generation
         and returns the expected response structure.
         """
+        # Arrange: Mock config
+        mock_config.prometheus.service_label = "service"
+
         # Arrange: Mock successful query generation
         mock_client = MagicMock()
         mock_client.metrics.construct_promql_query = AsyncMock(
@@ -101,8 +105,9 @@ class TestServiceMetricsEndpoints:
             "description": "API error rate for payment service",
             "namespace": "production",
             "metric_name": "http_requests_total",
+            "service": "payments",
             "aggregation": "rate",
-            "filters": {"service": "payments", "status": "500"},
+            "filters": {"status": "500"},
         }
 
         # Act: Call the endpoint
@@ -116,15 +121,19 @@ class TestServiceMetricsEndpoints:
         assert data["error"] is None
         assert "http_requests_total" in data["query"]
 
+    @patch("maverick_service.api.controllers.metrics_controller._config")
     @patch("maverick_service.api.controllers.metrics_controller.get_client")
     @pytest.mark.asyncio
-    async def test_generate_promql_query_endpoint_failure(self, mock_get_client):
+    async def test_generate_promql_query_endpoint_failure(self, mock_get_client, mock_config):
         """
         Test PromQL generation endpoint with failed mocked query generation.
 
         Validates that the endpoint correctly handles query generation failures
         and returns appropriate error information.
         """
+        # Arrange: Mock config
+        mock_config.prometheus.service_label = "service"
+
         # Arrange: Mock failed query generation
         mock_client = MagicMock()
         mock_client.metrics.construct_promql_query = AsyncMock(
@@ -140,6 +149,7 @@ class TestServiceMetricsEndpoints:
             "description": "Test query",
             "namespace": "production",
             "metric_name": "invalid_metric",
+            "service": "test-service",
             "aggregation": "rate",
         }
 
@@ -157,15 +167,19 @@ class TestServiceMetricsEndpoints:
 class TestServiceLogsEndpoints:
     """Unit tests for logs endpoints with mocked query generation."""
 
+    @patch("maverick_service.api.controllers.logs_controller._config")
     @patch("maverick_service.api.controllers.logs_controller.get_client")
     @pytest.mark.asyncio
-    async def test_generate_logql_query_endpoint_success(self, mock_get_client):
+    async def test_generate_logql_query_endpoint_success(self, mock_get_client, mock_config):
         """
         Test LogQL generation endpoint with successful mocked query generation.
 
         Validates that the endpoint correctly handles successful query generation
         and returns the expected response structure.
         """
+        # Arrange: Mock config
+        mock_config.loki.service_label = "service"
+
         # Arrange: Mock successful query generation
         mock_client = MagicMock()
         mock_client.logs.logql.construct_logql_query = AsyncMock(
@@ -200,14 +214,18 @@ class TestServiceLogsEndpoints:
         assert data["error"] is None
         assert "payments" in data["query"]
 
+    @patch("maverick_service.api.controllers.logs_controller._config")
     @patch("maverick_service.api.controllers.logs_controller.get_client")
     @pytest.mark.asyncio
-    async def test_generate_logql_query_endpoint_failure(self, mock_get_client):
+    async def test_generate_logql_query_endpoint_failure(self, mock_get_client, mock_config):
         """
         Test LogQL generation endpoint with failed mocked query generation.
 
         Validates that the endpoint correctly handles query generation failures.
         """
+        # Arrange: Mock config
+        mock_config.loki.service_label = "service"
+
         # Arrange: Mock failed query generation
         mock_client = MagicMock()
         mock_client.logs.logql.construct_logql_query = AsyncMock(

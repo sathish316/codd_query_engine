@@ -81,7 +81,7 @@ class TestValidateSemanticMatch:
         # Arrange
         intent = MetricsQueryIntent(
             metric="http_requests_total",
-            metric_type="counter",
+            meter_type="counter",
             filters={"status": "500"},
             window="5m",
             aggregation_suggestions=[
@@ -110,7 +110,7 @@ class TestValidateSemanticMatch:
 
         intent = MetricsQueryIntent(
             metric="memory_usage_bytes",
-            metric_type="gauge",
+            meter_type="gauge",
             window="5m",
             aggregation_suggestions=[
                 AggregationFunctionSuggestion(function_name="avg_over_time")
@@ -139,7 +139,7 @@ class TestValidateSemanticMatch:
 
         intent = MetricsQueryIntent(
             metric="api_latency_seconds",
-            metric_type="histogram",
+            meter_type="histogram",
             filters={"endpoint": "/users"},
             window="5m",
             aggregation_suggestions=[
@@ -164,7 +164,7 @@ class TestValidateSemanticMatch:
         """Test that LLM failure is properly wrapped in SemanticValidationError."""
         # Arrange
         mock_agent.run_sync.side_effect = Exception("LLM API error")
-        intent = MetricsQueryIntent(metric="test_metric")
+        intent = MetricsQueryIntent(metric="test_metric", meter_type="counter")
         query = "test_query"
 
         # Act & Assert
@@ -180,7 +180,7 @@ class TestFormatValidationPrompt:
     def test_format_validation_prompt_basic(self, explainer_agent):
         """Test basic prompt formatting."""
         intent = MetricsQueryIntent(
-            metric="cpu_usage", metric_type="gauge", window="5m"
+            metric="cpu_usage", meter_type="gauge", window="5m"
         )
         query = "avg_over_time(cpu_usage[5m])"
 
@@ -195,7 +195,7 @@ class TestFormatValidationPrompt:
         """Test prompt formatting with aggregation suggestions."""
         intent = MetricsQueryIntent(
             metric="http_requests",
-            metric_type="counter",
+            meter_type="counter",
             aggregation_suggestions=[
                 AggregationFunctionSuggestion(function_name="rate"),
                 AggregationFunctionSuggestion(
@@ -213,7 +213,7 @@ class TestFormatValidationPrompt:
 
     def test_format_validation_prompt_with_group_by(self, explainer_agent):
         """Test prompt formatting with group by dimensions."""
-        intent = MetricsQueryIntent(metric="requests", group_by=["instance", "job"])
+        intent = MetricsQueryIntent(metric="requests", meter_type="counter", group_by=["instance", "job"])
         query = "sum(requests) by (instance, job)"
 
         prompt = explainer_agent._format_validation_prompt(intent, query)

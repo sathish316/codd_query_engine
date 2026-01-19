@@ -5,4 +5,5 @@ uv.lock
 maverick_engine.egg-info
 redis-data
 *.log
+.claude/settings.local.json
 POST*.md

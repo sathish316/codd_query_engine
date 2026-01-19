@@ -50,7 +50,7 @@ class TestPromQLQueryExplainerAgentIntegration:
         # Arrange: Create user intent for a counter metric with rate aggregation
         intent = MetricsQueryIntent(
             metric="http_requests_total",
-            metric_type="counter",
+            meter_type="counter",
             filters={"status": "500"},
             window="5m",
             aggregation_suggestions=[
@@ -89,7 +89,7 @@ class TestPromQLQueryExplainerAgentIntegration:
         # Arrange: Create user intent for a gauge metric with avg_over_time aggregation
         intent = MetricsQueryIntent(
             metric="memory_usage_bytes",
-            metric_type="gauge",
+            meter_type="gauge",
             filters={"instance": "prod-server-1"},
             window="5m",
             aggregation_suggestions=[

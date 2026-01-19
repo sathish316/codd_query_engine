@@ -26,7 +26,7 @@ class TestMicrometerTransformConditional:
         """Micrometer transformation should be applied when QueryOpts.spring_micrometer_transform is True."""
         intent = MetricsQueryIntent(
             metric="http_request_duration",
-            metric_type="timer",
+            meter_type="timer",
         )
         query_opts = QueryOpts(spring_micrometer_transform=True)
 
@@ -48,7 +48,7 @@ class TestMicrometerTransformConditional:
         """Micrometer transformation should not be applied when QueryOpts.spring_micrometer_transform is False."""
         intent = MetricsQueryIntent(
             metric="http_request_duration",
-            metric_type="timer",
+            meter_type="timer",
         )
         query_opts = QueryOpts(spring_micrometer_transform=False)
 
@@ -70,7 +70,7 @@ class TestMicrometerTransformConditional:
         """Micrometer transformation should not be applied when query_opts is None."""
         intent = MetricsQueryIntent(
             metric="http_request_duration",
-            metric_type="timer",
+            meter_type="timer",
         )
 
         # Mock the micrometer preprocessor to verify it's NOT called
@@ -91,7 +91,7 @@ class TestMicrometerTransformConditional:
         """Micrometer transformation should not be applied with default QueryOpts (spring_micrometer_transform=False)."""
         intent = MetricsQueryIntent(
             metric="http_request_duration",
-            metric_type="timer",
+            meter_type="timer",
         )
         query_opts = QueryOpts()  # Default: spring_micrometer_transform=False
 
@@ -113,7 +113,7 @@ class TestMicrometerTransformConditional:
         """Aggregation suggestions should always be applied regardless of QueryOpts."""
         intent = MetricsQueryIntent(
             metric="http_requests_total",
-            metric_type="counter",
+            meter_type="counter",
         )
         query_opts = QueryOpts(spring_micrometer_transform=False)
 

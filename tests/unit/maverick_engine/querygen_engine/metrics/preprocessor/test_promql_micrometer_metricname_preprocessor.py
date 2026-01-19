@@ -27,27 +27,27 @@ class TestTimerMetrics:
 
     def test_timer_adds_seconds_suffix(self, preprocessor):
         """Timer metrics should get '_seconds' suffix appended."""
-        intent = MetricsQueryIntent(metric="http_request_duration", metric_type="timer")
+        intent = MetricsQueryIntent(metric="http_request_duration", meter_type="timer")
         result = preprocessor.preprocess(intent)
         assert result.metric == "http_request_duration_seconds"
 
     def test_timer_already_has_seconds_suffix(self, preprocessor):
         """Timer metrics already ending with '_seconds' should not be modified."""
         intent = MetricsQueryIntent(
-            metric="http_request_duration_seconds", metric_type="timer"
+            metric="http_request_duration_seconds", meter_type="timer"
         )
         result = preprocessor.preprocess(intent)
         assert result.metric == "http_request_duration_seconds"
 
     def test_timer_uppercase_metric_type(self, preprocessor):
         """Timer metric type should be case-insensitive."""
-        intent = MetricsQueryIntent(metric="response_time", metric_type="TIMER")
+        intent = MetricsQueryIntent(metric="response_time", meter_type="TIMER")
         result = preprocessor.preprocess(intent)
         assert result.metric == "response_time_seconds"
 
     def test_timer_mixed_case_metric_type(self, preprocessor):
         """Timer metric type should handle mixed case."""
-        intent = MetricsQueryIntent(metric="api_latency", metric_type="Timer")
+        intent = MetricsQueryIntent(metric="api_latency", meter_type="Timer")
         result = preprocessor.preprocess(intent)
         assert result.metric == "api_latency_seconds"
 
@@ -57,13 +57,13 @@ class TestCounterMetrics:
 
     def test_counter_adds_total_suffix(self, preprocessor):
         """Counter metrics should get '_total' suffix appended."""
-        intent = MetricsQueryIntent(metric="http_requests", metric_type="counter")
+        intent = MetricsQueryIntent(metric="http_requests", meter_type="counter")
         result = preprocessor.preprocess(intent)
         assert result.metric == "http_requests_total"
 
     def test_counter_already_has_total_suffix(self, preprocessor):
         """Counter metrics already ending with '_total' should not be modified."""
-        intent = MetricsQueryIntent(metric="http_requests_total", metric_type="counter")
+        intent = MetricsQueryIntent(metric="http_requests_total", meter_type="counter")
         result = preprocessor.preprocess(intent)
         assert result.metric == "http_requests_total"
 
@@ -71,7 +71,7 @@ class TestCounterMetrics:
         """Counter metrics should append base unit before '_total'."""
         intent = MetricsQueryIntent(
             metric="data_processed",
-            metric_type="counter",
+            meter_type="counter",
             filters={"base_unit": "bytes"},
         )
         result = preprocessor.preprocess(intent)
@@ -81,7 +81,7 @@ class TestCounterMetrics:
         """Counter metrics already containing base unit should only add '_total'."""
         intent = MetricsQueryIntent(
             metric="data_processed_bytes",
-            metric_type="counter",
+            meter_type="counter",
             filters={"base_unit": "bytes"},
         )
         result = preprocessor.preprocess(intent)
@@ -94,7 +94,7 @@ class TestCounterMetrics:
         """Counter metrics with both base unit and '_total' will add base unit if not at the end."""
         intent = MetricsQueryIntent(
             metric="data_processed_bytes_total",
-            metric_type="counter",
+            meter_type="counter",
             filters={"base_unit": "bytes"},
         )
         result = preprocessor.preprocess(intent)
@@ -109,7 +109,7 @@ class TestDistributionSummaryMetrics:
     def test_distribution_summary_without_base_unit(self, preprocessor):
         """Distribution summary without base unit should not be modified."""
         intent = MetricsQueryIntent(
-            metric="response_size", metric_type="distribution_summary"
+            metric="response_size", meter_type="distribution_summary"
         )
         result = preprocessor.preprocess(intent)
         assert result.metric == "response_size"
@@ -118,7 +118,7 @@ class TestDistributionSummaryMetrics:
         """Distribution summary should append base unit suffix."""
         intent = MetricsQueryIntent(
             metric="response_size",
-            metric_type="distribution_summary",
+            meter_type="distribution_summary",
             filters={"base_unit": "bytes"},
         )
         result = preprocessor.preprocess(intent)
@@ -128,7 +128,7 @@ class TestDistributionSummaryMetrics:
         """Distribution summary already containing base unit should not be modified."""
         intent = MetricsQueryIntent(
             metric="payload_size_bytes",
-            metric_type="distribution_summary",
+            meter_type="distribution_summary",
             filters={"base_unit": "bytes"},
         )
         result = preprocessor.preprocess(intent)
@@ -138,7 +138,7 @@ class TestDistributionSummaryMetrics:
         """Distribution summary metric type should be case-insensitive."""
         intent = MetricsQueryIntent(
             metric="request_size",
-            metric_type="DISTRIBUTION_SUMMARY",
+            meter_type="DISTRIBUTION_SUMMARY",
             filters={"base_unit": "bytes"},
         )
         result = preprocessor.preprocess(intent)
@@ -148,7 +148,7 @@ class TestDistributionSummaryMetrics:
         """Distribution summary with empty base unit should not be modified."""
         intent = MetricsQueryIntent(
             metric="values",
-            metric_type="distribution_summary",
+            meter_type="distribution_summary",
             filters={"base_unit": ""},
         )
         result = preprocessor.preprocess(intent)
@@ -160,14 +160,14 @@ class TestHistogramMetrics:
 
     def test_histogram_without_base_unit(self, preprocessor):
         """Histogram without base unit should not be modified."""
-        intent = MetricsQueryIntent(metric="request_duration", metric_type="histogram")
+        intent = MetricsQueryIntent(metric="request_duration", meter_type="histogram")
         result = preprocessor.preprocess(intent)
         assert result.metric == "request_duration"
 
     def test_histogram_with_base_unit(self, preprocessor):
         """Histogram should append base unit suffix."""
         intent = MetricsQueryIntent(
-            metric="file_size", metric_type="histogram", filters={"base_unit": "bytes"}
+            metric="file_size", meter_type="histogram", filters={"base_unit": "bytes"}
         )
         result = preprocessor.preprocess(intent)
         assert result.metric == "file_size_bytes"
@@ -176,7 +176,7 @@ class TestHistogramMetrics:
         """Histogram already containing base unit should not be modified."""
         intent = MetricsQueryIntent(
             metric="download_size_bytes",
-            metric_type="histogram",
+            meter_type="histogram",
             filters={"base_unit": "bytes"},
         )
         result = preprocessor.preprocess(intent)
@@ -186,7 +186,7 @@ class TestHistogramMetrics:
         """Histogram metric type should be case-insensitive."""
         intent = MetricsQueryIntent(
             metric="latency",
-            metric_type="HISTOGRAM",
+            meter_type="HISTOGRAM",
             filters={"base_unit": "milliseconds"},
         )
         result = preprocessor.preprocess(intent)
@@ -198,14 +198,14 @@ class TestGaugeMetrics:
 
     def test_gauge_without_base_unit(self, preprocessor):
         """Gauge without base unit should not be modified."""
-        intent = MetricsQueryIntent(metric="temperature", metric_type="gauge")
+        intent = MetricsQueryIntent(metric="temperature", meter_type="gauge")
         result = preprocessor.preprocess(intent)
         assert result.metric == "temperature"
 
     def test_gauge_with_base_unit(self, preprocessor):
         """Gauge should append base unit suffix."""
         intent = MetricsQueryIntent(
-            metric="memory_usage", metric_type="gauge", filters={"base_unit": "bytes"}
+            metric="memory_usage", meter_type="gauge", filters={"base_unit": "bytes"}
         )
         result = preprocessor.preprocess(intent)
         assert result.metric == "memory_usage_bytes"
@@ -214,7 +214,7 @@ class TestGaugeMetrics:
         """Gauge already containing base unit should not be modified."""
         intent = MetricsQueryIntent(
             metric="heap_size_bytes",
-            metric_type="gauge",
+            meter_type="gauge",
             filters={"base_unit": "bytes"},
         )
         result = preprocessor.preprocess(intent)
@@ -228,7 +228,7 @@ class TestIntentPreservation:
         """Other filters should be preserved during preprocessing."""
         intent = MetricsQueryIntent(
             metric="http_requests",
-            metric_type="counter",
+            meter_type="counter",
             filters={"environment": "prod", "service": "api"},
             group_by=["pod", "namespace"],
             window="10m",
@@ -282,7 +282,7 @@ class TestComplexScenarios:
         """Parametrized test for various metric transformations."""
         filters = {"base_unit": base_unit} if base_unit else None
         intent = MetricsQueryIntent(
-            metric=metric_name, metric_type=metric_type, filters=filters
+            metric=metric_name, meter_type=metric_type, filters=filters
         )
         result = preprocessor.preprocess(intent)
         assert result.metric == expected
@@ -300,7 +300,7 @@ class TestComplexScenarios:
         for metric_name, metric_type, base_unit, expected in test_cases:
             filters = {"base_unit": base_unit} if base_unit else None
             intent = MetricsQueryIntent(
-                metric=metric_name, metric_type=metric_type, filters=filters
+                metric=metric_name, meter_type=metric_type, filters=filters
             )
             result = preprocessor.preprocess(intent)
             assert result.metric == expected, f"Failed for {metric_name}"

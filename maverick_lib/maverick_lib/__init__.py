@@ -16,6 +16,12 @@ from maverick_lib.config import (
     RedisConfig,
     SemanticStoreConfig,
 )
+from maverick_lib.models import (
+    MetricsQueryIntent,
+    QueryOpts,
+    LogQueryIntent,
+    LogPattern,
+)
 
 __all__ = [
     # Clients
@@ -32,6 +38,11 @@ __all__ = [
     "SplunkConfig",
     "RedisConfig",
     "SemanticStoreConfig",
+    # Models
+    "MetricsQueryIntent",
+    "QueryOpts",
+    "LogQueryIntent",
+    "LogPattern",
 ]
 
 __version__ = "0.1.0"

@@ -13,6 +13,9 @@ class PromQLMicrometerMetricNamePreprocessor(MetricsQuerygenPreprocessor):
     - Counters: append '_total' suffix (unless already ends with '_total')
     - Distribution Summaries: append base unit if provided (e.g., '_bytes')
     - Gauges: append base unit if provided (e.g., '_bytes')
+
+    Preprocessing Logic is based on micrometer's PrometheusNamingConvention class:
+    https://github.com/micrometer-metrics/micrometer/blob/main/implementations/micrometer-registry-prometheus/src/test/java/io/micrometer/prometheusmetrics/PrometheusNamingConventionTest.java
     """
 
     def preprocess(self, intent: MetricsQueryIntent) -> MetricsQueryIntent:
@@ -25,31 +28,31 @@ class PromQLMicrometerMetricNamePreprocessor(MetricsQuerygenPreprocessor):
         Returns:
             A normalized query intent with Prometheus-compliant metric name
         """
-        metric_type = intent.metric_type.lower()
+        meter_type = intent.meter_type.lower() if intent.meter_type else ""
         metric_name = intent.metric
         base_unit = (
             intent.filters.get("base_unit", "").lower() if intent.filters else ""
         )
 
         # Apply type-specific suffix rules
-        if metric_type == "timer":
+        if meter_type == "timer":
             # Timers get '_seconds' suffix unless already present
             if not metric_name.endswith("_seconds"):
                 metric_name = f"{metric_name}_seconds"
 
-        elif metric_type == "counter":
+        elif meter_type == "counter":
             # Counters get base unit (if provided) + '_total' suffix
             if base_unit and not metric_name.endswith(f"_{base_unit}"):
                 metric_name = f"{metric_name}_{base_unit}"
             if not metric_name.endswith("_total"):
                 metric_name = f"{metric_name}_total"
 
-        elif metric_type == "distribution_summary" or metric_type == "histogram":
+        elif meter_type == "distribution_summary" or meter_type == "histogram":
             # Distribution summaries get base unit suffix (if provided)
             if base_unit and not metric_name.endswith(f"_{base_unit}"):
                 metric_name = f"{metric_name}_{base_unit}"
 
-        elif metric_type == "gauge":
+        elif meter_type == "gauge":
             # Gauges get base unit suffix (if provided)
             if base_unit and not metric_name.endswith(f"_{base_unit}"):
                 metric_name = f"{metric_name}_{base_unit}"

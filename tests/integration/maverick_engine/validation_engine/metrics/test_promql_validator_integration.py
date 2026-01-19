@@ -188,7 +188,7 @@ class TestPromQLValidatorPipelineIntegration:
         # Define user intent
         intent = MetricsQueryIntent(
             metric="http_requests_total",
-            metric_type="counter",
+            meter_type="counter",
             filters={"status": "500"},
             window="5m",
             aggregation_suggestions=[
@@ -345,7 +345,7 @@ class TestPromQLValidatorPipelineIntegration:
         intent = MetricsQueryIntent(
             metric="memory_usage_bytes",
             intent_description="average memory usage over 5m",
-            metric_type="gauge",  # Gauge metric
+            meter_type="gauge",  # Gauge metric
             filters={"instance": "prod-1"},
             window="5m",
             aggregation_suggestions=[

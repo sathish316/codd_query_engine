@@ -9,7 +9,6 @@ class SearchResult(TypedDict):
 
     metric_name: str
     similarity_score: float
-    type: str
     description: str
     unit: str
     category: str

@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """Maverick MCP Server - FastMCP-based observability tools server."""
 
-import json
 import os
 from typing import Any
 import httpx
 from mcp.server.fastmcp import FastMCP
+from maverick_lib.models import MetricsQueryIntent, LogQueryIntent
 
 # Create FastMCP server
 mcp = FastMCP("Maverick Observability Server")
@@ -90,7 +90,7 @@ async def search_relevant_metrics(
 
 @mcp.tool()
 async def construct_promql_query(
-    metrics_query_intent: str,
+    intent: MetricsQueryIntent,
 ) -> dict[str, Any]:
     """Generate a valid PromQL query from a metrics query intent.
 
@@ -98,172 +98,149 @@ async def construct_promql_query(
     a syntactically correct PromQL query with proper aggregations and filters.
 
     Args:
-        metrics_query_intent: JSON with query intent. Required fields:
-            - description: What you want to query
-            - namespace: Prometheus namespace
-            Optional fields:
-            - metric_name: Specific metric to query
+        intent: Metrics query intent with the following fields:
+            - description (required): What you want to query
+            - namespace (required): Maverick Text2SQL namespace
+            - metric_name (required): Specific metric to query
+            - service (required): Service name to filter metrics
+            - meter_type: Type of meter (counter, gauge, histogram, summary)
             - aggregation: Function like "rate", "sum", "avg"
             - group_by: Labels to group by
             - filters: Label filters as key-value pairs
-            - window: Time range window (e.g., "1m", "5m", "1h"). Default: "5m". Range queries select a range of samples back from the current instant. It specifies how much time to go back for values that are fetched for each range vector.
+            - window: Time range window (e.g., "1m", "5m", "1h"). Default: "5m"
+            - query_opts: Query generation options
 
     Returns:
-        JSON with generated PromQL query and metadata.
+        Dict with generated PromQL query and metadata.
 
     Example:
-        Input: {
-          "description": "API error rate",
-          "namespace": "production",
-          "metric_name": "http_requests_total",
-          "aggregation": "rate",
-          "filters": {"status": "500"},
-          "window": "1m"
-        }
+        Input: MetricsQueryIntent(
+          description="API error rate",
+          namespace="production",
+          metric_name="http_requests_total",
+          service="api-gateway",
+          aggregation="rate",
+          filters={"status": "500"},
+          window="1m"
+        )
         Output: {
           "query": "rate(http_requests_total{status=\"500\"}[1m])",
           "success": true
         }
     """
     try:
-        # Parse intent
-        intent_data = json.loads(metrics_query_intent)
-
         # Make request to PromQL generation endpoint
         response = _make_request(
             endpoint="/api/metrics/promql/generate",
             method="POST",
-            json_data=intent_data,
+            json_data=intent.model_dump(exclude_none=True),
         )
 
         return response
 
-    except json.JSONDecodeError as e:
-        return {"error": f"Invalid JSON input: {e}", "query": "", "success": False}
     except Exception as e:
         return {"error": str(e), "query": "", "success": False}
 
 
 # Register logs tools
 @mcp.tool()
-async def construct_logql_query(log_query_intent: str) -> str:
+async def construct_logql_query(intent: LogQueryIntent) -> dict[str, Any]:
     """Generate a valid LogQL query for Loki from a log query intent.
 
     Creates a syntactically correct LogQL query with proper label selectors,
     line filters, and log pipeline stages.
 
     Args:
-        log_query_intent: JSON with query intent. Required fields:
-            - description: What logs to search for
-            - service: Service name
-            - patterns: List of patterns like [{"pattern": "error", "level": "error"}]
-            Optional fields:
+        intent: Log query intent with the following fields:
+            - description (required): What logs to search for
+            - service (required): Service name
+            - patterns (required): List of patterns like [{"pattern": "error", "level": "error"}]
+            - namespace (required): Maverick Text2SQL namespace
             - default_level: Default log level
             - limit: Max results (default: 200)
-            - namespace: Kubernetes namespace
 
     Returns:
-        JSON with generated LogQL query and metadata.
+        Dict with generated LogQL query and metadata.
 
     Example:
-        Input: {
-          "description": "Find error logs in payments",
-          "service": "payments",
-          "patterns": [{"pattern": "error", "level": "error"}]
-        }
+        Input: LogQueryIntent(
+          description="Find error logs in payments",
+          service="payments",
+          namespace="production",
+          patterns=[LogPattern(pattern="error", level="error")]
+        )
         Output: {
           "query": "{service=\"payments\"} |~ \"error\" | level=\"error\"",
           "success": true
         }
     """
     try:
-        # Parse intent
-        intent_data = json.loads(log_query_intent)
-
         # Make request to LogQL generation endpoint
         response = _make_request(
-            endpoint="/api/logs/logql/generate", method="POST", json_data=intent_data
+            endpoint="/api/logs/logql/generate",
+            method="POST",
+            json_data=intent.model_dump(exclude_none=True),
         )
 
-        return json.dumps(
-            {
-                "query": response.get("query", ""),
-                "backend": response.get("backend", "loki"),
-                "success": response.get("success", False),
-                "error": response.get("error"),
-                "intent": intent_data,
-            },
-            indent=2,
-        )
+        return {
+            "query": response.get("query", ""),
+            "backend": response.get("backend", "loki"),
+            "success": response.get("success", False),
+            "error": response.get("error"),
+        }
 
-    except json.JSONDecodeError as e:
-        return json.dumps(
-            {"error": f"Invalid JSON input: {e}", "query": "", "success": False}
-        )
     except Exception as e:
-        return json.dumps(
-            {"error": str(e), "query": "", "backend": "loki", "success": False}
-        )
+        return {"error": str(e), "query": "", "backend": "loki", "success": False}
 
 
 @mcp.tool()
-async def construct_splunk_query(log_query_intent: str) -> str:
+async def construct_splunk_query(intent: LogQueryIntent) -> dict[str, Any]:
     """Generate a valid Splunk SPL query from a log query intent.
 
     Creates a syntactically correct Splunk SPL query with proper search terms,
     field filters, and pipe commands.
 
     Args:
-        log_query_intent: JSON with query intent. Required fields:
-            - description: What logs to search for
-            - service: Service name
-            - patterns: List of patterns like [{"pattern": "timeout"}]
-            Optional fields:
+        intent: Log query intent with the following fields:
+            - description (required): What logs to search for
+            - service (required): Service name
+            - patterns (required): List of patterns like [{"pattern": "timeout"}]
+            - namespace (required): Maverick Text2SQL namespace
             - default_level: Default log level
             - limit: Max results (default: 200)
 
     Returns:
-        JSON with generated Splunk SPL query and metadata.
+        Dict with generated Splunk SPL query and metadata.
 
     Example:
-        Input: {
-          "description": "Search for timeout errors",
-          "service": "api-gateway",
-          "patterns": [{"pattern": "timeout"}]
-        }
+        Input: LogQueryIntent(
+          description="Search for timeout errors",
+          service="api-gateway",
+          namespace="production",
+          patterns=[LogPattern(pattern="timeout")]
+        )
         Output: {
           "query": "search service=\"api-gateway\" \"timeout\" | head 200",
           "success": true
         }
     """
     try:
-        # Parse intent
-        intent_data = json.loads(log_query_intent)
-
         # Make request to Splunk generation endpoint
         response = _make_request(
-            endpoint="/api/logs/splunk/generate", method="POST", json_data=intent_data
+            endpoint="/api/logs/splunk/generate",
+            method="POST",
+            json_data=intent.model_dump(exclude_none=True),
         )
 
-        return json.dumps(
-            {
-                "query": response.get("query", ""),
-                "backend": response.get("backend", "splunk"),
-                "success": response.get("success", False),
-                "error": response.get("error"),
-                "intent": intent_data,
-            },
-            indent=2,
-        )
+        return {
+            "query": response.get("query", ""),
+            "backend": response.get("backend", "splunk"),
+            "success": response.get("success", False),
+            "error": response.get("error"),
+        }
 
-    except json.JSONDecodeError as e:
-        return json.dumps(
-            {"error": f"Invalid JSON input: {e}", "query": "", "success": False}
-        )
     except Exception as e:
-        return json.dumps(
-            {"error": str(e), "query": "", "backend": "splunk", "success": False}
-        )
+        return {"error": str(e), "query": "", "backend": "splunk", "success": False}
 
 
 def main():

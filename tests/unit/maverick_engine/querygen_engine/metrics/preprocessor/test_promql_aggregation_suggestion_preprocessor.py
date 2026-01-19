@@ -33,13 +33,13 @@ def preprocessor() -> PromQLAggregationSuggestionPreprocessor:
 class TestCounterMetrics:
     """Test aggregation suggestions for counter metrics."""
 
-    def test_counter_metric_type(
+    def test_counter_meter_type(
         self, preprocessor: PromQLAggregationSuggestionPreprocessor
     ):
         """Counter metrics should get rate, increase, and irate suggestions."""
         intent = MetricsQueryIntent(
             metric="http_requests_total",
-            metric_type="counter",
+            meter_type="counter",
         )
 
         result = preprocessor.preprocess(intent)
@@ -50,13 +50,13 @@ class TestCounterMetrics:
         assert result.aggregation_suggestions[1].function_name == "increase"
         assert result.aggregation_suggestions[2].function_name == "irate"
 
-    def test_counter_metric_type_case_insensitive(
+    def test_counter_meter_type_case_insensitive(
         self, preprocessor: PromQLAggregationSuggestionPreprocessor
     ):
         """Counter type should be case-insensitive."""
         intent = MetricsQueryIntent(
             metric="http_requests_total",
-            metric_type="COUNTER",
+            meter_type="COUNTER",
         )
 
         result = preprocessor.preprocess(intent)
@@ -71,7 +71,7 @@ class TestCounterMetrics:
         """Counter metrics with filters should still get suggestions."""
         intent = MetricsQueryIntent(
             metric="http_requests_total",
-            metric_type="counter",
+            meter_type="counter",
             filters={"method": "GET", "status": "200"},
         )
 
@@ -87,7 +87,7 @@ class TestCounterMetrics:
         """Counter metrics with group_by should still get suggestions."""
         intent = MetricsQueryIntent(
             metric="http_requests_total",
-            metric_type="counter",
+            meter_type="counter",
             group_by=["instance", "job"],
         )
 
@@ -101,13 +101,13 @@ class TestCounterMetrics:
 class TestGaugeMetrics:
     """Test aggregation suggestions for gauge metrics."""
 
-    def test_gauge_metric_type(
+    def test_gauge_meter_type(
         self, preprocessor: PromQLAggregationSuggestionPreprocessor
     ):
         """Gauge metrics should get over_time functions."""
         intent = MetricsQueryIntent(
             metric="cpu_usage",
-            metric_type="gauge",
+            meter_type="gauge",
         )
 
         result = preprocessor.preprocess(intent)
@@ -119,13 +119,13 @@ class TestGaugeMetrics:
         assert result.aggregation_suggestions[2].function_name == "min_over_time"
         assert result.aggregation_suggestions[3].function_name == "sum_over_time"
 
-    def test_gauge_metric_type_case_insensitive(
+    def test_gauge_meter_type_case_insensitive(
         self, preprocessor: PromQLAggregationSuggestionPreprocessor
     ):
         """Gauge type should be case-insensitive."""
         intent = MetricsQueryIntent(
             metric="cpu_usage",
-            metric_type="GaUgE",
+            meter_type="GaUgE",
         )
 
         result = preprocessor.preprocess(intent)
@@ -137,13 +137,13 @@ class TestGaugeMetrics:
 class TestHistogramMetrics:
     """Test aggregation suggestions for histogram metrics."""
 
-    def test_histogram_metric_type(
+    def test_histogram_meter_type(
         self, preprocessor: PromQLAggregationSuggestionPreprocessor
     ):
         """Histogram metrics should get histogram_quantile and rate."""
         intent = MetricsQueryIntent(
             metric="http_request_duration_seconds",
-            metric_type="histogram",
+            meter_type="histogram",
         )
 
         result = preprocessor.preprocess(intent)
@@ -161,7 +161,7 @@ class TestHistogramMetrics:
         """Histogram_quantile suggestions should have correct quantile params."""
         intent = MetricsQueryIntent(
             metric="http_request_duration_seconds",
-            metric_type="histogram",
+            meter_type="histogram",
         )
 
         result = preprocessor.preprocess(intent)
@@ -177,13 +177,13 @@ class TestHistogramMetrics:
 class TestTimerMetrics:
     """Test aggregation suggestions for timer metrics."""
 
-    def test_timer_metric_type(
+    def test_timer_meter_type(
         self, preprocessor: PromQLAggregationSuggestionPreprocessor
     ):
         """Timer metrics should get histogram_quantile and over_time functions."""
         intent = MetricsQueryIntent(
             metric="request_timer",
-            metric_type="timer",
+            meter_type="timer",
         )
 
         result = preprocessor.preprocess(intent)
@@ -207,7 +207,7 @@ class TestIntentImmutability:
         """Preprocessor should return a new intent instance."""
         intent = MetricsQueryIntent(
             metric="http_requests_total",
-            metric_type="counter",
+            meter_type="counter",
         )
 
         result = preprocessor.preprocess(intent)
@@ -225,7 +225,7 @@ class TestIntentImmutability:
         """All original fields should be preserved in the result."""
         intent = MetricsQueryIntent(
             metric="cpu_usage",
-            metric_type="gauge",
+            meter_type="gauge",
             filters={"instance": "host1", "job": "node"},
             window="10m",
             group_by=["instance"],
@@ -234,7 +234,7 @@ class TestIntentImmutability:
         result = preprocessor.preprocess(intent)
 
         assert result.metric == "cpu_usage"
-        assert result.metric_type == "gauge"
+        assert result.meter_type == "gauge"
         assert result.filters == {"instance": "host1", "job": "node"}
         assert result.window == "10m"
         assert result.group_by == ["instance"]

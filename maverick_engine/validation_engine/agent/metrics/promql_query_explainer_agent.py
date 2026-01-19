@@ -115,7 +115,7 @@ class PromQLQueryExplainerAgent:
             f"Validating semantic match for metric: {original_intent.metric}",
             extra={
                 "metric": original_intent.metric,
-                "metric_type": original_intent.metric_type,
+                "meter_type": original_intent.meter_type,
                 "query_length": len(generated_query),
             },
         )
@@ -183,7 +183,7 @@ class PromQLQueryExplainerAgent:
 
 **Original Intent:**
 - Metric: {original_intent.metric}
-- Metric Type: {original_intent.metric_type}
+- Meter Type: {original_intent.meter_type}
 - Filters: {filters_str}
 - Time Window: {original_intent.window}
 - Group By: {group_by_str}

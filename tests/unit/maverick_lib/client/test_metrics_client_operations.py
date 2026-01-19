@@ -111,7 +111,7 @@ async def test_promql_generation_with_mocked_generator(mock_config):
         intent = MetricsQueryIntent(
             metric="http_requests_total",
             intent_description="Calculate rate of HTTP requests with 500 errors grouped by instance",
-            metric_type="counter",
+            meter_type="counter",
             filters={"status": "500", "method": "GET"},
             window="5m",
             group_by=["instance"],

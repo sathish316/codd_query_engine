@@ -66,8 +66,8 @@ class PromQLAggregationSuggestionPreprocessor(MetricsQuerygenPreprocessor):
         Returns:
             Query intent with aggregation_suggestions populated
         """
-        metric_type = (intent.metric_type or "").lower()
-        aggregation_suggestions = DEFAULT_AGGREGATION_SUGGESTIONS.get(metric_type, [])
+        meter_type = (intent.meter_type or "").lower()
+        aggregation_suggestions = DEFAULT_AGGREGATION_SUGGESTIONS.get(meter_type, [])
 
         if not aggregation_suggestions:
             return intent

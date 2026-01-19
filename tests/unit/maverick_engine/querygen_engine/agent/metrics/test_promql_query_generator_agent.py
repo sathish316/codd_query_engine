@@ -48,7 +48,7 @@ def mock_instructions_manager():
 def mock_preprocessor():
     """Create a mock preprocessor that returns intent unchanged."""
     mock = Mock()
-    mock.preprocess = lambda intent: intent
+    mock.preprocess = lambda intent, query_opts=None: intent
     return mock
 
 
@@ -102,7 +102,7 @@ class TestGenerateQuery:
         intent = MetricsQueryIntent(
             metric="http_requests_total",
             intent_description="Calculate HTTP 5xx requests rate over the last 5 minutes",
-            metric_type="counter",
+            meter_type="counter",
             filters={"status": "500"},
             window="5m",
             aggregation_suggestions=[

@@ -157,7 +157,7 @@ class TestPromQLQueryGeneratorIntegration:
         intent = MetricsQueryIntent(
             metric="http_requests_total",
             intent_description="Calculate HTTP 5xx requests rate with a 5 minute range window",
-            metric_type="counter",
+            meter_type="counter",
             filters={"status": "500", "method": "GET"},
             window="5m",
             group_by=["instance"],

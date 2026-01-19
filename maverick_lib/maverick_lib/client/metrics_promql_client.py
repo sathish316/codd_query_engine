@@ -90,7 +90,6 @@ class MetricsPromQLClient:
             search_result: SearchResult = {
                 "metric_name": result.get("metric_name", ""),
                 "similarity_score": result.get("similarity_score", 0.0),
-                "type": result.get("type", ""),
                 "description": result.get("description", ""),
                 "unit": result.get("unit", ""),
                 "category": result.get("category", ""),

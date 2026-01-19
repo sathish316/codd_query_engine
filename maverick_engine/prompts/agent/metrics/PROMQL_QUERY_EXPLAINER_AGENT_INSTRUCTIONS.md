@@ -71,7 +71,7 @@ Be lenient and practical in your assessment. Focus on whether the query achieves
 ## Example 1: Score 5 - Excellent Match
 **Original Intent:**
 - metric: http_requests_total
-- metric_type: counter
+- meter_type: counter
 - filters: {status="500"}
 - window: 5m
 - aggregation: rate
@@ -85,7 +85,7 @@ Be lenient and practical in your assessment. Focus on whether the query achieves
 ## Example 2: Score 4 - Good Match
 **Original Intent:**
 - metric: api_latency_seconds
-- metric_type: histogram
+- meter_type: histogram
 - filters: {endpoint="/users"}
 - window: 5m
 - aggregation: histogram_quantile with 95th percentile
@@ -99,7 +99,7 @@ Be lenient and practical in your assessment. Focus on whether the query achieves
 ## Example 3: Score 3 - Acceptable with Issues
 **Original Intent:**
 - metric: http_requests_total
-- metric_type: counter
+- meter_type: counter
 - filters: {method="POST", endpoint="/api/users"}
 - window: 5m
 - aggregation: rate
@@ -113,7 +113,7 @@ Be lenient and practical in your assessment. Focus on whether the query achieves
 ## Example 4: Score 2 - Significant Issues
 **Original Intent:**
 - metric: memory_usage_bytes
-- metric_type: gauge
+- meter_type: gauge
 - window: 5m
 - aggregation: avg_over_time
 
@@ -126,7 +126,7 @@ Be lenient and practical in your assessment. Focus on whether the query achieves
 ## Example 5: Score 1 - Fundamentally Wrong
 **Original Intent:**
 - metric: memory_usage_bytes
-- metric_type: gauge
+- meter_type: gauge
 - window: 5m
 - aggregation: avg_over_time
 

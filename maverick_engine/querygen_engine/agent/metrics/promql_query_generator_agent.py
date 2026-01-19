@@ -110,7 +110,7 @@ class PromQLQueryGeneratorAgent:
             f"Starting query generation for metric: {intent.metric}",
             extra={
                 "metric": intent.metric,
-                "metric_type": intent.metric_type,
+                "meter_type": intent.meter_type,
                 "filters": intent.filters,
                 "window": intent.window,
                 "namespace": namespace,
@@ -220,19 +220,17 @@ class PromQLQueryGeneratorAgent:
         if intent.group_by:
             group_by_str = ", ".join(intent.group_by)
 
-        # Format service info (only include if service_name is provided)
-        service_info_str = ""
-        if intent.service_name:
-            service_label = intent.service_label or "service"
-            service_info_str = f"""- Service Label: {service_label}
-- Service Name: {intent.service_name}"""
+        # Format service info
+        service_label = intent.service_label or "service"
+        service_info_str = f"""- Service Label: {service_label}
+- Service: {intent.service}"""
 
         prompt = f"""Generate a valid PromQL query for the following metrics query intent:
 
 **Metrics Query Intent:**
 - Metric: {intent.metric}
 - Intent description: {intent.intent_description}
-- Metric Type: {intent.metric_type}
+- Meter Type: {intent.meter_type}
 - Filters: {filters_str}
 - Time Window: {intent.window}
 - Group By: {group_by_str}

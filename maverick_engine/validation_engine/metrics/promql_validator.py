@@ -98,8 +98,10 @@ class PromQLValidator(Validator[ValidationResult]):
         if syntax_enabled and self._syntax_validator:
             syntax_result = self._syntax_validator.validate(query)
             if not syntax_result.is_valid:
-                logger.warning(f"Syntax validation failed: {syntax_result.error}")
+                logger.warning(f"Syntax validation failed for query: {query}, error: {syntax_result.error}")
                 errors.append(syntax_result)
+            else:
+                logger.info(f"Syntax validation succeeded for query: {query}")
         else:
             logger.info("Syntax validation skipped (disabled in config)")
 

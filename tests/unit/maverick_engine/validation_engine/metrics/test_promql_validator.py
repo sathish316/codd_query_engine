@@ -89,7 +89,7 @@ class TestPromQLValidator:
         query = "rate(http_requests_total[5m])"
         intent = MetricsQueryIntent(
             metric="http_requests_total",
-            metric_type="counter",
+            meter_type="counter",
             window="5m",
             aggregation_suggestions=[
                 AggregationFunctionSuggestion(function_name="rate")
@@ -166,7 +166,7 @@ class TestPromQLValidator:
         namespace = "test:namespace"
         query = "rate(nonexistent_metric[5m])"
         intent = MetricsQueryIntent(
-            metric="nonexistent_metric", metric_type="counter", window="5m"
+            metric="nonexistent_metric", meter_type="counter", window="5m"
         )
 
         mock_syntax_validator.validate.return_value = SyntaxValidationResult.success()
@@ -207,7 +207,7 @@ class TestPromQLValidator:
         query = "rate(memory_usage_bytes[5m])"  # rate() on gauge
         intent = MetricsQueryIntent(
             metric="memory_usage_bytes",
-            metric_type="gauge",
+            meter_type="gauge",
             window="5m",
             aggregation_suggestions=[
                 AggregationFunctionSuggestion(function_name="avg_over_time")
@@ -253,7 +253,7 @@ class TestPromQLValidator:
         query = 'rate(http_requests_total{status="500"}[5m])'
         intent = MetricsQueryIntent(
             metric="http_requests_total",
-            metric_type="counter",
+            meter_type="counter",
             filters={"status": "500", "method": "GET"},  # Query missing method filter
             window="5m",
         )
@@ -294,7 +294,7 @@ class TestPromQLValidator:
         namespace = "test:namespace"
         query = "rate(invalid_metric[5m"  # Bad syntax AND bad metric
         intent = MetricsQueryIntent(
-            metric="invalid_metric", metric_type="counter", window="5m"
+            metric="invalid_metric", meter_type="counter", window="5m"
         )
 
         mock_syntax_validator.validate.return_value = SyntaxValidationResult.failure(

@@ -64,10 +64,12 @@ class PromQLQueryRequest(BaseModel):
     description: str
     namespace: str
     metric_name: Optional[str] = None
+    meter_type: Optional[str] = None
     aggregation: Optional[str] = None
     group_by: Optional[list[str]] = None
     filters: Optional[dict[str, str]] = None
     window: Optional[str] = None
+    service: str
     query_opts: Optional[QueryOpts] = None
 
 
@@ -161,11 +163,16 @@ async def generate_promql_query(
         }
     """
     try:
+        # Get client first to ensure _config is initialized
+        bypass_cache = x_cache_bypass and x_cache_bypass.lower() == "true"
+        client = get_client(False)
+
         # Create intent
         intent = MetricsQueryIntent(
             metric=request.metric_name or "",
+            meter_type=request.meter_type,
+            service=request.service,
             intent_description=request.description,
-            metric_type=request.aggregation or "gauge",
             group_by=request.group_by or [],
             filters=request.filters or {},
             window=request.window or "5m",
@@ -176,20 +183,19 @@ async def generate_promql_query(
         query_opts = request.query_opts or QueryOpts()
 
         logger.info(
-            "Generating PromQL query for intent: metric=%s, description=%s, metric_type=%s, group_by=%s, filters=%s, window=%s, namespace=%s, query_opts=%s",
+            "Generating PromQL query for intent: metric=%s, description=%s, meter_type=%s, group_by=%s, filters=%s, window=%s, namespace=%s, service=%s, query_opts=%s",
             intent.metric,
             intent.intent_description,
-            intent.metric_type,
+            intent.meter_type,
             intent.group_by,
             intent.filters,
             intent.window,
             request.namespace,
+            request.service,
             query_opts,
         )
 
         # Generate query (cache bypass is handled internally by client)
-        bypass_cache = x_cache_bypass and x_cache_bypass.lower() == "true"
-        client = get_client(False)
         result = await client.metrics.construct_promql_query(
             intent, request.namespace, bypass_cache=bypass_cache, query_opts=query_opts
         )
