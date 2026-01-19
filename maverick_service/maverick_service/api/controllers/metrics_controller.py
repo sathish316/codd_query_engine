@@ -62,6 +62,7 @@ class PromQLQueryRequest(BaseModel):
     group_by: Optional[list[str]] = None
     filters: Optional[dict[str, str]] = None
     window: Optional[str] = None
+    spring_micrometer_transform: bool = True
 
 
 class MetricsQueryResponse(BaseModel):
@@ -162,6 +163,7 @@ async def generate_promql_query(
             group_by=request.group_by or [],
             filters=request.filters or {},
             window=request.window or "5m",
+            spring_micrometer_transform=request.spring_micrometer_transform,
         )
 
         logger.info(

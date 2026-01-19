@@ -39,5 +39,6 @@ class PromQLQuerygenPreprocessor(MetricsQuerygenPreprocessor):
             Preprocessed Query intent
         """
         intent = self.aggregation_suggestion_preprocessor.preprocess(intent)
-        # intent = self.micrometer_metricname_preprocessor.preprocess(intent)
+        if intent.spring_micrometer_transform:
+            intent = self.micrometer_metricname_preprocessor.preprocess(intent)
         return intent
