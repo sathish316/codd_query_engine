@@ -193,3 +193,75 @@ class TestPromQLQueryGeneratorIntegration:
         #     "Expected grouping by instance"
         # )
         print(f"Final validated query: {result.query}")
+
+    @pytest.mark.asyncio
+    async def test_generate_query_with_service_label_and_name(
+        self, query_generator: PromQLQueryGeneratorAgent, metadata_store: MetricsMetadataStore
+    ):
+        """
+        Integration test to verify that service label and service name are used in generated query.
+
+        Tests that when service_label and service_name are provided in the intent,
+        both appear correctly in the generated PromQL query.
+
+        Expected behavior:
+        - Query should be generated successfully
+        - Query should include the service label (e.g., 'service')
+        - Query should include the service name value in filters
+        - Query should pass all validations
+
+        Note: This test uses real LLM agents, so it will consume tokens.
+        """
+        # Setup: Seed metadata store with valid metrics
+        namespace = "test:monitoring"
+        metadata_store.set_metric_names(namespace, {"http_requests_total", "cpu_usage"})
+
+        # Arrange: Create user intent with service_label and service_name
+        service_name = "payment-service"
+        service_label = "service"
+
+        intent = MetricsQueryIntent(
+            metric="http_requests_total",
+            intent_description=f"Calculate HTTP request rate for {service_name}",
+            metric_type="counter",
+            filters={"status": "200"},
+            window="5m",
+            group_by=["instance"],
+            aggregation_suggestions=[
+                AggregationFunctionSuggestion(function_name="rate")
+            ],
+            service_label=service_label,
+            service_name=service_name,
+        )
+
+        # Act: Generate query using ReAct pattern
+        result = await query_generator.generate_query(namespace, intent)
+
+        # Assert: Verify the generation succeeded
+        print("\n=== Query Generation Result with Service Label ===")
+        print(f"Success: {result.success}")
+        print(f"Final Query: {result.query}")
+        print(f"Service Label: {service_label}")
+        print(f"Service Name: {service_name}")
+        if hasattr(result, "error") and result.error:
+            print(f"Error: {result.error}")
+        print("=" * 50)
+
+        assert isinstance(result, QueryGenerationResult)
+        assert result.success is True, (
+            f"Expected successful generation but got failure. Error: {getattr(result, 'error', 'Unknown error')}"
+        )
+
+        # Verify query structure and content
+        assert result.query is not None and len(result.query) > 0
+        assert "rate(" in result.query, "Expected rate() function in counter query"
+        assert "http_requests_total" in result.query, "Expected metric name in query"
+
+        # Verify service label and service name are in the query
+        # The query should contain service="payment-service" or service='payment-service'
+        assert (f'{service_label}="{service_name}"' in result.query or
+                f"{service_label}='{service_name}'" in result.query), (
+            f"Expected service label '{service_label}' with service name '{service_name}' in query"
+        )
+
+        print(f"Final validated query with service label: {result.query}")
