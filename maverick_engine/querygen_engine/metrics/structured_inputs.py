@@ -2,6 +2,18 @@ from dataclasses import dataclass, field
 
 
 @dataclass(frozen=True)
+class QueryOpts:
+    """
+    Query options for controlling query generation behavior.
+
+    This class contains options that control how the query is generated,
+    such as whether to apply Spring Micrometer metric name transformations.
+    """
+
+    spring_micrometer_transform: bool = False
+
+
+@dataclass(frozen=True)
 class AggregationFunctionSuggestion:
     """
     Suggested aggregation function with optional parameters.
@@ -32,7 +44,6 @@ class MetricsQueryIntent:
     window: str = "5m"
     group_by: list[str] = field(default_factory=list)
     aggregation_suggestions: list[AggregationFunctionSuggestion] | None = None
-    spring_micrometer_transform: bool = False
 
     def clone_with(self, **updates) -> "MetricsQueryIntent":
         """Return a new intent with updated fields."""

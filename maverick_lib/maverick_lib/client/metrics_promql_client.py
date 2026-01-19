@@ -3,7 +3,7 @@
 import logging
 from typing import Optional
 
-from maverick_engine.querygen_engine.metrics.structured_inputs import MetricsQueryIntent
+from maverick_engine.querygen_engine.metrics.structured_inputs import MetricsQueryIntent, QueryOpts
 
 from maverick_lib.config import MaverickConfig
 from maverick_engine.querygen_engine.metrics.structured_outputs import (
@@ -108,7 +108,11 @@ class MetricsPromQLClient:
         return search_results
 
     async def construct_promql_query(
-        self, intent: MetricsQueryIntent, namespace: str = "", bypass_cache: bool = False
+        self,
+        intent: MetricsQueryIntent,
+        namespace: str = "",
+        bypass_cache: bool = False,
+        query_opts: QueryOpts | None = None,
     ) -> QueryGenerationResult:
         """
         Generate a valid PromQL query from metrics query intent.
@@ -117,6 +121,7 @@ class MetricsPromQLClient:
             intent: MetricsQueryIntent with query requirements
             namespace: Optional namespace for schema validation
             bypass_cache: If True, skip cache lookup and force regeneration
+            query_opts: Optional query options for controlling generation behavior
 
         Returns:
             QueryGenerationResult with final query and metadata
@@ -146,7 +151,9 @@ class MetricsPromQLClient:
                 )
 
         # Generate query
-        result = await self.promql_query_generator.generate_query(namespace, intent)
+        result = await self.promql_query_generator.generate_query(
+            namespace, intent, query_opts
+        )
 
         # Cache successful results
         if cache_client and result.success and result.query:
