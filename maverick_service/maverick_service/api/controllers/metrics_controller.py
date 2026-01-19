@@ -62,7 +62,7 @@ class PromQLQueryRequest(BaseModel):
     group_by: Optional[list[str]] = None
     filters: Optional[dict[str, str]] = None
     window: Optional[str] = None
-    spring_micrometer_transform: bool = True
+    spring_micrometer_transform: bool = False
 
 
 class MetricsQueryResponse(BaseModel):
