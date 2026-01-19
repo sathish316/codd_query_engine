@@ -38,6 +38,12 @@ def get_client(shared: bool = False) -> MaverickClient:
         return MaverickClient(_config)
 
 
+class QueryOpts(BaseModel):
+    """Query options for controlling query generation behavior."""
+
+    spring_micrometer_transform: bool = False
+
+
 class MetricsSearchRequest(BaseModel):
     """Request model for semantic metrics search."""
 
@@ -62,6 +68,7 @@ class PromQLQueryRequest(BaseModel):
     group_by: Optional[list[str]] = None
     filters: Optional[dict[str, str]] = None
     window: Optional[str] = None
+    query_opts: Optional[QueryOpts] = None
 
 
 class MetricsQueryResponse(BaseModel):
@@ -165,8 +172,11 @@ async def generate_promql_query(
             service_label=_config.prometheus.service_label,
         )
 
+        # Use default query_opts if not provided
+        query_opts = request.query_opts or QueryOpts()
+
         logger.info(
-            "Generating PromQL query for intent: metric=%s, description=%s, metric_type=%s, group_by=%s, filters=%s, window=%s, namespace=%s",
+            "Generating PromQL query for intent: metric=%s, description=%s, metric_type=%s, group_by=%s, filters=%s, window=%s, namespace=%s, query_opts=%s",
             intent.metric,
             intent.intent_description,
             intent.metric_type,
@@ -174,13 +184,14 @@ async def generate_promql_query(
             intent.filters,
             intent.window,
             request.namespace,
+            query_opts,
         )
 
         # Generate query (cache bypass is handled internally by client)
         bypass_cache = x_cache_bypass and x_cache_bypass.lower() == "true"
         client = get_client(False)
         result = await client.metrics.construct_promql_query(
-            intent, request.namespace, bypass_cache=bypass_cache
+            intent, request.namespace, bypass_cache=bypass_cache, query_opts=query_opts
         )
 
         logger.info(

@@ -7,7 +7,7 @@ a custom validation tool in a ReAct (Reasoning + Acting) loop.
 
 import logging
 
-from maverick_engine.querygen_engine.metrics.structured_inputs import MetricsQueryIntent
+from maverick_engine.querygen_engine.metrics.structured_inputs import MetricsQueryIntent, QueryOpts
 from maverick_engine.querygen_engine.metrics.structured_outputs import (
     PromQLQueryResponse,
     QueryGenerationResult,
@@ -81,7 +81,10 @@ class PromQLQueryGeneratorAgent:
         )
 
     async def generate_query(
-        self, namespace: str, intent: MetricsQueryIntent
+        self,
+        namespace: str,
+        intent: MetricsQueryIntent,
+        query_opts: QueryOpts | None = None,
     ) -> QueryGenerationResult:
         """
         Generate a PromQL query using ReAct pattern with validation tool.
@@ -95,6 +98,7 @@ class PromQLQueryGeneratorAgent:
         Args:
             namespace: Namespace for schema validation
             intent: The metrics query intent
+            query_opts: Optional query options for controlling generation behavior
 
         Returns:
             QueryGenerationResult with final query, attempts, and metadata
@@ -115,7 +119,7 @@ class PromQLQueryGeneratorAgent:
 
         try:
             # Preprocess intent
-            preprocessed_intent = self.preprocessor.preprocess(intent)
+            preprocessed_intent = self.preprocessor.preprocess(intent, query_opts)
 
             logger.info(
                 "Intent preprocessed",

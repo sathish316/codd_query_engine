@@ -1,4 +1,4 @@
-from maverick_engine.querygen_engine.metrics.structured_inputs import MetricsQueryIntent
+from maverick_engine.querygen_engine.metrics.structured_inputs import MetricsQueryIntent, QueryOpts
 from maverick_engine.querygen_engine.metrics.preprocessor.metrics_querygen_preprocessor import (
     MetricsQuerygenPreprocessor,
 )
@@ -26,7 +26,9 @@ class PromQLQuerygenPreprocessor(MetricsQuerygenPreprocessor):
             PromQLMicrometerMetricNamePreprocessor()
         )
 
-    def preprocess(self, intent: MetricsQueryIntent) -> MetricsQueryIntent:
+    def preprocess(
+        self, intent: MetricsQueryIntent, query_opts: QueryOpts | None = None
+    ) -> MetricsQueryIntent:
         """
         Apply preprocessing steps before query generation:
         1. Ensure the intent contains suggested aggregations for the metric type.
@@ -34,10 +36,12 @@ class PromQLQuerygenPreprocessor(MetricsQuerygenPreprocessor):
 
         Args:
             intent: The query intent to preprocess
+            query_opts: Optional query options for controlling preprocessing behavior
 
         Returns:
             Preprocessed Query intent
         """
         intent = self.aggregation_suggestion_preprocessor.preprocess(intent)
-        # intent = self.micrometer_metricname_preprocessor.preprocess(intent)
+        if query_opts and query_opts.spring_micrometer_transform:
+            intent = self.micrometer_metricname_preprocessor.preprocess(intent)
         return intent

@@ -2,6 +2,18 @@ from dataclasses import dataclass, field
 
 
 @dataclass(frozen=True)
+class QueryOpts:
+    """
+    Query options for controlling query generation behavior.
+
+    This class contains options that control how the query is generated,
+    such as whether to apply Spring Micrometer metric name transformations.
+    """
+
+    spring_micrometer_transform: bool = False
+
+
+@dataclass(frozen=True)
 class AggregationFunctionSuggestion:
     """
     Suggested aggregation function with optional parameters.
