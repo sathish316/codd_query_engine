@@ -162,6 +162,7 @@ async def generate_promql_query(
             group_by=request.group_by or [],
             filters=request.filters or {},
             window=request.window or "5m",
+            service_label=_config.prometheus.service_label,
         )
 
         logger.info(

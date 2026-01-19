@@ -89,6 +89,7 @@ prometheus:
   base_url: "http://localhost:9090"
   timeout: 30
   auth_token: null
+  service_label: "service"
 
 # Loki Configuration
 loki:

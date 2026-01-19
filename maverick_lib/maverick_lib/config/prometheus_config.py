@@ -10,3 +10,4 @@ class PrometheusConfig(BaseModel):
     timeout: int = 30
     # Optional authentication token for Prometheus API
     auth_token: str | None = None
+    service_label: str = "service"
