@@ -201,7 +201,7 @@ class TestPromQLQueryGeneratorIntegration:
         """
         Integration test to verify that service label and service name are used in generated query.
 
-        Tests that when a service_label is provided in the intent along with a service name filter,
+        Tests that when service_label and service_name are provided in the intent,
         both appear correctly in the generated PromQL query.
 
         Expected behavior:
@@ -216,7 +216,7 @@ class TestPromQLQueryGeneratorIntegration:
         namespace = "test:monitoring"
         metadata_store.set_metric_names(namespace, {"http_requests_total", "cpu_usage"})
 
-        # Arrange: Create user intent with service_label and service name filter
+        # Arrange: Create user intent with service_label and service_name
         service_name = "payment-service"
         service_label = "service"
 
@@ -224,13 +224,14 @@ class TestPromQLQueryGeneratorIntegration:
             metric="http_requests_total",
             intent_description=f"Calculate HTTP request rate for {service_name}",
             metric_type="counter",
-            filters={"service": service_name, "status": "200"},
+            filters={"status": "200"},
             window="5m",
             group_by=["instance"],
             aggregation_suggestions=[
                 AggregationFunctionSuggestion(function_name="rate")
             ],
             service_label=service_label,
+            service_name=service_name,
         )
 
         # Act: Generate query using ReAct pattern

@@ -33,6 +33,7 @@ class MetricsQueryIntent:
     group_by: list[str] = field(default_factory=list)
     aggregation_suggestions: list[AggregationFunctionSuggestion] | None = None
     service_label: str | None = "service"
+    service_name: str | None = None
 
     def clone_with(self, **updates) -> "MetricsQueryIntent":
         """Return a new intent with updated fields."""

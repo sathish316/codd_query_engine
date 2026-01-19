@@ -216,8 +216,12 @@ class PromQLQueryGeneratorAgent:
         if intent.group_by:
             group_by_str = ", ".join(intent.group_by)
 
-        # Format service label
-        service_label_str = intent.service_label or "service"
+        # Format service info (only include if service_name is provided)
+        service_info_str = ""
+        if intent.service_name:
+            service_label = intent.service_label or "service"
+            service_info_str = f"""- Service Label: {service_label}
+- Service Name: {intent.service_name}"""
 
         prompt = f"""Generate a valid PromQL query for the following metrics query intent:
 
@@ -229,7 +233,7 @@ class PromQLQueryGeneratorAgent:
 - Time Window: {intent.window}
 - Group By: {group_by_str}
 - Suggested Aggregations: {agg_suggestions_str}
-- Service Label: {service_label_str}
+{service_info_str}
 
 Generate the best PromQL query that matches this intent. Use the suggested aggregations as guidance based on the metric type. After generating the query, validate it using the `validate_promql_query` tool by passing your generated query. If validation fails, adjust the query based on the feedback."""
 
