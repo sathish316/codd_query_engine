@@ -20,7 +20,7 @@ Codd Text2SQL Engine can be used for the following usecases:
 - Querying Relational databases using Natural language
 - Querying Graph databases using Natural language
 
-See the companion repo [Codd AgentSkills Examples](https://github.com/sathish316/codd_agentskills_examples) for more details on how to use Codd as a Skill or MCP server.
+See the companion repo [Codd AgentSkills Examples](https://github.com/sathish316/codd_skills_examples) for more details on how to use Codd as a Skill or MCP server.
 
 ## MCP Tools
 
@@ -36,9 +36,9 @@ See the companion repo [Codd AgentSkills Examples](https://github.com/sathish316
 
 AgentSkills is a portable standard released by Anthropic for packaging AI Skills as a combination of Prompt, Resources, Scripts, MCP servers - https://agentskills.io/home. It is supported by Claude Code, Codex CLI, Cursor etc.
 
-To use Codd as a Skill from Claude Code and other Coding agents, see the companion repo [Codd AgentSkills Examples](https://github.com/sathish316/codd_agentskills_examples) for examples:
-- [Using Codd Skills for Metrics analysis](https://github.com/sathish316/codd_agentskills_examples/blob/main/doc/USING_MAVERICK_SKILLS_FROM_CLAUDE_CODE_FOR_METRICS_AND_LOGS_ANALYSIS.md)
-- [Using Codd Skills for Logs analysis](https://github.com/sathish316/codd_agentskills_examples/blob/main/doc/USING_MAVERICK_SKILLS_FROM_CLAUDE_CODE_FOR_METRICS_AND_LOGS_ANALYSIS.md)
+To use Codd as a Skill from Claude Code and other Coding agents, see the companion repo [Codd AgentSkills Examples](https://github.com/sathish316/codd_skills_examples) for examples:
+- [Using Codd Skills for Metrics analysis](https://github.com/sathish316/codd_skills_examples/blob/main/doc/USING_MAVERICK_SKILLS_FROM_CLAUDE_CODE_FOR_METRICS_AND_LOGS_ANALYSIS.md)
+- [Using Codd Skills for Logs analysis](https://github.com/sathish316/codd_skills_examples/blob/main/doc/USING_MAVERICK_SKILLS_FROM_CLAUDE_CODE_FOR_METRICS_AND_LOGS_ANALYSIS.md)
 - Using Codd Skills for Database queries #TOLINK
 
 LogAnalyzer skill demo - https://youtu.be/T9wKbCRUHMI
@@ -83,8 +83,8 @@ Add the following to your `mcp.json` file in Cursor or ClaudeCode or any AI app 
 ```
 
 Once Codd MCP server is added, see the following docs for examples:
-- [Using Codd MCP server for Metrics analysis](https://github.com/sathish316/codd_agentskills_examples/blob/main/doc/USING_MAVERICK_MCP_FROM_CURSOR_FOR_METRICS_AND_LOGS_ANALYSIS.md)
-- [Using Codd MCP server for Logs analysis](https://github.com/sathish316/codd_agentskills_examples/blob/main/doc/USING_MAVERICK_MCP_FROM_CURSOR_FOR_METRICS_AND_LOGS_ANALYSIS.md)
+- [Using Codd MCP server for Metrics analysis](https://github.com/sathish316/codd_skills_examples/blob/main/doc/USING_MAVERICK_MCP_FROM_CURSOR_FOR_METRICS_AND_LOGS_ANALYSIS.md)
+- [Using Codd MCP server for Logs analysis](https://github.com/sathish316/codd_skills_examples/blob/main/doc/USING_MAVERICK_MCP_FROM_CURSOR_FOR_METRICS_AND_LOGS_ANALYSIS.md)
 - Using Codd MCP server for Database queries #TOLINK
 
 ## Installation
@@ -223,7 +223,7 @@ See Evals README.md for more details on QueryGen evalsuite.
 
 2. Github Issues and Discord Channel can be used for Codd discussions - #TOLINK
 
-3. Companion repo [Codd AgentSkills Examples](https://github.com/sathish316/codd_agentskills_examples) can be used for applications of Codd for Database querying, Metrics/Logs analysis for AI driven Oncall Troubleshooting and more.
+3. Companion repo [Codd AgentSkills Examples](https://github.com/sathish316/codd_skills_examples) can be used for applications of Codd for Database querying, Metrics/Logs analysis for AI driven Oncall Troubleshooting and more.
 
 ## License
 
