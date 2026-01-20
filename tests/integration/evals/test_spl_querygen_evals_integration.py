@@ -7,18 +7,18 @@ and sourcetypes to validate query generation works correctly across various case
 
 import pytest
 
-from maverick_engine.logs.log_patterns import LogPattern
-from maverick_engine.querygen_engine.logs.structured_inputs import LogQueryIntent
-from maverick_engine.querygen_engine.agent.logs.spl_query_generator_agent import (
+from codd_engine.logs.log_patterns import LogPattern
+from codd_engine.querygen_engine.logs.structured_inputs import LogQueryIntent
+from codd_engine.querygen_engine.agent.logs.spl_query_generator_agent import (
     SplunkSPLQueryGeneratorAgent,
 )
-from maverick_engine.validation_engine.logs.log_query_validator import (
+from codd_engine.validation_engine.logs.log_query_validator import (
     LogQueryValidator,
 )
-from maverick_engine.validation_engine.logs.syntax.splunk_syntax_validator import (
+from codd_engine.validation_engine.logs.syntax.splunk_syntax_validator import (
     SplunkSPLSyntaxValidator,
 )
-from maverick_engine.utils.file_utils import expand_path
+from codd_engine.utils.file_utils import expand_path
 from opus_agent_base.config.config_manager import ConfigManager
 from opus_agent_base.prompt.instructions_manager import InstructionsManager
 
@@ -102,7 +102,7 @@ class TestSPLQueryGenEvalsIntegration:
     @pytest.fixture
     def config_manager(self):
         """Initialize ConfigManager for agents."""
-        return ConfigManager(expand_path("$HOME/.maverick_test"), "config.yml")
+        return ConfigManager(expand_path("$HOME/.codd_test"), "config.yml")
 
     @pytest.fixture
     def instructions_manager(self):

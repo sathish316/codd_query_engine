@@ -1,0 +1,2 @@
+[console_scripts]
+codd-service = codd_service.main:main

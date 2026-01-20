@@ -1,0 +1,2 @@
+[console_scripts]
+codd = codd_cli.cli:app

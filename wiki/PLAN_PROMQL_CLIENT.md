@@ -34,7 +34,7 @@ uv add httpx
 ### Basic Initialization
 
 ```python
-from maverick_dal.metrics.promql_client import PromQLClient
+from codd_dal.metrics.promql_client import PromQLClient
 
 # Basic initialization
 client = PromQLClient("http://localhost:9090")
@@ -315,7 +315,7 @@ result = client.query_instant(query)
 The client includes comprehensive tests using pytest and mocked HTTP responses:
 
 ```bash
-pytest maverick_dal/metrics/tests/test_promql_client.py -v
+pytest codd_dal/metrics/tests/test_promql_client.py -v
 ```
 
 ### Test Coverage
@@ -367,6 +367,6 @@ PromQLClient(
 
 ## Related Files
 
-- Implementation: `maverick_dal/metrics/promql_client.py`
-- Tests: `maverick_dal/metrics/tests/test_promql_client.py`
-- Example: `maverick_dal/metrics/examples/promql_client_example.py`
+- Implementation: `codd_dal/metrics/promql_client.py`
+- Tests: `codd_dal/metrics/tests/test_promql_client.py`
+- Example: `codd_dal/metrics/examples/promql_client_example.py`

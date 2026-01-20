@@ -33,7 +33,7 @@ is_valid_label_value(namespace, label_name, value)
 **Usage Example**:
 ```python
 import redis
-from maverick_dal.logs import LogsMetadataClient
+from codd_dal.logs import LogsMetadataClient
 
 # Initialize
 redis_client = redis.Redis(host='localhost', port=6380, decode_responses=True)
@@ -73,7 +73,7 @@ search_metadata(namespace, query, n_results)  # Semantic search
 **Usage Example**:
 ```python
 import chromadb
-from maverick_dal.logs import LogsSemanticMetadataStore, LogPatternMetadata
+from codd_dal.logs import LogsSemanticMetadataStore, LogPatternMetadata
 
 # Initialize
 chroma_client = chromadb.Client()
@@ -118,7 +118,7 @@ get_label_values(label_name, start, end, query)
 **Usage Example**:
 ```python
 from datetime import datetime, timedelta
-from maverick_dal.logs import LogQLQueryExecutor, LokiConfig
+from codd_dal.logs import LogQLQueryExecutor, LokiConfig
 
 # Configure
 config = LokiConfig(
@@ -163,12 +163,12 @@ LLM-based parser for extracting stream selectors from LogQL expressions.
 
 **Usage Example**:
 ```python
-from maverick_engine.validation_engine.logql import PydanticAILogQLExpressionParser
+from codd_engine.validation_engine.logql import PydanticAILogQLExpressionParser
 from opus_agent_base.config.config_manager import ConfigManager
 from opus_agent_base.prompt.instructions_manager import InstructionsManager
 
 # Initialize with ConfigManager (replaces LLMSettings)
-config_manager = ConfigManager(config_dir="~/.maverick", config_file="config.yml")
+config_manager = ConfigManager(config_dir="~/.codd", config_file="config.yml")
 instructions_manager = InstructionsManager()
 parser = PydanticAILogQLExpressionParser(config_manager, instructions_manager)
 
@@ -183,26 +183,26 @@ selectors = parser.parse('rate({namespace="production", app=~"web-.*"}[5m])')
 
 ## Architecture
 
-The implementation follows the existing Maverick patterns:
+The implementation follows the existing Codd patterns:
 
-1. **Data Access Layer** (`maverick_dal/logs/`):
+1. **Data Access Layer** (`codd_dal/logs/`):
    - Redis metadata store (exact matching)
    - ChromaDB semantic store (similarity search)
    - Loki HTTP client (query execution)
 
-2. **Validation Engine** (`maverick_engine/validation_engine/logql/`):
+2. **Validation Engine** (`codd_engine/validation_engine/logql/`):
    - Protocol-based parser interface
    - PydanticAI implementation for LLM parsing
    - Structured output models
 
-3. **Testing** (`maverick_dal/logs/tests/`):
+3. **Testing** (`codd_dal/logs/tests/`):
    - Comprehensive unit tests
    - FakeRedis for metadata testing
    - Mock HTTP client for query executor testing
 
 ## Dependencies
 
-Added to `maverick_dal/pyproject.toml`:
+Added to `codd_dal/pyproject.toml`:
 ```toml
 dependencies = [
     "redis>=5.0.0",
@@ -217,11 +217,11 @@ dependencies = [
 Run tests from the project root:
 ```bash
 # Run all logs tests
-uv run pytest maverick_dal/logs/tests/ -v
+uv run pytest codd_dal/logs/tests/ -v
 
 # Run specific test file
-uv run pytest maverick_dal/logs/tests/test_logs_metadata_client.py -v
-uv run pytest maverick_dal/logs/tests/test_logql_query_executor.py -v
+uv run pytest codd_dal/logs/tests/test_logs_metadata_client.py -v
+uv run pytest codd_dal/logs/tests/test_logql_query_executor.py -v
 ```
 
 ## Integration with Validation Pipeline

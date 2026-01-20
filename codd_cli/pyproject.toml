@@ -1,0 +1,30 @@
+[project]
+name = "codd-cli"
+version = "0.1.0"
+description = "Codd CLI - Command-line interface for observability operations"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "codd-lib",
+    "typer>=0.19.2",
+    "rich>=13.0.0",
+]
+
+[project.scripts]
+codd = "codd_cli.cli:app"
+
+[tool.uv.sources]
+codd-lib = { workspace = true }
+
+[dependency-groups]
+dev = [
+    "pytest>=9.0.0",
+    "pytest-cov>=7.0.0",
+]
+
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["codd_cli"]

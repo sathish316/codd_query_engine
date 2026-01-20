@@ -1,14 +1,14 @@
 [project]
-name = "maverick"
+name = "codd"
 version = "0.1.0"
-description = "Maverick - Multi-module data platform"
+description = "Codd - Multi-module data platform"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
     "fastmcp>=2.14.1",
-    "maverick-dal",
-    "maverick-engine",
-    "maverick-service",
+    "codd-dal",
+    "codd-engine",
+    "codd-service",
     "openai>=2.14.0",
     "opus-agent-base",
     "pydantic>=2.12.5",
@@ -29,19 +29,19 @@ dev = [
 ]
 
 [tool.uv.sources]
-maverick-dal = { workspace = true }
-maverick-engine = { workspace = true }
-maverick-service = { workspace = true }
+codd-dal = { workspace = true }
+codd-engine = { workspace = true }
+codd-service = { workspace = true }
 opus-agent-base = { path = "../opus_agents/opus_agent_base/dist/opus_agent_base-0.1.0-py3-none-any.whl" }
 
 [tool.uv.workspace]
 members = [
-    "maverick_dal",
- "maverick_engine",
- "maverick_service",
- "maverick_mcp_server",
- "maverick_lib",
- "maverick_cli",
+    "codd_dal",
+ "codd_engine",
+ "codd_service",
+ "codd_mcp_server",
+ "codd_lib",
+ "codd_cli",
 ]
 
 [tool.pytest.ini_options]

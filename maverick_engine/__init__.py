@@ -1,1 +1,0 @@
-"""Maverick Engine package."""

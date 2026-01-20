@@ -1,0 +1,46 @@
+import logging
+
+from opus_agent_base.agent.agent_runner import AgentRunner
+from opus_agent_base.config.config_manager import ConfigManager
+from opus_agent_base.prompt.instructions_manager import InstructionsManager
+from codd_engine.custom_tool.roulette_wheel_tool import RouletteWheelTool
+from codd_engine.agent.roulette_agent_builder import RouletteAgentBuilder
+from codd_engine.utils.file_utils import expand_path
+
+logger = logging.getLogger(__name__)
+
+
+async def run_roulette_agent():
+    """Run Roulette Agent using AgentRunner"""
+    logger.info("🎯 Starting Roulette Agent")
+
+    # Build Roulette Agent
+    codd_home = expand_path("$HOME/.codd")
+    config_manager = ConfigManager(codd_home, "config.yml")
+    instructions_manager = InstructionsManager()
+    roulette_agent = (
+        RouletteAgentBuilder(config_manager)
+        .name("roulette-agent")
+        .set_system_prompt_keys(["roulette_agent_instruction"])
+        .add_instructions_manager(instructions_manager)
+        .add_model_manager()
+        .instruction(
+            "roulette_agent_instruction",
+            expand_path("$HOME/.codd/prompts/agent/ROULETTE_AGENT_INSTRUCTIONS.md"),
+        )
+        .custom_tool(RouletteWheelTool())
+        .build()
+    )
+    # Run Roulette Agent
+    agent_runner = AgentRunner(roulette_agent)
+    await agent_runner.run_agent()
+
+
+def main():
+    import asyncio
+
+    asyncio.run(run_roulette_agent())
+
+
+if __name__ == "__main__":
+    main()

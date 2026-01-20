@@ -5,11 +5,11 @@ This example demonstrates how to use the PromQLQueryExplainerAgent to validate
 whether a generated PromQL query semantically matches the original user intent.
 """
 
-from maverick_engine.querygen_engine.metrics.structured_inputs import (
+from codd_engine.querygen_engine.metrics.structured_inputs import (
     MetricsQueryIntent,
     AggregationFunctionSuggestion,
 )
-from maverick_engine.validation_engine import (
+from codd_engine.validation_engine import (
     PromQLQueryExplainerAgent,
     SemanticValidationResult,
     SemanticValidationError,

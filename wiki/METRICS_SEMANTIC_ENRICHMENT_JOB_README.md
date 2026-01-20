@@ -42,7 +42,7 @@ pip install -r requirements.txt
 ### Basic Usage
 
 ```bash
-python -m maverick_jobs.metrics_semantic_indexer_main \
+python -m codd_jobs.metrics_semantic_indexer_main \
     --namespace "production:order-service" \
     --promql-url "http://localhost:9090"
 ```
@@ -50,7 +50,7 @@ python -m maverick_jobs.metrics_semantic_indexer_main \
 ### Full Options
 
 ```bash
-python -m maverick_jobs.metrics_semantic_indexer_main \
+python -m codd_jobs.metrics_semantic_indexer_main \
     --namespace "production:order-service" \
     --promql-url "http://localhost:9090" \
     --redis-host "localhost" \
@@ -128,17 +128,17 @@ Success Rate:       96.0%
 
 ### Components
 
-1. **MetricsEnrichmentAgent** (`maverick_engine/agent/metrics_enrichment_agent.py`)
+1. **MetricsEnrichmentAgent** (`codd_engine/agent/metrics_enrichment_agent.py`)
    - LLM-based agent using Claude Opus
    - Enriches raw metrics with semantic metadata
    - Generates structured output with 11 metadata fields
 
-2. **MetricsSemanticIndexerJob** (`maverick_jobs/metrics_semantic_indexer_job.py`)
+2. **MetricsSemanticIndexerJob** (`codd_jobs/metrics_semantic_indexer_job.py`)
    - Main job orchestrator
    - Manages batch processing and progress tracking
    - Coordinates between PromQL, Redis, and ChromaDB
 
-3. **Main Entry Point** (`maverick_jobs/metrics_semantic_indexer_main.py`)
+3. **Main Entry Point** (`codd_jobs/metrics_semantic_indexer_main.py`)
    - CLI interface
    - Initializes clients and managers
    - Handles error cases and logging
@@ -211,7 +211,7 @@ The job implements robust error handling:
 ### Test with Limited Metrics
 
 ```bash
-python -m maverick_jobs.metrics_semantic_indexer_main \
+python -m codd_jobs.metrics_semantic_indexer_main \
     --namespace "test:sample-service" \
     --limit 10 \
     --log-level DEBUG
@@ -243,7 +243,7 @@ For production use, schedule the job using:
 Example cron (daily at 2 AM):
 
 ```cron
-0 2 * * * cd /path/to/maverick_query_engine && python -m maverick_jobs.metrics_semantic_indexer_main --namespace "production:my-service"
+0 2 * * * cd /path/to/codd_query_engine && python -m codd_jobs.metrics_semantic_indexer_main --namespace "production:my-service"
 ```
 
 ## Performance Considerations
@@ -290,10 +290,10 @@ curl http://localhost:9090/-/healthy
 
 ## Related Components
 
-- **PromQL Client**: `maverick_dal/metrics/promql_client.py`
-- **Redis Metadata Store**: `maverick_dal/metrics/metrics_metadata_store.py`
-- **Semantic Store**: `maverick_dal/metrics/metrics_semantic_metadata_store.py`
-- **Query Intent**: `maverick_engine/querygen_engine/metrics/structured_inputs.py`
+- **PromQL Client**: `codd_dal/metrics/promql_client.py`
+- **Redis Metadata Store**: `codd_dal/metrics/metrics_metadata_store.py`
+- **Semantic Store**: `codd_dal/metrics/metrics_semantic_metadata_store.py`
+- **Query Intent**: `codd_engine/querygen_engine/metrics/structured_inputs.py`
 
 ## License
 

@@ -49,7 +49,7 @@ The Metrics Semantic Indexer is an offline batch job that enriches Prometheus me
 ## Component Details
 
 ### 1. Metrics Semantic Indexer Job
-**File**: `maverick_jobs/metrics_semantic_indexer_job.py`
+**File**: `codd_jobs/metrics_semantic_indexer_job.py`
 
 **Responsibilities**:
 - Orchestrate the entire indexing workflow
@@ -66,7 +66,7 @@ The Metrics Semantic Indexer is an offline batch job that enriches Prometheus me
 - `_process_batch(...)` - Single batch handler with progress
 
 ### 2. Metrics Enrichment Agent
-**File**: `maverick_engine/agent/metrics_enrichment_agent.py`
+**File**: `codd_engine/agent/metrics_enrichment_agent.py`
 
 **Responsibilities**:
 - Use Claude Opus LLM to enrich metric metadata
@@ -103,7 +103,7 @@ The Metrics Semantic Indexer is an offline batch job that enriches Prometheus me
 - `_execute_enrichment(prompt)` - Call LLM agent
 
 ### 3. PromQL Client
-**File**: `maverick_dal/metrics/promql_client.py`
+**File**: `codd_dal/metrics/promql_client.py`
 
 **Responsibilities**:
 - Query Prometheus HTTP API
@@ -115,7 +115,7 @@ The Metrics Semantic Indexer is an offline batch job that enriches Prometheus me
 - `health_check()` - Verify Prometheus availability
 
 ### 4. Redis Metadata Store
-**File**: `maverick_dal/metrics/metrics_metadata_store.py`
+**File**: `codd_dal/metrics/metrics_metadata_store.py`
 
 **Responsibilities**:
 - Store metric names in Redis sets for O(1) exact-match validation
@@ -135,7 +135,7 @@ Members: ["http_request_duration_seconds", "http_requests_total", ...]
 ```
 
 ### 5. Semantic Metadata Store (ChromaDB)
-**File**: `maverick_dal/metrics/metrics_semantic_metadata_store.py`
+**File**: `codd_dal/metrics/metrics_semantic_metadata_store.py`
 
 **Responsibilities**:
 - Index enriched metadata for semantic search
@@ -162,7 +162,7 @@ results = store.search_metadata("p99 latency for HTTP requests", n_results=5)
 ```
 
 ### 6. Main Entry Point
-**File**: `maverick_jobs/metrics_semantic_indexer_main.py`
+**File**: `codd_jobs/metrics_semantic_indexer_main.py`
 
 **Responsibilities**:
 - CLI interface with argument parsing
@@ -173,7 +173,7 @@ results = store.search_metadata("p99 latency for HTTP requests", n_results=5)
 
 **Usage**:
 ```bash
-python -m maverick_jobs.metrics_semantic_indexer_main \
+python -m codd_jobs.metrics_semantic_indexer_main \
     --namespace "production:order-service" \
     --promql-url "http://localhost:9090" \
     --batch-size 10 \
@@ -325,7 +325,7 @@ Success Rate:       96.0%
 ## Configuration
 
 ### LLM Agent Configuration
-**Prompt File**: `~/.maverick/prompts/agent/metrics/METRICS_ENRICHMENT_AGENT_INSTRUCTIONS.md`
+**Prompt File**: `~/.codd/prompts/agent/metrics/METRICS_ENRICHMENT_AGENT_INSTRUCTIONS.md`
 
 **Agent Settings** (via OpusAgentBase):
 - Model: Claude Opus 4.5

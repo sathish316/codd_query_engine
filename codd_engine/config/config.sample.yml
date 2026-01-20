@@ -1,0 +1,111 @@
+# Agent Configuration
+agent:
+  name: "codd-engine-agent"
+  description: "Codd Engine Agent for Text2SQL and NL2SQL query generation and validation"
+
+# Model Configuration
+model_config:
+  - provider: "openai"
+    model: "gpt-5"
+    enabled: true
+
+# MCP Server Configuration
+mcp_config:
+  roulette:
+    wheel:
+      enabled: true
+  metrics:
+    promql:
+      validator:
+        enabled: true
+      validation:
+        syntax:
+          enabled: true
+        schema:
+          enabled: true
+          # Strategy for extracting metric names: llm, substring, fuzzy
+          # - llm: Uses LLM-based extraction (most accurate, slower, costs API calls)
+          # - substring: Direct substring matching (fast, simple)
+          # - fuzzy: Fuzzy matching (balanced accuracy and performance)
+          strategy: fuzzy
+          fuzzy:
+            # Number of fuzzy matches to consider
+            top_k: 10
+            # Minimum similarity score (0-100) to consider a match
+            min_similarity_score: 60
+        semantics:
+          enabled: true
+          # Confidence threshold for semantic validation (1-5 scale)
+          # Queries with confidence_score <= threshold will be marked invalid and regenerated
+          confidence_threshold: 2
+  logs:
+    logql:
+      validator:
+        enabled: true
+      validation:
+        syntax:
+          enabled: true
+        schema:
+          enabled: true
+        semantics:
+          enabled: true
+    splunk:
+      validator:
+        enabled: true
+      validation:
+        syntax:
+          enabled: true
+        schema:
+          enabled: true
+        semantics:
+          enabled: true
+
+metrics:
+  semantic_store:
+    namespace: "default:beer-service"
+
+# Query Generation Cache Configuration
+querygen_cache:
+  enabled: true
+  store: "redis"
+  ttl_in_seconds: 600
+
+# Redis Configuration
+redis:
+  host: "localhost"
+  port: 6380
+  db: 0
+  decode_responses: true
+
+# Semantic Store (ChromaDB) Configuration
+semantic_store:
+  chromadb_host: "localhost"
+  chromadb_port: 8000
+  chromadb_path: null
+  collection_name: "metrics_semantic_metadata"
+
+# Prometheus Configuration
+prometheus:
+  base_url: "http://localhost:9090"
+  timeout: 30
+  auth_token: null
+  service_label: "service"
+
+# Loki Configuration
+loki:
+  base_url: "http://localhost:3100"
+  timeout: 30
+  service_label: "service"
+
+# Splunk Configuration
+splunk:
+  base_url: "https://localhost:8089"
+  timeout: 30
+  auth_token: null
+  index: null
+
+# Debug Configuration
+debug:
+  # Enable logfire for tracing and debugging query generation
+  logfire_enabled: false
+# Environment Variables (set these in your shell)

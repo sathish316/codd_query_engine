@@ -32,7 +32,7 @@ uv run python -m pytest -m "integration and not integration_llm" -s -v
 Run a specific integration test with the following flags for more details:
 
 ```bash
-uv run python -m pytest -m integration -s -v tests/integration/maverick_engine/querygen_engine/agent/logs/test_logql_query_generator_agent_integration.py --log-cli-level=INFO
+uv run python -m pytest -m integration -s -v tests/integration/codd_engine/querygen_engine/agent/logs/test_logql_query_generator_agent_integration.py --log-cli-level=INFO
 ```
 
 Flags explanation:

@@ -2,7 +2,7 @@ version: '3.3'
 services:
   chroma:
     image: chromadb/chroma:latest
-    container_name: maverick_chroma
+    container_name: codd_chroma
     ports:
       - "8000:8000"
     volumes:
@@ -11,14 +11,14 @@ services:
 
   chromadb-admin:
     image: fengzhichao/chromadb-admin:latest
-    container_name: maverick_chromadb-admin
+    container_name: codd_chromadb-admin
     ports:
       - "3001:3001"
     restart: unless-stopped
 
   redis:
       image: redis/redis-stack-server:latest
-      container_name: maverick_redis
+      container_name: codd_redis
       command: ["redis-stack-server", "--port", "6380"]
       ports:
         - "6380:6380"
@@ -27,7 +27,7 @@ services:
 
   # qdrant:
   #   image: qdrant/qdrant:latest
-  #   container_name: maverick_qdrant
+  #   container_name: codd_qdrant
   #   ports:
   #     - "6333:6333" # HTTP API & Dashboard
   #     - "6334:6334" # gRPC API

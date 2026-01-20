@@ -1,3 +1,0 @@
-maverick-lib
-typer>=0.19.2
-rich>=13.0.0

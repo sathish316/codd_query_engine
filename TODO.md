@@ -76,9 +76,9 @@
     - [ ] Query validation
     - [ ] NL2SQL Evalsuite
 - [ ] Service
-    - [X] Maverick REST APIs
-    - [X] Maverick MCP server
-    - [ ] Maverick Skills
+    - [X] Codd REST APIs
+    - [X] Codd MCP server
+    - [ ] Codd Skills
 - [X] Sandbox service
     - [X] Beer service
     - [X] Train ticket services

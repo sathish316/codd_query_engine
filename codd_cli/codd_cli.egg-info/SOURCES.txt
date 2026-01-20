@@ -1,0 +1,10 @@
+README.md
+pyproject.toml
+codd_cli/__init__.py
+codd_cli/cli.py
+codd_cli.egg-info/PKG-INFO
+codd_cli.egg-info/SOURCES.txt
+codd_cli.egg-info/dependency_links.txt
+codd_cli.egg-info/entry_points.txt
+codd_cli.egg-info/requires.txt
+codd_cli.egg-info/top_level.txt

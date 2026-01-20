@@ -118,7 +118,7 @@ After analyzing requirements, create this file containing:
 - Do not create code files, test files, or other documentation types
 - Do not modify wiki files created by other agents
 
-**Example filename**: `wiki/DREAM_TEAM_PLAN_maverickv2-me7-redis_metadata_store.md`
+**Example filename**: `wiki/DREAM_TEAM_PLAN_coddv2-me7-redis_metadata_store.md`
 
 **MEMORY Updates:**
 

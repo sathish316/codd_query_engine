@@ -8,37 +8,37 @@ and grouping to validate query generation works correctly across various cases.
 import pytest
 import redis
 
-from maverick_engine.querygen_engine.metrics.structured_inputs import (
+from codd_engine.querygen_engine.metrics.structured_inputs import (
     MetricsQueryIntent,
     AggregationFunctionSuggestion,
 )
-from maverick_engine.querygen_engine.agent.metrics.promql_query_generator_agent import (
+from codd_engine.querygen_engine.agent.metrics.promql_query_generator_agent import (
     PromQLQueryGeneratorAgent,
 )
-from maverick_engine.querygen_engine.metrics.preprocessor.promql_querygen_preprocessor import (
+from codd_engine.querygen_engine.metrics.preprocessor.promql_querygen_preprocessor import (
     PromQLQuerygenPreprocessor,
 )
-from maverick_engine.validation_engine.metrics.promql_validator import PromQLValidator
-from maverick_engine.validation_engine.metrics.syntax.promql_syntax_validator import (
+from codd_engine.validation_engine.metrics.promql_validator import PromQLValidator
+from codd_engine.validation_engine.metrics.syntax.promql_syntax_validator import (
     PromQLSyntaxValidator,
 )
-from maverick_engine.validation_engine.metrics.schema.metrics_schema_validator import (
+from codd_engine.validation_engine.metrics.schema.metrics_schema_validator import (
     MetricsSchemaValidator,
 )
-from maverick_engine.validation_engine.metrics.schema.substring_metric_parser import (
+from codd_engine.validation_engine.metrics.schema.substring_metric_parser import (
     SubstringMetricParser,
 )
-from maverick_engine.validation_engine.metrics.semantics.promql_semantics_validator import (
+from codd_engine.validation_engine.metrics.semantics.promql_semantics_validator import (
     PromQLSemanticsValidator,
 )
-from maverick_dal.metrics.metrics_metadata_store import MetricsMetadataStore
-from maverick_engine.utils.file_utils import expand_path
+from codd_dal.metrics.metrics_metadata_store import MetricsMetadataStore
+from codd_engine.utils.file_utils import expand_path
 from opus_agent_base.config.config_manager import ConfigManager
 from opus_agent_base.prompt.instructions_manager import InstructionsManager
-from maverick_engine.validation_engine.agent.metrics.promql_metricname_extractor_agent import (
+from codd_engine.validation_engine.agent.metrics.promql_metricname_extractor_agent import (
     PromQLMetricNameExtractorAgent,
 )
-from maverick_engine.validation_engine.metrics.schema.fuzzy_metric_parser import (
+from codd_engine.validation_engine.metrics.schema.fuzzy_metric_parser import (
     FuzzyMetricParser,
 )
 
@@ -148,7 +148,7 @@ class TestPromQLQueryGenEvalsIntegration:
     @pytest.fixture
     def config_manager(self):
         """Initialize ConfigManager for agents."""
-        return ConfigManager(expand_path("$HOME/.maverick_test"), "config.yml")
+        return ConfigManager(expand_path("$HOME/.codd_test"), "config.yml")
 
     @pytest.fixture
     def instructions_manager(self):

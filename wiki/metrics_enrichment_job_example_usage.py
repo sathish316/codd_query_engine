@@ -10,8 +10,8 @@ import logging
 import chromadb
 import redis
 
-from maverick_jobs.metrics_semantic_indexer_job import MetricsSemanticIndexerJob
-from maverick_lib.config import PrometheusConfig
+from codd_jobs.metrics_semantic_indexer_job import MetricsSemanticIndexerJob
+from codd_lib.config import PrometheusConfig
 
 from opus_agent_base.config.config_manager import ConfigManager
 from opus_agent_base.prompt.instructions_manager import InstructionsManager

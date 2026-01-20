@@ -1,5 +1,5 @@
 def main():
-    print("Hello from maverick_query_engine!")
+    print("Hello from codd_query_engine!")
 
 
 if __name__ == "__main__":

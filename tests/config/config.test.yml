@@ -1,7 +1,7 @@
 # Agent Configuration
 agent:
-  name: "maverick-engine-agent"
-  description: "Maverick Engine Agent for Text2SQL and NL2SQL query generation and validation"
+  name: "codd-engine-agent"
+  description: "Codd Engine Agent for Text2SQL and NL2SQL query generation and validation"
 
 # Model Configuration
 model_config:

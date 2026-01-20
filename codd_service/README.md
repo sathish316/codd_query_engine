@@ -1,0 +1,243 @@
+# Codd Service
+
+FastAPI REST service for Codd query engine.
+
+## Features
+
+- FastAPI-based REST API
+- Metrics search using semantic search
+- PromQL query generation for Prometheus
+- LogQL query generation for Loki
+- Splunk SPL query generation
+- Auto-generated OpenAPI documentation
+- Health check endpoint
+- Comprehensive test coverage (unit + E2E integration tests)
+
+## Installation
+
+```bash
+# Install in the workspace
+uv sync
+```
+
+## Quick Start
+
+### Prerequisites
+
+- Python 3.13+
+- Redis (for caching)
+- ChromaDB (for semantic search)
+- Environment variables for LLM API access (if using query generation features)
+
+### Starting the Service
+
+1. **Install dependencies:**
+   ```bash
+   # From workspace root
+   uv sync
+   ```
+
+2. **Start the service:**
+   ```bash
+   # Run with uvicorn (from workspace root)
+   uv run uvicorn codd_service.main:app --reload
+
+   # Or specify host and port (default is 2840)
+   uv run uvicorn codd_service.main:app --host 0.0.0.0 --port 2840 --reload
+   ```
+
+3. **Verify the service is running:**
+   ```bash
+   curl http://localhost:2840/health
+   ```
+
+### Accessing the API
+
+The service will be available at:
+- **API Base URL:** http://localhost:2840
+- **Interactive Swagger Docs:** http://localhost:2840/docs
+- **Alternative ReDoc:** http://localhost:2840/redoc
+- **OpenAPI JSON:** http://localhost:2840/openapi.json
+
+### Using Postman
+
+1. **Import the Postman collection:**
+   - Open Postman
+   - Click "Import" button
+   - Select the file: `codd_service/scripts/postman/codd_service_collection.json`
+
+2. **Configure environment:**
+   - The collection uses a variable `{{baseUrl}}` set to `http://localhost:2840`
+   - If your service runs on a different host/port, update this variable in Postman
+
+3. **Try the APIs:**
+   - Start with the "Health Check" request to verify connectivity
+   - Explore the "Metrics" and "Logs" folders for observability operations
+   - Each request includes example payloads that you can modify
+
+## API Endpoints
+
+### Root Endpoints
+
+**GET /**
+- Root endpoint with service information
+- Response: `{"message": "Welcome to Codd Service", "version": "0.1.0", "docs": "/docs"}`
+
+**GET /health**
+- Health check endpoint
+- Response: `{"status": "healthy"}`
+
+### Metrics Endpoints
+
+**POST /api/metrics/search**
+- Search for relevant metrics using semantic search
+- Request Body:
+  ```json
+  {
+    "query": "API request latency",
+    "limit": 5
+  }
+  ```
+- Response:
+  ```json
+  {
+    "results": [
+      {
+        "metric_name": "http_request_duration_seconds",
+        "similarity_score": 0.85,
+        "description": "HTTP request duration",
+        "metric_type": "histogram"
+      }
+    ],
+    "count": 1
+  }
+  ```
+
+**POST /api/metrics/promql/generate**
+- Generate a PromQL query from metrics query intent
+- Request Body:
+  ```json
+  {
+    "description": "API error rate for payment service",
+    "namespace": "production",
+    "metric_name": "http_requests_total",
+    "aggregation": "rate",
+    "filters": {"service": "payments", "status": "500"}
+  }
+  ```
+- Response:
+  ```json
+  {
+    "query": "rate(http_requests_total{service=\"payments\", status=\"500\"}[5m])",
+    "success": true,
+    "error": null
+  }
+  ```
+
+### Logs Endpoints
+
+**POST /api/logs/logql/generate**
+- Generate a LogQL query for Loki
+- Request Body:
+  ```json
+  {
+    "description": "Find error logs in payment service",
+    "service": "payments",
+    "patterns": [
+      {"pattern": "error", "level": "error"},
+      {"pattern": "timeout"}
+    ],
+    "namespace": "production",
+    "limit": 200
+  }
+  ```
+- Response:
+  ```json
+  {
+    "query": "{service=\"payments\"} |~ \"error\" | level=\"error\"",
+    "backend": "loki",
+    "success": true,
+    "error": null
+  }
+  ```
+
+**POST /api/logs/splunk/generate**
+- Generate a Splunk SPL query
+- Request Body:
+  ```json
+  {
+    "description": "Search for timeout errors",
+    "service": "api-gateway",
+    "patterns": [
+      {"pattern": "timeout", "level": "error"}
+    ],
+    "limit": 100
+  }
+  ```
+- Response:
+  ```json
+  {
+    "query": "search service=\"api-gateway\" level=\"error\" \"timeout\" | head 100",
+    "backend": "splunk",
+    "success": true,
+    "error": null
+  }
+  ```
+
+## Testing
+
+The service includes comprehensive test coverage with both unit tests and E2E integration tests.
+
+```bash
+# Run all tests
+uv run pytest codd_service/tests -v
+
+# Run specific test files
+uv run pytest codd_service/tests/test_integration.py -v
+uv run pytest codd_service/tests/test_metrics_controller.py -v
+uv run pytest codd_service/tests/test_logs_controller.py -v
+
+# Run with coverage
+uv run pytest codd_service/tests --cov=codd_service
+
+# Run only unit tests (with mocking)
+uv run pytest codd_service/tests/test_*_controller.py -v
+
+# Run only E2E integration tests (no mocking)
+uv run pytest codd_service/tests/test_integration.py -v
+```
+
+## Development
+
+The service is organized with:
+- `codd_service/main.py`: Main FastAPI application with router registration
+- `codd_service/api/controllers/`: API endpoint controllers
+  - `metrics_controller.py`: Metrics search and PromQL generation
+  - `logs_controller.py`: LogQL and Splunk query generation
+  - `hello_controller.py`: Example endpoints
+- `codd_service/tests/`: Test suite
+  - `test_integration.py`: E2E integration tests
+  - `test_metrics_controller.py`: Unit tests for metrics endpoints
+  - `test_logs_controller.py`: Unit tests for logs endpoints
+  - `test_hello_controller.py`: Unit tests for example endpoints
+- `codd_service/scripts/postman/`: Postman collection for API testing
+
+### Architecture
+
+The service uses:
+- **FastAPI** for REST API framework
+- **Pydantic** for request/response validation
+- **codd_lib** for business logic (metrics search, query generation)
+- **httpx** for HTTP client operations
+- Singleton pattern for CoddClient to optimize resource usage
+
+## Related Services
+
+### Codd MCP Server
+
+The `codd_mcp_server` package provides an MCP (Model Context Protocol) server that exposes the same functionality as this REST service. The MCP server uses HTTP client to connect to this service, making it easy to integrate with Claude Desktop and other MCP clients.
+
+To use the MCP server:
+1. Start this Codd Service (on http://localhost:2840)
+2. Configure the MCP server with `MAVERICK_SERVICE_URL` environment variable if needed
+3. Run the MCP server to expose tools via MCP protocol

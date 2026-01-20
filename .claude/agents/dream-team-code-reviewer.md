@@ -97,7 +97,7 @@ This project uses local markdown files stored in the `wiki/` directory for knowl
 Before starting your code review, you **must** read the implementation plan:
 - **File**: `wiki/DREAM_TEAM_PLAN_<TASK_ID>.md`
 - **Purpose**: Understand what was planned so you can verify the implementation matches the plan
-- **Example**: For task `maverickv2-me7-redis_metadata_store`, read `wiki/DREAM_TEAM_PLAN_maverickv2-me7-redis_metadata_store.md`
+- **Example**: For task `coddv2-me7-redis_metadata_store`, read `wiki/DREAM_TEAM_PLAN_coddv2-me7-redis_metadata_store.md`
 
 **Outgoing Documents:**
 

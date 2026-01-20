@@ -1,0 +1,30 @@
+[project]
+name = "codd-engine"
+version = "0.1.0"
+description = "Codd Engine - Query processing and validation engine"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "codd-dal",
+    "opus-agent-base",
+    "lark>=1.1.9",
+    "pydantic>=2.0.0",
+    "pydantic-ai>=0.0.30",
+    "openai>=1.0.0",
+    "tenacity>=8.0.0",
+    "rapidfuzz>=3.0.0",
+]
+
+[tool.uv.sources]
+codd-dal = { workspace = true }
+
+[project.scripts]
+roulette-agent = "codd_engine.agent.roulette_agent_runner:main"
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = [".."]
+include = ["codd_engine", "codd_engine.*"]

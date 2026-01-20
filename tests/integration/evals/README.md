@@ -15,7 +15,7 @@ These tests validate query generation across multiple scenarios using a property
 
 ## Test Namespace
 
-All tests use the maverick namespace: `**test:text2sql_evals**`
+All tests use the codd namespace: `**test:text2sql_evals**`
 
 ## Running the Tests
 

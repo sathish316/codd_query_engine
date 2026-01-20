@@ -33,7 +33,7 @@ validation_engine/
 
 ### 1. PromQLQueryExplainerAgent
 
-**Location:** `maverick_engine/validation_engine/agent/metrics/promql_query_explainer_agent.py`
+**Location:** `codd_engine/validation_engine/agent/metrics/promql_query_explainer_agent.py`
 
 **Main Methods:**
 
@@ -68,7 +68,7 @@ def explain_query(self, promql_query: str) -> str:
 
 ### 2. SemanticValidationResult
 
-**Location:** `maverick_engine/validation_engine/metrics/structured_outputs.py`
+**Location:** `codd_engine/validation_engine/metrics/structured_outputs.py`
 
 **Structure:**
 
@@ -96,7 +96,7 @@ class SemanticValidationResult(BaseModel):
 
 ### 3. System Prompt
 
-**Location:** `maverick_engine/prompts/agent/metrics/PROMQL_QUERY_EXPLAINER_AGENT_INSTRUCTIONS.md`
+**Location:** `codd_engine/prompts/agent/metrics/PROMQL_QUERY_EXPLAINER_AGENT_INSTRUCTIONS.md`
 
 The system prompt instructs the LLM to:
 - Analyze PromQL query components (metric, filters, aggregations, time windows, grouping)
@@ -109,11 +109,11 @@ The system prompt instructs the LLM to:
 ### Basic Usage
 
 ```python
-from maverick_engine.querygen_engine.metrics.structured_inputs import (
+from codd_engine.querygen_engine.metrics.structured_inputs import (
     MetricsQueryIntent,
     AggregationFunctionSuggestion,
 )
-from maverick_engine.validation_engine import (
+from codd_engine.validation_engine import (
     PromQLQueryExplainerAgent,
     SemanticValidationResult,
 )
@@ -299,7 +299,7 @@ The agent understands that different metric types require different aggregation 
 The agent raises `SemanticValidationError` in these cases:
 
 ```python
-from maverick_engine.validation_engine import SemanticValidationError
+from codd_engine.validation_engine import SemanticValidationError
 
 try:
     result = explainer.validate_semantic_match(intent, query)
@@ -340,12 +340,12 @@ The explainer agent fits into the broader query generation pipeline:
 
 Unit tests are provided in:
 ```
-tests/unit/maverick_engine/validation_engine/agent/metrics/test_promql_query_explainer_agent.py
+tests/unit/codd_engine/validation_engine/agent/metrics/test_promql_query_explainer_agent.py
 ```
 
 Run tests with:
 ```bash
-pytest tests/unit/maverick_engine/validation_engine/agent/metrics/test_promql_query_explainer_agent.py -v
+pytest tests/unit/codd_engine/validation_engine/agent/metrics/test_promql_query_explainer_agent.py -v
 ```
 
 ## Examples
@@ -377,7 +377,7 @@ The agent uses the Opus Agent Framework's configuration system:
 
 Prompts are loaded from:
 ```
-$HOME/.maverick/prompts/agent/metrics/PROMQL_QUERY_EXPLAINER_AGENT_INSTRUCTIONS.md
+$HOME/.codd/prompts/agent/metrics/PROMQL_QUERY_EXPLAINER_AGENT_INSTRUCTIONS.md
 ```
 
 ## Key Features
@@ -409,4 +409,4 @@ Potential improvements:
 
 ## License
 
-Part of the Maverick v2 query generation and validation engine.
+Part of the Codd v2 query generation and validation engine.

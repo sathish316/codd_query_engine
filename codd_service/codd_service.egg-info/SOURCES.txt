@@ -1,0 +1,10 @@
+README.md
+pyproject.toml
+codd_service/__init__.py
+codd_service/main.py
+codd_service.egg-info/PKG-INFO
+codd_service.egg-info/SOURCES.txt
+codd_service.egg-info/dependency_links.txt
+codd_service.egg-info/entry_points.txt
+codd_service.egg-info/requires.txt
+codd_service.egg-info/top_level.txt

@@ -1,0 +1,32 @@
+[project]
+name = "codd-lib"
+version = "0.1.0"
+description = "Codd Client Library - Reusable observability client for metrics and logs"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "codd-engine",
+    "codd-dal",
+    "opus-agent-base",
+    "chromadb>=1.4.0",
+    "redis>=5.0.0",
+    "pydantic>=2.0.0",
+]
+
+[tool.uv.sources]
+codd-engine = { workspace = true }
+codd-dal = { workspace = true }
+
+[dependency-groups]
+dev = [
+    "pytest>=9.0.0",
+    "pytest-cov>=7.0.0",
+    "fakeredis>=2.0.0",
+]
+
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["codd_lib"]

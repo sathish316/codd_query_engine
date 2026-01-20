@@ -1,0 +1,8 @@
+README.md
+pyproject.toml
+codd_lib/__init__.py
+codd_lib.egg-info/PKG-INFO
+codd_lib.egg-info/SOURCES.txt
+codd_lib.egg-info/dependency_links.txt
+codd_lib.egg-info/requires.txt
+codd_lib.egg-info/top_level.txt
