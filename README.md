@@ -36,9 +36,9 @@ See the companion repo [Codd AgentSkills Examples](https://github.com/sathish316
 
 AgentSkills is a portable standard released by Anthropic for packaging AI Skills as a combination of Prompt, Resources, Scripts, MCP servers - https://agentskills.io/home. It is supported by Claude Code, Codex CLI, Cursor etc.
 
-To use Codd as a Skill from Claude Code and other Coding agents, see the companion repo [Codd AgentSkills Examples](https://github.com/sathish316/codd_skills_examples) for examples:
-- [Using Codd Skills for Metrics analysis](https://github.com/sathish316/codd_skills_examples/blob/main/doc/USING_MAVERICK_SKILLS_FROM_CLAUDE_CODE_FOR_METRICS_AND_LOGS_ANALYSIS.md)
-- [Using Codd Skills for Logs analysis](https://github.com/sathish316/codd_skills_examples/blob/main/doc/USING_MAVERICK_SKILLS_FROM_CLAUDE_CODE_FOR_METRICS_AND_LOGS_ANALYSIS.md)
+To use Codd as a Skill from Claude Code and other Coding agents, see the companion repo [Codd Skills Examples](https://github.com/sathish316/codd_skills_examples) for examples:
+- [Using Codd Skills for Metrics analysis](https://github.com/sathish316/codd_skills_examples/blob/main/doc/USING_CODD_SKILLS_FROM_CLAUDE_CODE_FOR_METRICS_AND_LOGS_ANALYSIS.md)
+- [Using Codd Skills for Logs analysis](https://github.com/sathish316/codd_skills_examples/blob/main/doc/USING_CODD_SKILLS_FROM_CLAUDE_CODE_FOR_METRICS_AND_LOGS_ANALYSIS.md)
 - Using Codd Skills for Database queries #TOLINK
 
 LogAnalyzer skill demo - https://youtu.be/T9wKbCRUHMI
